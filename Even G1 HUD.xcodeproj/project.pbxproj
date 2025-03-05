@@ -1,0 +1,563 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		4EEF614E2D77D39D0017F00D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4EEF61352D77D39C0017F00D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4EEF613C2D77D39C0017F00D;
+			remoteInfo = "Even G1 HUD";
+		};
+		4EEF61582D77D39D0017F00D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4EEF61352D77D39C0017F00D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4EEF613C2D77D39C0017F00D;
+			remoteInfo = "Even G1 HUD";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		4EEF613D2D77D39C0017F00D /* Even G1 HUD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Even G1 HUD.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4EEF614D2D77D39D0017F00D /* Even G1 HUDTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Even G1 HUDTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4EEF61572D77D39D0017F00D /* Even G1 HUDUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Even G1 HUDUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4EEF613F2D77D39C0017F00D /* Even G1 HUD */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Even G1 HUD";
+			sourceTree = "<group>";
+		};
+		4EEF61502D77D39D0017F00D /* Even G1 HUDTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Even G1 HUDTests";
+			sourceTree = "<group>";
+		};
+		4EEF615A2D77D39D0017F00D /* Even G1 HUDUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Even G1 HUDUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4EEF613A2D77D39C0017F00D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4EEF614A2D77D39D0017F00D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4EEF61542D77D39D0017F00D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4EEF61342D77D39C0017F00D = {
+			isa = PBXGroup;
+			children = (
+				4EEF613F2D77D39C0017F00D /* Even G1 HUD */,
+				4EEF61502D77D39D0017F00D /* Even G1 HUDTests */,
+				4EEF615A2D77D39D0017F00D /* Even G1 HUDUITests */,
+				4EEF613E2D77D39C0017F00D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4EEF613E2D77D39C0017F00D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4EEF613D2D77D39C0017F00D /* Even G1 HUD.app */,
+				4EEF614D2D77D39D0017F00D /* Even G1 HUDTests.xctest */,
+				4EEF61572D77D39D0017F00D /* Even G1 HUDUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4EEF613C2D77D39C0017F00D /* Even G1 HUD */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4EEF61612D77D39D0017F00D /* Build configuration list for PBXNativeTarget "Even G1 HUD" */;
+			buildPhases = (
+				4EEF61392D77D39C0017F00D /* Sources */,
+				4EEF613A2D77D39C0017F00D /* Frameworks */,
+				4EEF613B2D77D39C0017F00D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4EEF613F2D77D39C0017F00D /* Even G1 HUD */,
+			);
+			name = "Even G1 HUD";
+			packageProductDependencies = (
+			);
+			productName = "Even G1 HUD";
+			productReference = 4EEF613D2D77D39C0017F00D /* Even G1 HUD.app */;
+			productType = "com.apple.product-type.application";
+		};
+		4EEF614C2D77D39D0017F00D /* Even G1 HUDTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4EEF61642D77D39D0017F00D /* Build configuration list for PBXNativeTarget "Even G1 HUDTests" */;
+			buildPhases = (
+				4EEF61492D77D39D0017F00D /* Sources */,
+				4EEF614A2D77D39D0017F00D /* Frameworks */,
+				4EEF614B2D77D39D0017F00D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4EEF614F2D77D39D0017F00D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4EEF61502D77D39D0017F00D /* Even G1 HUDTests */,
+			);
+			name = "Even G1 HUDTests";
+			packageProductDependencies = (
+			);
+			productName = "Even G1 HUDTests";
+			productReference = 4EEF614D2D77D39D0017F00D /* Even G1 HUDTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		4EEF61562D77D39D0017F00D /* Even G1 HUDUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4EEF61672D77D39D0017F00D /* Build configuration list for PBXNativeTarget "Even G1 HUDUITests" */;
+			buildPhases = (
+				4EEF61532D77D39D0017F00D /* Sources */,
+				4EEF61542D77D39D0017F00D /* Frameworks */,
+				4EEF61552D77D39D0017F00D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4EEF61592D77D39D0017F00D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4EEF615A2D77D39D0017F00D /* Even G1 HUDUITests */,
+			);
+			name = "Even G1 HUDUITests";
+			packageProductDependencies = (
+			);
+			productName = "Even G1 HUDUITests";
+			productReference = 4EEF61572D77D39D0017F00D /* Even G1 HUDUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4EEF61352D77D39C0017F00D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					4EEF613C2D77D39C0017F00D = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					4EEF614C2D77D39D0017F00D = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 4EEF613C2D77D39C0017F00D;
+					};
+					4EEF61562D77D39D0017F00D = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 4EEF613C2D77D39C0017F00D;
+					};
+				};
+			};
+			buildConfigurationList = 4EEF61382D77D39C0017F00D /* Build configuration list for PBXProject "Even G1 HUD" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 4EEF61342D77D39C0017F00D;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 4EEF613E2D77D39C0017F00D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4EEF613C2D77D39C0017F00D /* Even G1 HUD */,
+				4EEF614C2D77D39D0017F00D /* Even G1 HUDTests */,
+				4EEF61562D77D39D0017F00D /* Even G1 HUDUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4EEF613B2D77D39C0017F00D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4EEF614B2D77D39D0017F00D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4EEF61552D77D39D0017F00D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4EEF61392D77D39C0017F00D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4EEF61492D77D39D0017F00D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4EEF61532D77D39D0017F00D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4EEF614F2D77D39D0017F00D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4EEF613C2D77D39C0017F00D /* Even G1 HUD */;
+			targetProxy = 4EEF614E2D77D39D0017F00D /* PBXContainerItemProxy */;
+		};
+		4EEF61592D77D39D0017F00D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4EEF613C2D77D39C0017F00D /* Even G1 HUD */;
+			targetProxy = 4EEF61582D77D39D0017F00D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		4EEF615F2D77D39D0017F00D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		4EEF61602D77D39D0017F00D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		4EEF61622D77D39D0017F00D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Even G1 HUD/Preview Content\"";
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUD";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4EEF61632D77D39D0017F00D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Even G1 HUD/Preview Content\"";
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUD";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		4EEF61652D77D39D0017F00D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUDTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Even G1 HUD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Even G1 HUD";
+			};
+			name = Debug;
+		};
+		4EEF61662D77D39D0017F00D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUDTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Even G1 HUD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Even G1 HUD";
+			};
+			name = Release;
+		};
+		4EEF61682D77D39D0017F00D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUDUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Even G1 HUD";
+			};
+			name = Debug;
+		};
+		4EEF61692D77D39D0017F00D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUDUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Even G1 HUD";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4EEF61382D77D39C0017F00D /* Build configuration list for PBXProject "Even G1 HUD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4EEF615F2D77D39D0017F00D /* Debug */,
+				4EEF61602D77D39D0017F00D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4EEF61612D77D39D0017F00D /* Build configuration list for PBXNativeTarget "Even G1 HUD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4EEF61622D77D39D0017F00D /* Debug */,
+				4EEF61632D77D39D0017F00D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4EEF61642D77D39D0017F00D /* Build configuration list for PBXNativeTarget "Even G1 HUDTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4EEF61652D77D39D0017F00D /* Debug */,
+				4EEF61662D77D39D0017F00D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4EEF61672D77D39D0017F00D /* Build configuration list for PBXNativeTarget "Even G1 HUDUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4EEF61682D77D39D0017F00D /* Debug */,
+				4EEF61692D77D39D0017F00D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 4EEF61352D77D39C0017F00D /* Project object */;
+}
