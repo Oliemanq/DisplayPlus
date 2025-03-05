@@ -29,22 +29,9 @@
 		4EEF61572D77D39D0017F00D /* Even G1 HUDUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Even G1 HUDUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		4EEF61A72D781D000017F00D /* Exceptions for "Even G1 HUD" folder in "Even G1 HUD" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"Even-G1-HUD-Info.plist",
-			);
-			target = 4EEF613C2D77D39C0017F00D /* Even G1 HUD */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		4EEF613F2D77D39C0017F00D /* Even G1 HUD */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				4EEF61A72D781D000017F00D /* Exceptions for "Even G1 HUD" folder in "Even G1 HUD" target */,
-			);
 			path = "Even G1 HUD";
 			sourceTree = "<group>";
 		};

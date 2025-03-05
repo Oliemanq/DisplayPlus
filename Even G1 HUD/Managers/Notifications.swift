@@ -1,99 +1,41 @@
+import SwiftUI
 import UserNotifications
 
-class NotificationContentManager: NSObject, UNUserNotificationCenterDelegate {
-    static let shared = NotificationContentManager()
-    
-    private override init() {
-        super.init()
-        UNUserNotificationCenter.current().delegate = self
+// Create a class to act as the UNUserNotificationCenterDelegate
+class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+
+    // Delegate method called when a notification is about to be presented while the app is in the foreground.
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        print(">>> userNotificationCenter:willPresent: called! Title: \(notification.request.content.title)") // ADD THIS LINE
+        print("Notification will be presented: \(notification.request.content.title)")
+        processNotification(notification: notification)
+        completionHandler([.banner, .sound]) // Example: Present as banner and sound on iOS device as well.
     }
-    
-    func requestNotificationAccess(completion: @escaping (Bool) -> Void) {
-            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
-                if let error = error {
-                    print("🚨 Notification Authorization Error: \(error.localizedDescription)")
-                }
-                
-                DispatchQueue.main.async {
-                    completion(granted)
-                }
-            }
-        }
-    
-    func extractNotificationDetails(notification: UNNotification) -> [String: Any] {
-        let request = notification.request
-        let content = request.content
-        
-        return [
-            "title": content.title,
-            "body": content.body,
-            "subtitle": content.subtitle,
-            "threadIdentifier": content.threadIdentifier,
-            "categoryIdentifier": content.categoryIdentifier,
-            "bundleIdentifier": request.identifier, // Changed this line
-            "timestamp": notification.date
-        ]
-    }
-    
-    func getDeliveredNotifications(completion: @escaping ([UNNotification]) -> Void) {
-        UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
-            print("Total Delivered Notifications: \(notifications.count)")
-            
-            for notification in notifications {
-                let details = self.extractNotificationDetails(notification: notification)
-                print("Notification Details:")
-                print(details)
-            }
-            
-            completion(notifications)
-        }
-    }
-    
-    func getNotificationsForApp(bundleIdentifier: String, completion: @escaping ([UNNotification]) -> Void) {
-        UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
-            print("Checking Notifications for Bundle: \(bundleIdentifier)")
-            print("Total Notifications to Check: \(notifications.count)")
-            
-            let appNotifications = notifications.filter { notification in
-                // Print out request details for debugging
-                print("Notification Request Identifier: \(notification.request.identifier)")
-                print("Notification Content Description: \(notification.request.content.description)")
-                
-                return true // Temporarily return all notifications
-            }
-            
-            print("App-Specific Notifications Found: \(appNotifications.count)")
-            completion(appNotifications)
-        }
-    }
-    
-    // UNUserNotificationCenterDelegate Methods
-    func userNotificationCenter(_ center: UNUserNotificationCenter,
-                                willPresent notification: UNNotification,
-                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.banner, .sound])
-    }
-    
-    func userNotificationCenter(_ center: UNUserNotificationCenter,
-                                didReceive response: UNNotificationResponse,
-                                withCompletionHandler completionHandler: @escaping () -> Void) {
-        let notification = response.notification
-        let details = extractNotificationDetails(notification: notification)
-        print("Notification tapped: \(details)")
-        
+
+    // Delegate method called when the user interacts with a notification (e.g., taps on it) or when a notification is delivered while the app is in the background and brought to foreground because of the notification.
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        print(">>> userNotificationCenter:didReceive: called! Title: \(response.notification.request.content.title)") // ADD THIS LINE
+        print("Notification was received: \(response.notification.request.content.title)")
+        processNotification(notification: response.notification)
         completionHandler()
     }
-    func getAllNotifications() {
-        UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
-            print("Total Notifications: \(notifications.count)")
-            
-            for notification in notifications {
-                let content = notification.request.content
-                print("---")
-                print("Title: \(content.title)")
-                print("Body: \(content.body)")
-                print("Subtitle: \(content.subtitle)")
-            }
-        }
+
+    private func processNotification(notification: UNNotification) {
+        let content = notification.request.content
+        let title = content.title
+        let subtitle = content.subtitle
+        let body = content.body
+
+        // Create a string representation of the notification content.
+        // You can customize the format as needed for your BLE device.
+        let notificationString = "Title: \(title)\nSubtitle: \(subtitle)\nBody: \(body)"
+
+        print("Notification String: \(notificationString)")
+
+        // *** HERE IS WHERE YOU WOULD INTEGRATE YOUR BLE SENDING CODE ***
+        // Use 'notificationString' to send the notification data
+        // to your BLE device using your existing BLE communication methods.
+        // Example:
+        // myBLEManager.sendNotificationData(notificationString: notificationString)
     }
 }
