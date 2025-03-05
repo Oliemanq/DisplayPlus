@@ -35,16 +35,6 @@
 			path = "Even G1 HUD";
 			sourceTree = "<group>";
 		};
-		4EEF61502D77D39D0017F00D /* Even G1 HUDTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Even G1 HUDTests";
-			sourceTree = "<group>";
-		};
-		4EEF615A2D77D39D0017F00D /* Even G1 HUDUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Even G1 HUDUITests";
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,8 +66,6 @@
 			isa = PBXGroup;
 			children = (
 				4EEF613F2D77D39C0017F00D /* Even G1 HUD */,
-				4EEF61502D77D39D0017F00D /* Even G1 HUDTests */,
-				4EEF615A2D77D39D0017F00D /* Even G1 HUDUITests */,
 				4EEF613E2D77D39C0017F00D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -130,9 +118,6 @@
 			dependencies = (
 				4EEF614F2D77D39D0017F00D /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				4EEF61502D77D39D0017F00D /* Even G1 HUDTests */,
-			);
 			name = "Even G1 HUDTests";
 			packageProductDependencies = (
 			);
@@ -152,9 +137,6 @@
 			);
 			dependencies = (
 				4EEF61592D77D39D0017F00D /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				4EEF615A2D77D39D0017F00D /* Even G1 HUDUITests */,
 			);
 			name = "Even G1 HUDUITests";
 			packageProductDependencies = (
