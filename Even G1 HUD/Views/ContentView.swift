@@ -15,19 +15,27 @@ struct ContentView: View {
         NavigationStack{
             Text("Do you want to see the other views?")
             HStack{
-                Button("Yes"){
-                    showViewsButton = true
-                }.frame(width: 75, height: 50)
-                .buttonStyle(.borderedProminent)
-                
+                Button("Yes") {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        showViewsButton = true
+                    }
+                }
+                .buttonStyle(.bordered)
+
                 
                 Button("No"){
-                    showViewsButton = false
-                }.frame(width: 75, height: 50)
-                    .buttonStyle(.borderedProminent)
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.9)) {
+                        showViewsButton = false
+                    }
+                }
+                .buttonStyle(.bordered)
+                
             }
-            NavigationLink("Go to views", destination: FirstView())
+            NavigationLink("Go to views", destination: HUDDebug())
                 .disabled(!showViewsButton)
+                .padding(10)
+                .buttonStyle(.borderedProminent)
+                .scaleEffect(showViewsButton ? 1.5 : 1 )
             
         }
     }
