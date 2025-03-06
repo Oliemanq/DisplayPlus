@@ -4,5 +4,15 @@
 <dict>
 	<key>NSUserNotificationUsageDescription</key>
 	<string>This is needed to mirror notifications to BLE devices</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>processing</string>
+		<string>fetch</string>
+		<string>location</string>
+		<string>remote-notification</string>
+		<string>bluetooth-central</string>
+		<string>nearby-interaction</string>
+	</array>
 </dict>
 </plist>

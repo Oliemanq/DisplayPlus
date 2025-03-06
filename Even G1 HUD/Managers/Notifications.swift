@@ -1,9 +1,12 @@
 import SwiftUI
 import UserNotifications
+import Combine
 
 // Create a class to act as the UNUserNotificationCenterDelegate
 class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
-
+    @Published public var recentNotification: notification = notification()
+    @Published public var Notifications: [notification] = []
+    
     // Delegate method called when a notification is about to be presented while the app is in the foreground.
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         print(">>> userNotificationCenter:willPresent: called! Title: \(notification.request.content.title)") // ADD THIS LINE
@@ -11,7 +14,6 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         processNotification(notification: notification)
         completionHandler([.banner, .sound]) // Example: Present as banner and sound on iOS device as well.
     }
-
     // Delegate method called when the user interacts with a notification (e.g., taps on it) or when a notification is delivered while the app is in the background and brought to foreground because of the notification.
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         print(">>> userNotificationCenter:didReceive: called! Title: \(response.notification.request.content.title)") // ADD THIS LINE
@@ -38,4 +40,23 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         // Example:
         // myBLEManager.sendNotificationData(notificationString: notificationString)
     }
+    
+    func updateRecentNotif(title: String?, subtitle: String?, body: String?){
+            recentNotification.title = title ?? ""
+            recentNotification.subtitle = subtitle ?? ""
+            recentNotification.body = body ?? ""
+            
+            Notifications.append(recentNotification)
+        }
 }
+struct notification: Identifiable {
+    let id = UUID()
+    var title: String?
+    var subtitle: String?
+    var body: String?
+    
+    func fullNotification() -> String {
+        return "\(title ?? "")\n\(subtitle ?? "")\n\(body ?? "")"
+    }
+}
+
