@@ -31,7 +31,7 @@ struct ContentView: View {
                 .buttonStyle(.bordered)
                 
             }
-            NavigationLink("Go to views", destination: HUDDebug())
+            NavigationLink("HUD Debug view", destination: HUDDebug())
                 .disabled(!showViewsButton)
                 .padding(10)
                 .buttonStyle(.borderedProminent)

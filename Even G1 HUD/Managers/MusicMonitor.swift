@@ -12,7 +12,7 @@ import Combine
 
 class MusicMonitor: ObservableObject {
     private let player = MPMusicPlayerController.systemMusicPlayer
-    @Published var curSong: Song = Song(title: "", artist: "", album: "", bpm: 0, duration: "", currentTime: "")
+    @Published var curSong: Song = Song(title: "", artist: "", album: "", bpm: 0, duration: .zero, currentTime: .zero)
     private var songMatch: Bool = false
     
     
@@ -33,11 +33,11 @@ class MusicMonitor: ObservableObject {
         let tempDuration = Duration(
             secondsComponent: Int64(nowPlayingItem?.playbackDuration ?? .zero),
             attosecondsComponent: 0
-        ).formatted(.time(pattern: .minuteSecond))
+        )
         let tempCurrentTime = Duration(
             secondsComponent: Int64(player.currentPlaybackTime),
             attosecondsComponent: 0
-        ).formatted(.time(pattern: .minuteSecond))
+        )
         
         curSong = Song(title: nowPlayingItem?.title ?? "No Title",
                        artist: nowPlayingItem?.artist ?? "No Artist",
@@ -59,6 +59,6 @@ struct Song{
     var artist: String
     var album: String
     var bpm: Int
-    var duration: String
-    var currentTime: String
+    var duration: Duration
+    var currentTime: Duration
 }

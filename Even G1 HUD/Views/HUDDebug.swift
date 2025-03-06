@@ -1,33 +1,20 @@
-//
-//  SecondView.swift
-//  Even G1 HUD
-//
-//  Created by Oliver Heisel on 3/4/25.
-//
-
 import SwiftUI
-import UserNotifications
 import Combine
+import MediaPlayer
 
 struct HUDDebug: View {
     @State var time = Date().formatted(date: .omitted, time: .shortened)
-    
     let musicMonitor = MusicMonitor()
     @State private var curSong = MusicMonitor.init().curSong
-    
-    
-    
+    @State private var timer: Timer? = nil
+    @State private var progressBar: CGFloat = 0.0
     
     var body: some View {
-        var durationBar = (Double(curSong.currentTime) ?? 0)/(Double(curSong.duration) ?? 0)
-
         NavigationStack{
             VStack {
                 List {
-                    //Showing current time
                     Text(time)
                     
-                    //Showing current playing song details
                     VStack(alignment: .leading){
                         Text(curSong.title).font(.headline)
                         HStack{
@@ -35,38 +22,28 @@ struct HUDDebug: View {
                             Text(curSong.artist).font(.subheadline)
                         }
                         HStack{
-                            ProgressView(value: durationBar)
-                            Text(String(describing: curSong.duration)).font(.caption)
-                            
+                            ProgressView(value: progressBar)
+                            Text(String(describing: curSong.duration.formatted(.time(pattern: .minuteSecond)))).font(.caption)
                         }
                     }
-                    
-                    
                 }
             }
         }
         .navigationTitle("Debug screen")
-        .onAppear{
-            musicMonitor.updateCurrentSong()
-            curSong = musicMonitor.curSong
-            
-            // Create a timer that fires every second
-            let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-            
-            // Store the subscription so it can be cancelled later if needed
-            let cancellable = timer.sink { _ in
-                // Using the main thread for UI updates
-                DispatchQueue.main.async {
-                    // These need to be marked with self to trigger view updates
-                    self.time = Date().formatted(date: .omitted, time: .shortened)
-                    musicMonitor.updateCurrentSong()
-                    self.curSong = musicMonitor.curSong
-                }
+        .onAppear {
+            // Create and store the timer
+            self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+                self.time = Date().formatted(date: .omitted, time: .shortened)
+                self.musicMonitor.updateCurrentSong()
+                self.curSong = self.musicMonitor.curSong
+                self.progressBar = CGFloat(self.curSong.currentTime / self.curSong.duration)
+
             }
         }
+        .onDisappear {
+            // Clean up timer when view disappears
+            self.timer?.invalidate()
+            self.timer = nil
+        }
     }
-}
-
-#Preview {
-    HUDDebug()
 }
