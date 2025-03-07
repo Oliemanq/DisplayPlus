@@ -385,6 +385,7 @@
 				INFOPLIST_FILE = "Even-G1-HUD-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "This is needed to get the current playing media to display on the glasses";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "This is needed to display upcoming events";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -418,6 +419,7 @@
 				INFOPLIST_FILE = "Even-G1-HUD-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "This is needed to get the current playing media to display on the glasses";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "This is needed to display upcoming events";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
