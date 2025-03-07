@@ -18,6 +18,8 @@ struct HUDDebug: View {
 
     
     private let cal = CalendarManager()
+
+    private let daysOfWeek: [String] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     
     let formatter = DateFormatter()
     
@@ -28,8 +30,18 @@ struct HUDDebug: View {
             VStack {
                 List {
                     //Time
-                    Text(time)
-                    
+                    VStack{
+                        Text(time)
+                        HStack{
+                            ForEach(daysOfWeek, id: \.self) { day in
+                                if day == getTodayWeekDay() {
+                                    Text(day).bold().padding(0).frame(width: 30, height: 20).overlay(RoundedRectangle(cornerRadius: 5, style: .continuous).stroke(Color.black, lineWidth: 1))
+                                }else{
+                                    Text(day).padding(-1)
+                                }
+                            }
+                        }
+                    }
                     //Current playing music plus progress bar
                     VStack(alignment: .leading){
                         Text(curSong.title).font(.headline)
@@ -119,5 +131,11 @@ struct HUDDebug: View {
                 }
             }
         }
+    }
+    func getTodayWeekDay()-> String{
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "EEE"
+        let weekDay = dateFormatter.string(from: Date())
+        return weekDay
     }
 }
