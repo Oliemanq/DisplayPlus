@@ -106,12 +106,15 @@ class CalendarManager {
         print("Found \(events.count) events for today (including all-day)")
         
         // Filter out all-day events
-        let filteredEvents = events.filter { event in
+        var filteredEvents = events.filter { event in
             return !event.isAllDay // Keep events that are NOT all-day
         }
         print("Found \(filteredEvents.count) events for today (excluding all-day)")
         
-        
+        filteredEvents = events.filter { event in
+            return event.calendar.title == "Canvas"
+        }
+        print("Found \(filteredEvents.count) events for today (excluding all-day and canvas)")
         completion(.success(filteredEvents))
     }
 }
