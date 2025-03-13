@@ -18,7 +18,6 @@ struct HUDDebug: View {
 
     
     private let cal = CalendarManager()
-
     private let daysOfWeek: [String] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     
     let formatter = DateFormatter()
