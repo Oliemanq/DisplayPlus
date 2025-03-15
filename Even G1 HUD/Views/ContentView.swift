@@ -9,8 +9,10 @@ import SwiftUI
 import EventKit
 
 struct ContentView: View {
-    @State var bleManager = G1BLEManager()
-    @State private var counter: Int = 0
+    @State var displayManager = DisplayManager()
+    @State var currentPage = "Default"
+    @State var bleManager: G1BLEManager = G1BLEManager()
+    @State var counter: Int = 0
     
     @State private var showViewsButton = false
     
@@ -35,6 +37,20 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack{
+            Button("Start scan"){
+                bleManager.startScan()
+            }.buttonStyle(.borderedProminent)
+            
+            Button("Cycle through pages\nCurrent page: \(currentPage)"){
+                if currentPage == "Default"{
+                    currentPage = "Music"
+                    displayManager.currentPage = "Music"
+                }else if currentPage == "Music"{
+                    currentPage = "Default"
+                    displayManager.currentPage = "Default"
+                }
+                print(currentPage)
+            }.buttonStyle(.borderedProminent)
             
             Text(bleManager.connectionStatus)
             
@@ -45,13 +61,11 @@ struct ContentView: View {
         }
         .onAppear {
             // Create and store the timer
-            bleManager.startScan()
-            timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-                updateHUDInfo()
+            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
                 counter += 1
-                let songProgBars = getSongProgAsBar(progress: progressBar, width: 20)
-                let textToSend = "  \(time) - \(getTodayWeekDay())\n\n  \(curSong.title)\n  \(curSong.artist) \n        \(songProgBars)"
-                bleManager.sendTextCommand(seq: UInt8(counter), text: textToSend)
+                displayManager.updateHUDInfo()
+                var currentDisplay = mainDisplayLoop()
+                bleManager.sendTextCommand(seq: UInt8(self.counter), text: currentDisplay)
             }
         }
         .onDisappear {
@@ -59,27 +73,21 @@ struct ContentView: View {
             timer?.invalidate()
         }
     }
-    func updateHUDInfo(){
-        time = Date().formatted(date: .omitted, time: .shortened)
-        musicMonitor.updateCurrentSong()
-        curSong = musicMonitor.curSong
-        progressBar = CGFloat(curSong.currentTime / curSong.duration)
+    func mainDisplayLoop() -> String{
+        print(currentPage)
+        if currentPage == "Default"{
+            return displayManager.defaultDisplay()
+        }else if currentPage == "Music"{
+            return displayManager.musicDisplay()
+        }else{
+            return "No page selected"
+        }
     }
-    func getTodayWeekDay()-> String{
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "EEE"
-        let weekDay = dateFormatter.string(from: Date())
-        return weekDay
-    }
-    func getSongProgAsBar(progress: Double, width: Int = 20) -> String{
-        let filledLength = Int(progress * Double(width))
-            let bar = String(repeating: "-", count: filledLength) + String(repeating: "_", count: width - filledLength)
-        return "\(curSong.currentTime.formatted(.time(pattern: .minuteSecond)))  \(bar) \(curSong.duration.formatted(.time(pattern: .minuteSecond)))"
-        
-    }
+    
 }
 
 
 #Preview {
     ContentView()
 }
+
