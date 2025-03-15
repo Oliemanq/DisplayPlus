@@ -17,7 +17,6 @@ struct ContentView: View {
     @State private var showViewsButton = false
     
     @State var time = Date().formatted(date: .omitted, time: .shortened)
-    @State private var curSong = MusicMonitor.init().curSong
     @State private var timer: Timer?
     @State private var progressBar: CGFloat = 0.0
     
@@ -49,7 +48,6 @@ struct ContentView: View {
                     currentPage = "Default"
                     displayManager.currentPage = "Default"
                 }
-                print(currentPage)
             }.buttonStyle(.borderedProminent)
             
             Text(bleManager.connectionStatus)
@@ -64,7 +62,7 @@ struct ContentView: View {
             timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
                 counter += 1
                 displayManager.updateHUDInfo()
-                var currentDisplay = mainDisplayLoop()
+                let currentDisplay = mainDisplayLoop()
                 bleManager.sendTextCommand(seq: UInt8(self.counter), text: currentDisplay)
             }
         }

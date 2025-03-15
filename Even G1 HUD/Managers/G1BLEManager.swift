@@ -308,10 +308,10 @@ extension G1BLEManager: CBPeripheralDelegate {
       }
       
       func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-          guard let data = characteristic.value else { return }
+          //guard let data = characteristic.value else { return }
           // Here you can parse incoming data from leftRChar/rightRChar
           // For example:
-          print("Received from \(peripheral.name ?? "unknown") (uuid: \(characteristic.uuid)): \(data as NSData)")
+          //print("Received from \(peripheral.name ?? "unknown") (uuid: \(characteristic.uuid)): \(data as NSData)")
       }
       
       // Called if a write with response completes

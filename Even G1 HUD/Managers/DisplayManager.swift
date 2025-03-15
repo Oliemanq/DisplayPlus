@@ -18,8 +18,8 @@ class DisplayManager {
     var time = Date().formatted(date: .omitted, time: .shortened)
     var timer: Timer?
     
-    @State var musicMonitor: MusicMonitor = MusicMonitor()
-    @State var curSong = MusicMonitor.init().curSong
+    @State var musicMonitor: MusicMonitor = MusicMonitor.init()
+    @State var songProgAsBars: String = ""
     
     @State private var progressBar: CGFloat = 0.0
     @State private var counter: Int = 0
@@ -30,25 +30,20 @@ class DisplayManager {
     func updateHUDInfo(){
         time = Date().formatted(date: .omitted, time: .shortened)
         musicMonitor.updateCurrentSong()
-        curSong = musicMonitor.curSong
+        songProgAsBars = progressBar(
+            value: Double(musicMonitor.curSong.currentTime.components.seconds/musicMonitor.curSong.duration.components.seconds),
+            max: Double(musicMonitor.curSong.duration.components.seconds),
+            width: 50
+        )
+        print(musicMonitor.curSong.title)
     }
-    
-    
-    
-    
+
     func defaultDisplay() -> String{
-        print("Ran default")
         currentPage = "Default"
-        return "\(centerText(text: "\(time)  \(getTodayWeekDay())"))\n\n  \(curSong.title)\n  \(curSong.artist)"
+        return "\(centerText(text: "\(time)  \(getTodayWeekDay())"))\n\n  \(musicMonitor.curSong.title)\n  \(musicMonitor.curSong.artist)"
     }
     func musicDisplay() -> String{
-        print("Ran music")
-        let songProgAsBars = progressBar(
-            value: Double(curSong.currentTime.components.seconds/curSong.duration.components.seconds),
-            max: Double(curSong.duration.components.seconds),
-            width: 20
-        )
-         return "\(centerText(text: "\(time)  \(getTodayWeekDay())"))\n\n\(centerText(text:"\(curSong.title) - \(curSong.artist)"))\n\(songProgAsBars)"
+         return "\(centerText(text: "\(time)  \(getTodayWeekDay())"))\n\n\(centerText(text:"\(musicMonitor.curSong.title) - \(musicMonitor.curSong.artist)"))\n\(songProgAsBars)"
     }
     
     
