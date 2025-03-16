@@ -15,5 +15,6 @@ I mainly wanted to do this to familiarize myself with swift/swiftui and many fra
  - EventKit
  - MediaPlayer
  - BLE Communication
+ - Notification management
 
 ## I am working on this fully in my free time, so don't expect a regular update cycle
