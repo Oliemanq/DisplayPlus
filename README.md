@@ -5,7 +5,8 @@
  - Even G1 glasses support (currently in test branch)
 ## Possible future features
  - Maybe look into Apple Health stats/ring
- - Battery stats fir glasses and phone/watch
+ - Battery stats for glasses and phone/watch
+ - Current weather, temp, and wind speed
  - Notification mirroring
  - glasses brightness and on/off toggle in some way on device
 
