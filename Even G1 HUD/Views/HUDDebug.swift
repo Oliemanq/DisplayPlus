@@ -112,9 +112,7 @@ struct HUDDebug: View {
     private func loadEvents() {
         isLoading = true
         errorMessage = nil
-        
-        print("Starting to load events...")
-        
+                
         cal.fetchEventsForNextDay { result in
             DispatchQueue.main.async {
                 isLoading = false
@@ -122,10 +120,8 @@ struct HUDDebug: View {
                 
                 switch result {
                 case .success(let fetchedEvents):
-                    print("Successfully fetched \(fetchedEvents.count) events")
                     events = fetchedEvents
                 case .failure(let error):
-                    print("Error fetching events: \(error)")
                     errorMessage = error.localizedDescription
                 }
             }

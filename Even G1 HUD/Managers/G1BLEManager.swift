@@ -123,26 +123,26 @@ class G1BLEManager: NSObject, ObservableObject{
     }
     
     // Example function: send a text command (for demonstration)
-       // This is a simplified version of the "text sending" approach from earlier,
-       // but calls writeData(_:,to:) for left or right or both.
-       func sendTextCommand(seq: UInt8, text: String, arm: String = "Both") {
-           var packet = [UInt8]()
-           packet.append(0x4E) // command
-           packet.append(seq)
-           packet.append(1) // total_package_num
-           packet.append(0) // current_package_num
-           packet.append(0x71) // newscreen = new content (0x1) + text show (0x70)
-           packet.append(0x00) // new_char_pos0
-           packet.append(0x00) // new_char_pos1
-           packet.append(0x01) // current_page_num
-           packet.append(0x01) // max_page_num
-           
-           let textBytes = [UInt8](text.utf8)
-           packet.append(contentsOf: textBytes)
-           
-           let data = Data(packet)
-           writeData(data, to: arm)
-       }
+    // This is a simplified version of the "text sending" approach from earlier,
+    // but calls writeData(_:,to:) for left or right or both.
+    func sendTextCommand(seq: UInt8, text: String, arm: String = "Both") {
+        var packet = [UInt8]()
+        packet.append(0x4E) // command
+        packet.append(seq)
+        packet.append(1) // total_package_num
+        packet.append(0) // current_package_num
+        packet.append(0x71) // newscreen = new content (0x1) + text show (0x70)
+        packet.append(0x00) // new_char_pos0
+        packet.append(0x00) // new_char_pos1
+        packet.append(0x01) // current_page_num
+        packet.append(0x01) // max_page_num
+        
+        let textBytes = [UInt8](text.utf8)
+        packet.append(contentsOf: textBytes)
+        
+        let data = Data(packet)
+        writeData(data, to: arm)
+    }
 }
 
 extension G1BLEManager: CBCentralManagerDelegate {
@@ -176,26 +176,26 @@ extension G1BLEManager: CBCentralManagerDelegate {
         guard components.count >= 4 else { return }
         
         // For example:
-            let modelName = components[0]          // "Even G1"
-            let channelNumber = components[1]      // "20"
-            let sideIndicator = components[2]      // "L" or "R"
-            let suffix = components[3]            // "9BB9F0"
+        let modelName = components[0]          // "Even G1"
+        let channelNumber = components[1]      // "20"
+        let sideIndicator = components[2]      // "L" or "R"
+        let suffix = components[3]            // "9BB9F0"
         
         let _ = modelName + suffix //to make xcode shut up about not using the variables
         
         let pairKey = "Pair_\(channelNumber)"
-
-            // Now we can match L or R properly
-            if sideIndicator == "L" {
-                discoveredLeft[pairKey] = peripheral
-                print("Potential left peripheral for channel \(channelNumber).")
-            } else if sideIndicator == "R" {
-                discoveredRight[pairKey] = peripheral
-                print("Potential right peripheral for channel \(channelNumber).")
-            } else {
-                // Not recognized as L or R
-                return
-            }
+        
+        // Now we can match L or R properly
+        if sideIndicator == "L" {
+            discoveredLeft[pairKey] = peripheral
+            print("Potential left peripheral for channel \(channelNumber).")
+        } else if sideIndicator == "R" {
+            discoveredRight[pairKey] = peripheral
+            print("Potential right peripheral for channel \(channelNumber).")
+        } else {
+            // Not recognized as L or R
+            return
+        }
         
         // If we've discovered both sides for the same channel, connect them
         if let leftP = discoveredLeft[pairKey], let rightP = discoveredRight[pairKey] {
@@ -283,45 +283,45 @@ extension G1BLEManager: CBPeripheralDelegate {
         }
         
         // Example: auto-send an init command once we have both R/W chars
-               if peripheral == leftPeripheral, leftRChar != nil, leftWChar != nil {
-                   print("Left arm R/W characteristics discovered. Sending init command.")
-                   sendInitCommand(arm: "L")
-               }
-               else if peripheral == rightPeripheral, rightRChar != nil, rightWChar != nil {
-                   print("Right arm R/W characteristics discovered. Sending init command.")
-                   sendInitCommand(arm: "R")
-               }
+        if peripheral == leftPeripheral, leftRChar != nil, leftWChar != nil {
+            print("Left arm R/W characteristics discovered. Sending init command.")
+            sendInitCommand(arm: "L")
+        }
+        else if peripheral == rightPeripheral, rightRChar != nil, rightWChar != nil {
+            print("Right arm R/W characteristics discovered. Sending init command.")
+            sendInitCommand(arm: "R")
+        }
     }
     
     func peripheral(_ peripheral: CBPeripheral,
-                      didUpdateNotificationStateFor characteristic: CBCharacteristic,
-                      error: Error?) {
-          if let err = error {
-              print("Failed to subscribe for notifications: \(err)")
-              return
-          }
-          if characteristic.isNotifying {
-              print("Notification enabled for \(characteristic.uuid)")
-          } else {
-              print("Notification disabled for \(characteristic.uuid)")
-          }
-      }
-      
-      func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-          //guard let data = characteristic.value else { return }
-          // Here you can parse incoming data from leftRChar/rightRChar
-          // For example:
-          //print("Received from \(peripheral.name ?? "unknown") (uuid: \(characteristic.uuid)): \(data as NSData)")
-      }
-      
-      // Called if a write with response completes
-      func peripheral(_ peripheral: CBPeripheral,
-                      didWriteValueFor characteristic: CBCharacteristic,
-                      error: Error?) {
-          if let error = error {
-              print("Write error: \(error.localizedDescription)")
-          } else {
-              print("Write successful to \(characteristic.uuid)")
-          }
-      }
+                    didUpdateNotificationStateFor characteristic: CBCharacteristic,
+                    error: Error?) {
+        if let err = error {
+            print("Failed to subscribe for notifications: \(err)")
+            return
+        }
+        if characteristic.isNotifying {
+            print("Notification enabled for \(characteristic.uuid)")
+        } else {
+            print("Notification disabled for \(characteristic.uuid)")
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        //guard let data = characteristic.value else { return }
+        // Here you can parse incoming data from leftRChar/rightRChar
+        // For example:
+        //print("Received from \(peripheral.name ?? "unknown") (uuid: \(characteristic.uuid)): \(data as NSData)")
+    }
+    
+    // Called if a write with response completes
+    func peripheral(_ peripheral: CBPeripheral,
+                    didWriteValueFor characteristic: CBCharacteristic,
+                    error: Error?) {
+        if let error = error {
+            print("Write error: \(error.localizedDescription)")
+        } else {
+            print("Write successful to \(characteristic.uuid)")
+        }
+    }
 }

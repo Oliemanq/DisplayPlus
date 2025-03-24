@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		4E90FC772D90EC5300C75E4F /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 4E90FC762D90EC5300C75E4F /* OpenMeteoSdk */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		4EEF614E2D77D39D0017F00D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -42,6 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E90FC772D90EC5300C75E4F /* OpenMeteoSdk in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,6 +105,7 @@
 			);
 			name = "Even G1 HUD";
 			packageProductDependencies = (
+				4E90FC762D90EC5300C75E4F /* OpenMeteoSdk */,
 			);
 			productName = "Even G1 HUD";
 			productReference = 4EEF613D2D77D39C0017F00D /* Even G1 HUD.app */;
@@ -177,6 +183,9 @@
 			);
 			mainGroup = 4EEF61342D77D39C0017F00D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				4E90FC752D90EC5300C75E4F /* XCRemoteSwiftPackageReference "sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4EEF613E2D77D39C0017F00D /* Products */;
 			projectDirPath = "";
@@ -387,6 +396,7 @@
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "This is needed to get the current playing media to display on the glasses";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This is needed to communicate with the smart glasses";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This is needed to display upcoming events";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This is needed to get current weather constistantly";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -422,6 +432,7 @@
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "This is needed to get the current playing media to display on the glasses";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This is needed to communicate with the smart glasses";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This is needed to display upcoming events";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This is needed to get current weather constistantly";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -552,6 +563,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4E90FC752D90EC5300C75E4F /* XCRemoteSwiftPackageReference "sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/open-meteo/sdk.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4E90FC762D90EC5300C75E4F /* OpenMeteoSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4E90FC752D90EC5300C75E4F /* XCRemoteSwiftPackageReference "sdk" */;
+			productName = OpenMeteoSdk;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 4EEF61352D77D39C0017F00D /* Project object */;
 }
