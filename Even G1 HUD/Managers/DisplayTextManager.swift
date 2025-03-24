@@ -91,48 +91,46 @@ class DisplayManager {
     
     func getCurrentWeather() async {
         do{
-            let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m&format=flatbuffers")!
+            /// Make sure the URL contains `&format=flatbuffers`
+            let location: [String] = ["46.81", "-92.09"]
+            let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(location[0])&longitude=\(location[1])&current=temperature_2m,wind_speed_10m,relative_humidity_2m&forecast_days=1&wind_speed_unit=mph&temperature_unit=fahrenheit&precipitation_unit=inch&format=flatbuffers")!
             let responses = try await WeatherApiResponse.fetch(url: url)
-            
             /// Process first location. Add a for-loop for multiple locations or weather models
             let response = responses[0]
-            
+
             /// Attributes for timezone and location
             let utcOffsetSeconds = response.utcOffsetSeconds
-            let timezone = response.timezone
-            let timezoneAbbreviation = response.timezoneAbbreviation
-            let latitude = response.latitude
-            let longitude = response.longitude
-            
-            let hourly = response.hourly!
-            
+                                        
+            let current = response.current!
+
             struct WeatherData {
-                let hourly: Hourly
-                
-                struct Hourly {
-                    let time: [Date]
-                    let temperature2m: [Float]
+                let current: Current
+                struct Current {
+                    let time: Date
+                    let temperature2m: Float
+                    let windSpeed10m: Float
+                    let relativeHumidity2m: Float
                 }
             }
-            
+
             /// Note: The order of weather variables in the URL query and the `at` indices below need to match!
             let data = WeatherData(
-                hourly: .init(
-                    time: hourly.getDateTime(offset: utcOffsetSeconds),
-                    temperature2m: hourly.variables(at: 0)!.values
+                                            current: .init(
+                                                    time: Date(timeIntervalSince1970: TimeInterval(current.time + Int64(utcOffsetSeconds))),
+                    temperature2m: current.variables(at: 0)!.value,
+                    windSpeed10m: current.variables(at: 1)!.value,
+                    relativeHumidity2m: current.variables(at: 2)!.value
                 )
             )
-            
+
             /// Timezone `.gmt` is deliberately used.
             /// By adding `utcOffsetSeconds` before, local-time is inferred
             let dateFormatter = DateFormatter()
             dateFormatter.timeZone = .gmt
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
-            
-            for (i, date) in data.hourly.time.enumerated() {
-                print(dateFormatter.string(from: date))
-                print(data.hourly.temperature2m[i])
-            }
+            print("Temp: \(data.current.temperature2m)")
+            print("Humidity: \(data.current.relativeHumidity2m)")
+            print("Wind speed: \(data.current.windSpeed10m)")
         } catch {
             print("Failed to fetch weather data: \(error.localizedDescription)")
         }

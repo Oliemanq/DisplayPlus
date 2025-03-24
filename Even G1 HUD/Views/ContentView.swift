@@ -42,7 +42,15 @@ struct ContentView: View {
                 displayOn.toggle()
                 print(String(displayOn))
                 sendTextCommand()
+            }.buttonStyle(.bordered)
+
+            Button("Update weather"){
+                Task.detached {
+                    await displayManager.getCurrentWeather()
+                    
+                }
             }
+            .padding(10)
             
             Button("Cycle through pages\nCurrent page: \(currentPage)"){
                 if currentPage == "Default"{
@@ -74,7 +82,6 @@ struct ContentView: View {
                 if displayOn{
                     counter += 1
                     displayManager.updateHUDInfo()
-                    displayManager.getCurrentWeather()
                     
                     let currentDisplay = mainDisplayLoop()
                     sendTextCommand(text: currentDisplay)
