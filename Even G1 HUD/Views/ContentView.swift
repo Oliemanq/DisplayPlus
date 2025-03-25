@@ -111,17 +111,6 @@ struct ContentView: View {
                 
                 HStack{
                     Spacer()
-                    Button("Update weather"){
-                        Task.detached {
-                            await displayManager.getCurrentWeather()
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                    .padding(2)
-                }
-                
-                HStack{
-                    Spacer()
                     Button("Cycle through pages\nCurrent page: \(currentPage)"){
                         if currentPage == "Default"{
                             currentPage = "Music"
@@ -149,11 +138,15 @@ struct ContentView: View {
             .background(LinearGradient(colors: darkMode ? [Color(red: 10/255, green: 10/255, blue: 30/255), Color(red: 28/255, green: 28/255, blue: 30/255)] : [Color(red: 220/255, green: 220/255, blue: 255/255), .white], startPoint: .bottom, endPoint: .top))
             .edgesIgnoringSafeArea(.bottom)
             .frame(width: 400)
-        }
+    }
         .onAppear {
             // Create and store the timer
-            timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-                self.progressBar = CGFloat(curSong.currentTime / curSong.duration)
+            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+                progressBar = CGFloat(curSong.currentTime / curSong.duration)
+                
+                Task.detached {
+                    await displayManager.getCurrentWeather()
+                }
                 
                 displayManager.updateHUDInfo()
                 counter += 1
