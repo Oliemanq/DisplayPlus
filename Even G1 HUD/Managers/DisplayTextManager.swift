@@ -35,6 +35,7 @@ class DisplayManager {
     
     private let cal = CalendarManager()
     private var events: [EKEvent] = []
+    public var eventsFormatted: [event] = []
     private var authorizationStatus = ""
     private var errorMessage: String = ""
     private var eventString: String = ""
@@ -48,6 +49,7 @@ class DisplayManager {
             max: Double(musicMonitor.curSong.duration.components.seconds),
             width: 50
         )
+        
         loadEvents()
 
         if refresh == 20 {
@@ -59,18 +61,17 @@ class DisplayManager {
 
     func defaultDisplay() -> [String] {
         currentPage = "Default"
-        self.currentDisplayLines.append(centerText(text: "\(time) \(getTodayWeekDay()) - "))
-        
-        for event in events {
-            if let title = event.title, let startDate = event.startDate, let endDate = event.endDate {
-                self.currentDisplayLines.append("\(title)\n\(startDate) - \(endDate)\n")
+        currentDisplayLines.append(centerText(text: "\(time) \(getTodayWeekDay())"))
+
+        if eventsFormatted.count < 2 {
+            for event in eventsFormatted {
+                currentDisplayLines.append(event.titleLine)
+                currentDisplayLines.append(event.subtitleLine)
             }
-            if refresh == 10{
-                print (event.title ?? "No title")
-            }
+        }else{
+            //EVENTUAL HANDLING FOR MORE THAN 5 LINES
         }
-        
-        return(self.currentDisplayLines)
+        return(currentDisplayLines)
         
     }
     
@@ -81,6 +82,9 @@ class DisplayManager {
         return currentDisplayLines
     }
     
+    func getEvents() -> [EKEvent]{
+        return events
+    }
     
     func getTodayWeekDay()-> String{
         let dateFormatter = DateFormatter()
@@ -155,19 +159,31 @@ class DisplayManager {
     }
     
     func loadEvents() {
-        
         cal.fetchEventsForNextDay { result in
             DispatchQueue.main.async {
                 self.updateAuthorizationStatus()
                 switch result {
                 case .success(let fetchedEvents):
                     self.events = fetchedEvents
+                    for event in self.events {
+                        var eventTemp: event = .init(
+                            titleLine: "",
+                            subtitleLine: ""
+                        )
+                        
+                        if let title = event.title, let startDate = event.startDate, let endDate = event.endDate {
+                            eventTemp.titleLine = ("\(title)")
+                            eventTemp.subtitleLine = ("\(startDate) - \(endDate)")
+                            self.eventsFormatted.append(eventTemp)
+                        }
+                    }
                 case .failure(let error):
                     self.errorMessage = error.localizedDescription
                 }
             }
         }
     }
+    
     
     private func updateAuthorizationStatus() {
         let status = EKEventStore.authorizationStatus(for: .event)
@@ -181,4 +197,9 @@ class DisplayManager {
         @unknown default: authorizationStatus = "Unknown"
         }
     }
+}
+
+struct event{
+    var titleLine: String
+    var subtitleLine: String
 }

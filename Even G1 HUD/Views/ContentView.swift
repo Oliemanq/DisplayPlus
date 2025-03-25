@@ -16,13 +16,13 @@ struct ContentView: View {
     @State var bleManager: G1BLEManager = G1BLEManager()
     @State var counter: CGFloat = 0
     
-    @State private var showViewsButton = false
-    
     @State var time = Date().formatted(date: .omitted, time: .shortened)
     @State private var timer: Timer?
     @State private var progressBar: CGFloat = 0.0
     
     let musicMonitor = MusicMonitor()
+    
+    @Environment(\.colorScheme) var colorScheme
     
     @State private var isLoading = false
     @State private var errorMessage: String?
@@ -33,56 +33,131 @@ struct ContentView: View {
     let formatter = DateFormatter()
     
     var body: some View {
+        let curSong = musicMonitor.curSong
+        let events = displayManager.getEvents()
+        let darkMode: Bool = (colorScheme == .dark)
+        
         NavigationStack{
-            Button("Start scan"){
-                bleManager.startScan()
-            }.buttonStyle(.borderedProminent)
-            
-            Button(displayOn ? "Turn display off" : "Turn display on"){
-                displayOn.toggle()
-                print(String(displayOn))
-                sendTextCommand()
-            }.buttonStyle(.bordered)
-
-            Button("Update weather"){
-                Task.detached {
-                    await displayManager.getCurrentWeather()
-                    
+            List {
+                HStack{
+                    Spacer()
+                    VStack{
+                        Text(time)
+                        HStack{
+                            ForEach(daysOfWeek, id: \.self) { day in
+                                if day == displayManager.getTodayWeekDay() {
+                                    Text(day).bold().padding(0)
+                                }else{
+                                    Text(day).padding(-1)
+                                }
+                            }
+                        }
+                    }
+                    Spacer()
+                }
+                //Current playing music plus progress bar
+                VStack(alignment: .leading){
+                    Text(curSong.title).font(.headline)
+                    HStack{
+                        Text(curSong.album).font(.subheadline)
+                        Text(curSong.artist).font(.subheadline)
+                    }
+                    HStack{
+                        ProgressView(value: progressBar)
+                        Text(String(describing: curSong.duration.formatted(.time(pattern: .minuteSecond)))).font(.caption)
+                    }
+                }
+                Text("Calendar events").font(.headline)
+                if isLoading {
+                    ProgressView("Loading events...")
+                } else {
+                    // Use ForEach with proper event data handling
+                    ForEach(events, id: \.eventIdentifier) { event in
+                        VStack(alignment: .leading) {
+                            Text(event.title)
+                                .font(.caption)
+                            
+                            HStack {
+                                Text(formatter.string(from: event.startDate)).font(.caption2)
+                                Text("-")
+                                Text(formatter.string(from: event.endDate)).font(.caption2)
+                            }
+                            .font(.caption)
+                        }
+                    }
+                }
+                Text("end calendar").font(.headline)
+                
+                Spacer()
+                
+                HStack{
+                    Spacer()
+                    Button("Start scan"){
+                        bleManager.startScan()
+                    }.buttonStyle(.bordered)
+                        .padding(2)
+                }
+                
+                HStack{
+                    Spacer()
+                    Button(displayOn ? "Turn display off" : "Turn display on"){
+                        displayOn.toggle()
+                        print(String(displayOn))
+                        sendTextCommand()
+                    }
+                    .buttonStyle(.bordered)
+                    .padding(2)
+                }
+                
+                HStack{
+                    Spacer()
+                    Button("Update weather"){
+                        Task.detached {
+                            await displayManager.getCurrentWeather()
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .padding(2)
+                }
+                
+                HStack{
+                    Spacer()
+                    Button("Cycle through pages\nCurrent page: \(currentPage)"){
+                        if currentPage == "Default"{
+                            currentPage = "Music"
+                            displayManager.currentPage = "Music"
+                            
+                            let currentDisplay = mainDisplayLoop()
+                            sendTextCommand(text: currentDisplay)
+                        }else if currentPage == "Music"{
+                            currentPage = "Default"
+                            displayManager.currentPage = "Default"
+                            
+                            let currentDisplay = mainDisplayLoop()
+                            sendTextCommand(text: currentDisplay)
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .padding(2)
+                }
+                HStack{
+                    Spacer()
+                    Text("Connection status: \(bleManager.connectionStatus)")
                 }
             }
-            .padding(10)
-            
-            Button("Cycle through pages\nCurrent page: \(currentPage)"){
-                if currentPage == "Default"{
-                    currentPage = "Music"
-                    displayManager.currentPage = "Music"
-                    
-                    let currentDisplay = mainDisplayLoop()
-                    sendTextCommand(text: currentDisplay)
-                }else if currentPage == "Music"{
-                    currentPage = "Default"
-                    displayManager.currentPage = "Default"
-                    
-                    let currentDisplay = mainDisplayLoop()
-                    sendTextCommand(text: currentDisplay)
-                }
-            }.buttonStyle(.borderedProminent)
-            
-            Text(bleManager.connectionStatus)
-            
-            NavigationLink("HUD Debug view", destination: HUDDebug())
-                .padding(10)
-                .buttonStyle(.borderedProminent)
-                .scaleEffect(showViewsButton ? 1.5 : 1 )
+            .scrollContentBackground(.hidden)
+            .background(LinearGradient(colors: darkMode ? [Color(red: 10/255, green: 10/255, blue: 30/255), Color(red: 28/255, green: 28/255, blue: 30/255)] : [Color(red: 220/255, green: 220/255, blue: 255/255), .white], startPoint: .bottom, endPoint: .top))
+            .edgesIgnoringSafeArea(.bottom)
+            .frame(width: 400)
         }
         .onAppear {
             // Create and store the timer
             timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+                self.progressBar = CGFloat(curSong.currentTime / curSong.duration)
                 
+                displayManager.updateHUDInfo()
+                counter += 1
                 if displayOn{
-                    counter += 1
-                    displayManager.updateHUDInfo()
-                    
                     let currentDisplay = mainDisplayLoop()
                     sendTextCommand(text: currentDisplay)
                 }else{
@@ -97,14 +172,20 @@ struct ContentView: View {
             bleManager.disconnect()
         }
     }
+    
     func mainDisplayLoop() -> String{
         var textOutput: String = ""
-        if currentPage == "Default"{
-            for line in displayManager.defaultDisplay() {
-                print(line)
-                textOutput += line + "\n"
+        
+        if currentPage == "Default"{ // DEFAULT PAGE HANDLER
+            let displayLines = displayManager.defaultDisplay()
+            if displayLines.isEmpty{
+                textOutput = "broken"
+            }else{
+                for line in displayLines {
+                    textOutput += line + "\n"
+                }
             }
-        }else if currentPage == "Music"{
+        }else if currentPage == "Music"{ //MUSIC PAGE HANDLER
             for line in displayManager.musicDisplay() {
                 textOutput += line + "\n"
             }
