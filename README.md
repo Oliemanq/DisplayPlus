@@ -1,14 +1,16 @@
 ## Features
  - Time and date
  - Current media + progress bar
- - Upcoming calendar events
  - Even G1 glasses support (currently in test branch)
+ - Current weather, temp, and wind speed
+   
 ## Possible future features
  - Maybe look into Apple Health stats/ring
  - Battery stats for glasses and phone/watch
- - Current weather, temp, and wind speed
  - Notification mirroring
  - glasses brightness and on/off toggle in some way on device
+ - Upcoming calendar events
+
 
 
 ## This is a NATIVE Swift/SwiftUI app that will replace the built in Even Realities app for Even Realities G1 glasses
