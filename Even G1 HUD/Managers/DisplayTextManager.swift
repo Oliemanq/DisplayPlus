@@ -14,11 +14,9 @@ import MapKit
 import OpenMeteoSdk
 
 
-class DisplayManager {    
+class DisplayManager: ObservableObject {    
     @State var currentDisplay: String = ""
     @State var currentPage: String = "Default"
-    @State var refresh = 0
-
     
     var time = Date().formatted(date: .omitted, time: .shortened)
     var timer: Timer?
@@ -46,14 +44,6 @@ class DisplayManager {
             value: Double(musicMonitor.curSong.currentTime.components.seconds),
             max: Double(musicMonitor.curSong.duration.components.seconds)
         )
-        
-        loadEvents()
-
-        if refresh == 20 {
-            refresh = 0
-        }else{
-            refresh += 1
-        }
     }
 
     func defaultDisplay() -> [String] {

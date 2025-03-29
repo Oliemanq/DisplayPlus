@@ -1,53 +1,51 @@
-//
-//  ContentView.swift
-//  Even G1 HUD
-//
-//  Created by Oliver Heisel on 3/4/25.
-//
-
 import SwiftUI
 import EventKit
 
 struct ContentView: View {
-    @State var displayOn: Bool = true
+    @State private var displayOn: Bool = true
     
-    @State var displayManager = DisplayManager()
-    @State var currentPage = "Default"
-    @State var bleManager: G1BLEManager = G1BLEManager()
-    @State var counter: CGFloat = 0
+    @StateObject private var displayManager = DisplayManager()
+    @State private var currentPage = "Default"
+    @StateObject private var bleManager = G1BLEManager()
+    @State private var counter: CGFloat = 0
+    @State private var totalCounter: CGFloat = 0
     
-    @State var time = Date().formatted(date: .omitted, time: .shortened)
+    @StateObject private var musicMonitor = MusicMonitor()
+    
+    @State private var time = Date().formatted(date: .omitted, time: .shortened)
     @State private var timer: Timer?
-    @State private var progressBar: CGFloat = 0.0
     
-    let musicMonitor = MusicMonitor()
-    
-    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.colorScheme) private var colorScheme
     
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var authorizationStatus: String = "Checking..."
+    
+    @State private var curSong: Song = Song(title: "", artist: "", album: "", duration: .zero, currentTime: .zero)
+    @State private var progressBar: Double = 0.0
+    @State private var events: [EKEvent] = []
+    
+    @State private var primaryColor: Color = Color(red: 10/255, green: 25/255, blue: 10/255)
+    @State private var secondaryColor: Color = Color(red: 150/255, green: 255/255, blue: 150/255)
     
     private let daysOfWeek: [String] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     
     let formatter = DateFormatter()
     
     var body: some View {
-        let curSong = musicMonitor.curSong
-        let events = displayManager.getEvents()
         let darkMode: Bool = (colorScheme == .dark)
         
-        NavigationStack{
+        NavigationStack {
             List {
-                HStack{
+                HStack {
                     Spacer()
-                    VStack{
+                    VStack {
                         Text(time)
-                        HStack{
+                        HStack {
                             ForEach(daysOfWeek, id: \.self) { day in
                                 if day == displayManager.getTodayWeekDay() {
                                     Text(day).bold().padding(0)
-                                }else{
+                                } else {
                                     Text(day).padding(-1)
                                 }
                             }
@@ -55,23 +53,28 @@ struct ContentView: View {
                     }
                     Spacer()
                 }
-                //Current playing music plus progress bar
-                VStack(alignment: .leading){
+                
+                // Current playing music plus progress bar
+                VStack(alignment: .leading) {
                     Text(curSong.title).font(.headline)
-                    HStack{
+                    HStack {
                         Text(curSong.album).font(.subheadline)
                         Text(curSong.artist).font(.subheadline)
                     }
-                    HStack{
-                        ProgressView(value: progressBar)
-                        Text(String(describing: curSong.duration.formatted(.time(pattern: .minuteSecond)))).font(.caption)
+                    HStack {
+                        ProgressView(value: max(0.0, min(1.0, progressBar)))
+                                    .onReceive(musicMonitor.$curSong) { song in
+                                        // Update progress bar when song changes
+                                        progressBar = song.progress
+                                    }
+                        Text("\(curSong.duration.formatted(.time(pattern: .minuteSecond)))").font(.caption)
                     }
                 }
+                
                 Text("Calendar events").font(.headline)
                 if isLoading {
                     ProgressView("Loading events...")
                 } else {
-                    // Use ForEach with proper event data handling
                     ForEach(events, id: \.eventIdentifier) { event in
                         VStack(alignment: .leading) {
                             Text(event.title)
@@ -86,16 +89,23 @@ struct ContentView: View {
                         }
                     }
                 }
+                
                 Text("end calendar").font(.headline)
                 
                 Spacer()
-                
+                                
                 HStack{
                     Spacer()
                     Button("Start scan"){
                         bleManager.startScan()
-                    }.buttonStyle(.bordered)
-                        .padding(2)
+                    }
+                    .padding(2)
+                    .frame(width: 100, height: 30)
+                    .background((!darkMode ? primaryColor : secondaryColor))
+                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                    .buttonStyle(.borderless)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                        
                 }
                 
                 HStack{
@@ -105,8 +115,13 @@ struct ContentView: View {
                         print(String(displayOn))
                         sendTextCommand()
                     }
-                    .buttonStyle(.bordered)
                     .padding(2)
+                    .frame(width: 150, height: 30)
+                    .background((!darkMode ? primaryColor : secondaryColor))
+                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                    .buttonStyle(.borderless)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
                 }
                 
                 HStack{
@@ -126,8 +141,12 @@ struct ContentView: View {
                             sendTextCommand(text: currentDisplay)
                         }
                     }
-                    .buttonStyle(.bordered)
                     .padding(2)
+                    .frame(width: 200, height: 60)
+                    .background((!darkMode ? primaryColor : secondaryColor))
+                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                    .buttonStyle(.borderless)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 HStack{
                     Spacer()
@@ -135,34 +154,47 @@ struct ContentView: View {
                 }
             }
             .scrollContentBackground(.hidden)
-            .background(LinearGradient(colors: darkMode ? [Color(red: 10/255, green: 10/255, blue: 30/255), Color(red: 28/255, green: 28/255, blue: 30/255)] : [Color(red: 220/255, green: 220/255, blue: 255/255), .white], startPoint: .bottom, endPoint: .top))
+            .background(LinearGradient(colors: darkMode ? [primaryColor, Color(red: 28/255, green: 28/255, blue: 30/255)] : [secondaryColor, .white], startPoint: .bottom, endPoint: .top))
             .edgesIgnoringSafeArea(.bottom)
             .frame(width: 400)
-    }
+        }
         .onAppear {
-            // Create and store the timer
-            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-                progressBar = CGFloat(curSong.currentTime / curSong.duration)
-                
-                Task.detached {
-                    await displayManager.getCurrentWeather()
-                }
-                
-                displayManager.updateHUDInfo()
-                counter += 1
-                if displayOn{
-                    let currentDisplay = mainDisplayLoop()
-                    sendTextCommand(text: currentDisplay)
-                }else{
-                    sendTextCommand()
-                }
-                
-            }
+            displayManager.loadEvents()
+            setupTimer()
         }
         .onDisappear {
-            // Clean up timer when view disappears
             timer?.invalidate()
             bleManager.disconnect()
+        }
+    }
+    
+    private func setupTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: 1/20, repeats: true) { _ in
+            updateTimerData()
+        }
+    }
+    
+    private func updateTimerData() {
+        // Update time
+        time = Date().formatted(date: .omitted, time: .shortened)
+        
+        // Update music info
+        curSong = musicMonitor.curSong
+        progressBar = musicMonitor.curSong.progress
+        
+        // Update events
+        events = displayManager.getEvents()
+        
+        counter += 1
+        totalCounter += 1
+        
+        displayManager.updateHUDInfo()
+        
+        if displayOn {
+            let currentDisplay = mainDisplayLoop()
+            sendTextCommand(text: currentDisplay)
+        } else {
+            sendTextCommand()
         }
     }
     
@@ -193,9 +225,8 @@ struct ContentView: View {
             self.counter = 0
         }
         bleManager.sendTextCommand(seq: UInt8(self.counter), text: text)
-
+        
     }
-    
 }
 
 

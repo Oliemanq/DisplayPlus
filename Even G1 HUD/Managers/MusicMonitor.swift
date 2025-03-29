@@ -12,7 +12,13 @@ import Combine
 
 class MusicMonitor: ObservableObject {
     private let player = MPMusicPlayerController.systemMusicPlayer
-    @Published var curSong: Song = Song(title: "", artist: "", album: "", bpm: 0, duration: .zero, currentTime: .zero)
+    @Published var curSong: Song = Song(
+            title: "No Song Playing",
+            artist: "",
+            album: "",
+            duration: Duration.seconds(0),
+            currentTime: Duration.seconds(0)
+        )
     private var songMatch: Bool = false
     
     
@@ -28,6 +34,7 @@ class MusicMonitor: ObservableObject {
         updateCurrentSong()
     }
     
+    
     public func updateCurrentSong() {
         let nowPlayingItem = player.nowPlayingItem
         let tempDuration = Duration(
@@ -38,16 +45,19 @@ class MusicMonitor: ObservableObject {
             secondsComponent: Int64(player.currentPlaybackTime),
             attosecondsComponent: 0
         )
+        let safeCurrentTime = min(tempCurrentTime, tempDuration)
         
         curSong = Song(title: nowPlayingItem?.title ?? "No Title",
                        artist: nowPlayingItem?.artist ?? "No Artist",
                        album: nowPlayingItem?.albumTitle ?? "No Album",
-                       bpm: nowPlayingItem?.beatsPerMinute ?? 0,
                        duration: tempDuration,
-                       currentTime: tempCurrentTime)
-                    
-        
+                       currentTime: safeCurrentTime)
     }
+    
+    func updateCurrentSong(_ newSong: Song) {
+            curSong = newSong
+    }
+    
     deinit {
         player.endGeneratingPlaybackNotifications()
     }
@@ -58,7 +68,11 @@ struct Song{
     var title: String
     var artist: String
     var album: String
-    var bpm: Int
     var duration: Duration
     var currentTime: Duration
+    
+    var progress: Double {
+        guard duration.components.seconds > 0 else { return 0.0 }
+            return max(0.0, min(1.0, currentTime / duration))
+        }
 }
