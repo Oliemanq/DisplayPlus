@@ -2,7 +2,7 @@ import SwiftUI
 import EventKit
 
 struct ContentView: View {
-    @State public var displayOn: Bool = false
+    @State public var displayOn: Bool = true
     
     @StateObject private var displayManager = DisplayManager()
     @State var textOutput: String = ""
@@ -81,6 +81,9 @@ struct ContentView: View {
                         }
                         Spacer()
                     }
+                    .listRowBackground(
+                        VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                    )
                     
                     // Current playing music plus progress bar
                     VStack(alignment: .leading) {
@@ -105,7 +108,7 @@ struct ContentView: View {
                                 .font(.caption)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                 
-                            if musicMonitor.curSong.duration == 0 {
+                            if musicMonitor.curSong.duration != 0 {
                                 ProgressView(value: musicMonitor.curSong.currentTime / musicMonitor.curSong.duration, total: 1).tint(!darkMode ? primaryColor : secondaryColor)
                             }
                             
@@ -115,11 +118,17 @@ struct ContentView: View {
 
                         }
                     }
+                    .listRowBackground(
+                        VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                    )
                     
                     
                     Text("Calendar events")
                         .font(.headline)
                         .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                        .listRowBackground(
+                            VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                        )
 
                     if isLoading {
                         ProgressView("Loading events...")
@@ -147,15 +156,25 @@ struct ContentView: View {
 
                                 }
                             }
+                            .listRowBackground(
+                                VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                            )
                         }
                     }
                     
                     Text("end calendar")
                         .font(.headline)
                         .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                        .listRowBackground(
+                            VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                        )
 
                     
                     Spacer()
+                        .listRowBackground(
+                            VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                        )
+                    
                     
                     HStack{
                         Spacer()
@@ -169,7 +188,9 @@ struct ContentView: View {
                         .buttonStyle(.borderless)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         
-                    }
+                    }.listRowBackground(
+                        VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                    )
                     
                     HStack{
                         Spacer()
@@ -185,18 +206,28 @@ struct ContentView: View {
                         .buttonStyle(.borderless)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         
-                    }
+                    }.listRowBackground(
+                        VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                    )
+                    
                     VStack{
                         Text(textOutput)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            .font(.system(size: 11))
 
-                    }
+                    }.listRowBackground(
+                        VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                    )
                     HStack{
                         Spacer()
                         Text("Connection status: \(bleManager.connectionStatus)")
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                    }
+                    }.listRowBackground(
+                        VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                    )
+
                 }
+                
                 .scrollContentBackground(.hidden)
                 .background(darkMode ? primaryColor : secondaryColor)
                 .edgesIgnoringSafeArea(.bottom)
@@ -208,14 +239,17 @@ struct ContentView: View {
         }
         .onAppear {
             displayManager.loadEvents()
-            timer = Timer.scheduledTimer(withTimeInterval: 1/20, repeats: true) { _ in
+            events = displayManager.getEvents()
+            
+            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
                 // Update time
                 time = Date().formatted(date: .omitted, time: .shortened)
                 
-                
-                
+                if totalCounter.truncatingRemainder(dividingBy: 60) == 0 {
+                    displayManager.loadEvents()
+                }
+
                 // Update events
-                events = displayManager.getEvents()
                 
                 counter += 1
                 totalCounter += 1
@@ -237,7 +271,7 @@ struct ContentView: View {
     }
     
     func mainDisplayLoop() -> String{
-        print("mainDisplayLoop() ran")
+        textOutput = ""
         
         if currentPage == "Default"{ // DEFAULT PAGE HANDLER
             let displayLines = displayManager.defaultDisplay()
@@ -255,7 +289,7 @@ struct ContentView: View {
         }else if currentPage == "RearView"{
             textOutput = "To be implemented later, getting UI in place"
         }else{
-            return "No page selected"
+            textOutput = "No page selected"
         }
         return textOutput
     }

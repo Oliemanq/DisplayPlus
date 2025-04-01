@@ -81,6 +81,10 @@ class CalendarManager {
             return
         }
         
+        var morning = DateComponents()
+        morning.hour = 0
+        morning.minute = 0
+        
         
         // Create the date range predicate for the search.
         let predicate = eventStore.predicateForEvents(withStart: today, end: endOfToday, calendars: nil)
@@ -89,12 +93,25 @@ class CalendarManager {
         let events = eventStore.events(matching: predicate)
         
         // Filter out all-day events
-        var filteredEvents = events.filter { event in
-            return !event.isAllDay // Keep events that are NOT all-day
-        }
-        filteredEvents = events.filter { event in
-            return event.calendar.title != "Canvas"
-        }
+        let filteredEvents = events.filter { event in
+                // Keep events that are NOT all-day AND don't start at midnight
+                if event.isAllDay {
+                    return false
+                }
+                
+                // Filter out events that start at midnight (12:00 AM)
+                let startDateComponents = calendar.dateComponents([.hour, .minute], from: event.startDate)
+                if startDateComponents.hour == 0 && startDateComponents.minute == 0 {
+                    return false
+                }
+                
+                // Filter out Canvas events
+                if event.calendar.title == "Canvas" {
+                    return false
+                }
+                
+                return true
+            }
          
         completion(.success(filteredEvents))
     }

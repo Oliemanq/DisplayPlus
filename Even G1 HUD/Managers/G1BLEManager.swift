@@ -308,10 +308,43 @@ extension G1BLEManager: CBPeripheralDelegate {
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        //guard let data = characteristic.value else { return }
-        // Here you can parse incoming data from leftRChar/rightRChar
-        // For example:
-        //print("Received from \(peripheral.name ?? "unknown") (uuid: \(characteristic.uuid)): \(data as NSData)")
+        guard let data = characteristic.value else { return }
+        
+        // Convert Data to a byte array
+        let byteArray = [UInt8](data)
+        
+        // Process the data based on the protocol from EvenDemoApp
+        processIncomingData(byteArray, data, peripheral.name)
+    }
+
+    func processIncomingData(_ byteArray: [UInt8], _ data: Data, _ name: String? = nil) {
+        // Example: Check if first byte matches a known command
+        switch byteArray.first {
+        case 0x4E: // Example command identifier
+            print("")
+        case 0xf5:
+            if name!.contains("L"){
+                touchBarDouble(side: "L")
+            }else if name!.contains("R") {
+                touchBarDouble(side: "R")
+            }
+        default:
+            print("Received: \(data as NSData)")
+
+        }
+    }
+
+    func handleStartAction(_ data: [UInt8]) {
+        // Handle start command
+        print("Handling start command with data: \(data)")
+    }
+
+    func handleStopAction(_ data: [UInt8]) {
+        // Handle stop command
+        print("Handling stop command with data: \(data)")
+    }
+    func touchBarDouble(side: String){
+        print("Double tap on \(side) side")
     }
     
     // Called if a write with response completes
@@ -325,3 +358,4 @@ extension G1BLEManager: CBPeripheralDelegate {
         }
     }
 }
+
