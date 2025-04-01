@@ -78,7 +78,7 @@ struct FloatingButton: View {
     var body: some View {
         ZStack {
             if isExpanded {
-                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
                     .onTapGesture {
                         isExpanded = false
                     }
@@ -107,6 +107,10 @@ struct FloatingButton: View {
                     Text(item.extraText ?? "")
                         .floatingTextStyle(prim: primaryColor, sec: secondaryColor)
                         .offset(x: CGFloat(item.extraText?.count ?? 10) + 65)
+                }
+                .onTapGesture {
+                    item.action()
+                    isExpanded.toggle()
                 }
                 .opacity(isExpanded ? 1 : 0)
                 .offset(x: isExpanded ? -15 : 10, y: isExpanded ? offsetY(index: index) : 0)

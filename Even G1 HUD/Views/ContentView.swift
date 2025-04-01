@@ -5,7 +5,9 @@ struct ContentView: View {
     @State public var displayOn: Bool = false
     
     @StateObject private var displayManager = DisplayManager()
-    @State private var currentPage = "Default"
+    @State var textOutput: String = ""
+
+    @State public var currentPage: String = "Default"
     @StateObject private var bleManager = G1BLEManager()
     @State private var counter: CGFloat = 0
     @State private var totalCounter: CGFloat = 0
@@ -38,9 +40,18 @@ struct ContentView: View {
         let secondaryColor  = theme.secondaryColor
         
         let floatingButtons: [FloatingButtonItem] = [
-            .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {}),
-            .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "RearView", action: {}),
-            .init(iconSystemName: "clock", extraText: "Default screen", action: {})
+            .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {
+                currentPage = "Music"
+                print("Music page")
+            }),
+            .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "RearView", action: {
+                currentPage = "RearView"
+                print("RearView screen")
+            }),
+            .init(iconSystemName: "clock", extraText: "Default screen", action: {
+                currentPage = "Default"
+                print("Default screen")
+            })
             
         ]
         
@@ -93,8 +104,10 @@ struct ContentView: View {
                             Text("\(formattedCurrentTime)")
                                 .font(.caption)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-
-                            ProgressView(value: musicMonitor.curSong.currentTime / musicMonitor.curSong.duration, total: 1).tint(!darkMode ? primaryColor : secondaryColor)
+                                
+                            if musicMonitor.curSong.duration == 0 {
+                                ProgressView(value: musicMonitor.curSong.currentTime / musicMonitor.curSong.duration, total: 1).tint(!darkMode ? primaryColor : secondaryColor)
+                            }
                             
                             Text("\(formattedduration)")
                                 .font(.caption)
@@ -173,30 +186,10 @@ struct ContentView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         
                     }
-                    
-                    HStack{
-                        Spacer()
-                        Button("Cycle through pages\nCurrent page: \(currentPage)"){
-                            if currentPage == "Default"{
-                                currentPage = "Music"
-                                displayManager.currentPage = "Music"
-                                
-                                let currentDisplay = mainDisplayLoop()
-                                sendTextCommand(text: currentDisplay)
-                            }else if currentPage == "Music"{
-                                currentPage = "Default"
-                                displayManager.currentPage = "Default"
-                                
-                                let currentDisplay = mainDisplayLoop()
-                                sendTextCommand(text: currentDisplay)
-                            }
-                        }
-                        .padding(2)
-                        .frame(width: 200, height: 60)
-                        .background((!darkMode ? primaryColor : secondaryColor))
-                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                        .buttonStyle(.borderless)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    VStack{
+                        Text(textOutput)
+                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
                     }
                     HStack{
                         Spacer()
@@ -245,7 +238,6 @@ struct ContentView: View {
     
     func mainDisplayLoop() -> String{
         print("mainDisplayLoop() ran")
-        var textOutput: String = ""
         
         if currentPage == "Default"{ // DEFAULT PAGE HANDLER
             let displayLines = displayManager.defaultDisplay()
@@ -260,6 +252,8 @@ struct ContentView: View {
             for line in displayManager.musicDisplay() {
                 textOutput += line + "\n"
             }
+        }else if currentPage == "RearView"{
+            textOutput = "To be implemented later, getting UI in place"
         }else{
             return "No page selected"
         }
