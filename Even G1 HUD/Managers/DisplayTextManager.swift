@@ -41,8 +41,8 @@ class DisplayManager: ObservableObject {
         time = Date().formatted(date: .omitted, time: .shortened)
         musicMonitor.updateCurrentSong()
         songProgAsBars = progressBar(
-            value: Double(musicMonitor.curSong.currentTime.components.seconds),
-            max: Double(musicMonitor.curSong.duration.components.seconds)
+            value: Double(musicMonitor.curSong.currentTime),
+            max: Double(musicMonitor.curSong.duration)
         )
     }
 
@@ -84,7 +84,7 @@ class DisplayManager: ObservableObject {
         }else{
             currentDisplayLines.append(centerText(text: ("\(musicMonitor.curSong.title) - \(musicMonitor.curSong.artist)")))
         }
-        currentDisplayLines.append("\(musicMonitor.curSong.currentTime.formatted(.time(pattern: .minuteSecond))) \(songProgAsBars) \(musicMonitor.curSong.duration.formatted(.time(pattern: .minuteSecond)))")
+        currentDisplayLines.append("\(musicMonitor.curSong.currentTime) \(songProgAsBars) \(musicMonitor.curSong.duration)")
         return currentDisplayLines
     }
     

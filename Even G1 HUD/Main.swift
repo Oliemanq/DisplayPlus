@@ -9,10 +9,12 @@ import SwiftUI
 
 @main
 struct Even_G1_HUDApp: App {
-    
+    @StateObject private var musicMonitor = MusicMonitor()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(musicMonitor)
         }
     }
 }

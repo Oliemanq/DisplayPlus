@@ -2,7 +2,7 @@ import SwiftUI
 import EventKit
 
 struct ContentView: View {
-    @State private var displayOn: Bool = true
+    @State public var displayOn: Bool = false
     
     @StateObject private var displayManager = DisplayManager()
     @State private var currentPage = "Default"
@@ -10,8 +10,8 @@ struct ContentView: View {
     @State private var counter: CGFloat = 0
     @State private var totalCounter: CGFloat = 0
     
-    @StateObject private var musicMonitor = MusicMonitor()
-    
+    @EnvironmentObject var musicMonitor: MusicMonitor
+
     @State private var time = Date().formatted(date: .omitted, time: .shortened)
     @State private var timer: Timer?
     
@@ -21,146 +21,221 @@ struct ContentView: View {
     @State private var errorMessage: String?
     @State private var authorizationStatus: String = "Checking..."
     
-    @State private var curSong: Song = Song(title: "", artist: "", album: "", duration: .zero, currentTime: .zero)
     @State private var progressBar: Double = 0.0
     @State private var events: [EKEvent] = []
-    
-    @State private var primaryColor: Color = Color(red: 10/255, green: 25/255, blue: 10/255)
-    @State private var secondaryColor: Color = Color(red: 150/255, green: 255/255, blue: 150/255)
     
     private let daysOfWeek: [String] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     
     let formatter = DateFormatter()
     
+    @StateObject var theme = ThemeColors()
+
+    
     var body: some View {
         let darkMode: Bool = (colorScheme == .dark)
         
+        let primaryColor = theme.primaryColor
+        let secondaryColor  = theme.secondaryColor
+        
+        let floatingButtons: [FloatingButtonItem] = [
+            .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {}),
+            .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "RearView", action: {}),
+            .init(iconSystemName: "clock", extraText: "Default screen", action: {})
+            
+        ]
+        
         NavigationStack {
-            List {
-                HStack {
-                    Spacer()
-                    VStack {
-                        Text(time)
+            ZStack{
+                List {
+                    HStack {
+                        Spacer()
+                        VStack {
+                            Text(time)
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
+                            HStack {
+                                ForEach(daysOfWeek, id: \.self) { day in
+                                    if day == displayManager.getTodayWeekDay() {
+                                        Text(day).bold()
+                                            .padding(0)
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
+                                    } else {
+                                        Text(day)
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                            .padding(-1)
+                                    }
+                                }
+                            }
+                        }
+                        Spacer()
+                    }
+                    
+                    // Current playing music plus progress bar
+                    VStack(alignment: .leading) {
+                        Text(musicMonitor.curSong.title)
+                            .font(.headline)
+                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                         HStack {
-                            ForEach(daysOfWeek, id: \.self) { day in
-                                if day == displayManager.getTodayWeekDay() {
-                                    Text(day).bold().padding(0)
-                                } else {
-                                    Text(day).padding(-1)
+                            Text(musicMonitor.curSong.album)
+                                .font(.subheadline)
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
+                            Text(musicMonitor.curSong.artist)
+                                .font(.subheadline)
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
+                        }
+                        HStack {
+                            let formattedCurrentTime = Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))
+                            let formattedduration = Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond))
+                            
+                            Text("\(formattedCurrentTime)")
+                                .font(.caption)
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
+                            ProgressView(value: musicMonitor.curSong.currentTime / musicMonitor.curSong.duration, total: 1).tint(!darkMode ? primaryColor : secondaryColor)
+                            
+                            Text("\(formattedduration)")
+                                .font(.caption)
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
+                        }
+                    }
+                    
+                    
+                    Text("Calendar events")
+                        .font(.headline)
+                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
+                    if isLoading {
+                        ProgressView("Loading events...")
+                    } else {
+                        ForEach(events, id: \.eventIdentifier) { event in
+                            VStack(alignment: .leading) {
+                                Text(event.title)
+                                    .font(.caption)
+                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
+                                
+                                HStack {
+                                    Text(formatter.string(from: event.startDate))
+                                        .font(.caption2)
+                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
+                                    Text("-")
+                                        .font(.caption2)
+                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
+                                    
+                                    Text(formatter.string(from: event.endDate))
+                                        .font(.caption2)
+                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
                                 }
                             }
                         }
                     }
-                    Spacer()
-                }
-                
-                // Current playing music plus progress bar
-                VStack(alignment: .leading) {
-                    Text(curSong.title).font(.headline)
-                    HStack {
-                        Text(curSong.album).font(.subheadline)
-                        Text(curSong.artist).font(.subheadline)
-                    }
-                    HStack {
-                        ProgressView(value: max(0.0, min(1.0, progressBar)))
-                                    .onReceive(musicMonitor.$curSong) { song in
-                                        // Update progress bar when song changes
-                                        progressBar = song.progress
-                                    }
-                        Text("\(curSong.duration.formatted(.time(pattern: .minuteSecond)))").font(.caption)
-                    }
-                }
-                
-                Text("Calendar events").font(.headline)
-                if isLoading {
-                    ProgressView("Loading events...")
-                } else {
-                    ForEach(events, id: \.eventIdentifier) { event in
-                        VStack(alignment: .leading) {
-                            Text(event.title)
-                                .font(.caption)
-                            
-                            HStack {
-                                Text(formatter.string(from: event.startDate)).font(.caption2)
-                                Text("-")
-                                Text(formatter.string(from: event.endDate)).font(.caption2)
-                            }
-                            .font(.caption)
-                        }
-                    }
-                }
-                
-                Text("end calendar").font(.headline)
-                
-                Spacer()
-                                
-                HStack{
-                    Spacer()
-                    Button("Start scan"){
-                        bleManager.startScan()
-                    }
-                    .padding(2)
-                    .frame(width: 100, height: 30)
-                    .background((!darkMode ? primaryColor : secondaryColor))
-                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                    .buttonStyle(.borderless)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                        
-                }
-                
-                HStack{
-                    Spacer()
-                    Button(displayOn ? "Turn display off" : "Turn display on"){
-                        displayOn.toggle()
-                        print(String(displayOn))
-                        sendTextCommand()
-                    }
-                    .padding(2)
-                    .frame(width: 150, height: 30)
-                    .background((!darkMode ? primaryColor : secondaryColor))
-                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                    .buttonStyle(.borderless)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    
+                    Text("end calendar")
+                        .font(.headline)
+                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
 
-                }
-                
-                HStack{
+                    
                     Spacer()
-                    Button("Cycle through pages\nCurrent page: \(currentPage)"){
-                        if currentPage == "Default"{
-                            currentPage = "Music"
-                            displayManager.currentPage = "Music"
-                            
-                            let currentDisplay = mainDisplayLoop()
-                            sendTextCommand(text: currentDisplay)
-                        }else if currentPage == "Music"{
-                            currentPage = "Default"
-                            displayManager.currentPage = "Default"
-                            
-                            let currentDisplay = mainDisplayLoop()
-                            sendTextCommand(text: currentDisplay)
+                    
+                    HStack{
+                        Spacer()
+                        Button("Start scan"){
+                            bleManager.startScan()
                         }
+                        .padding(2)
+                        .frame(width: 100, height: 30)
+                        .background((!darkMode ? primaryColor : secondaryColor))
+                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                        .buttonStyle(.borderless)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        
                     }
-                    .padding(2)
-                    .frame(width: 200, height: 60)
-                    .background((!darkMode ? primaryColor : secondaryColor))
-                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                    .buttonStyle(.borderless)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    
+                    HStack{
+                        Spacer()
+                        Button(displayOn ? "Turn display off" : "Turn display on"){
+                            displayOn.toggle()
+                            print(String(displayOn))
+                            sendTextCommand()
+                        }
+                        .padding(2)
+                        .frame(width: 150, height: 30)
+                        .background((!darkMode ? primaryColor : secondaryColor))
+                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                        .buttonStyle(.borderless)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        
+                    }
+                    
+                    HStack{
+                        Spacer()
+                        Button("Cycle through pages\nCurrent page: \(currentPage)"){
+                            if currentPage == "Default"{
+                                currentPage = "Music"
+                                displayManager.currentPage = "Music"
+                                
+                                let currentDisplay = mainDisplayLoop()
+                                sendTextCommand(text: currentDisplay)
+                            }else if currentPage == "Music"{
+                                currentPage = "Default"
+                                displayManager.currentPage = "Default"
+                                
+                                let currentDisplay = mainDisplayLoop()
+                                sendTextCommand(text: currentDisplay)
+                            }
+                        }
+                        .padding(2)
+                        .frame(width: 200, height: 60)
+                        .background((!darkMode ? primaryColor : secondaryColor))
+                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                        .buttonStyle(.borderless)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    HStack{
+                        Spacer()
+                        Text("Connection status: \(bleManager.connectionStatus)")
+                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                    }
                 }
-                HStack{
-                    Spacer()
-                    Text("Connection status: \(bleManager.connectionStatus)")
-                }
+                .scrollContentBackground(.hidden)
+                .background(darkMode ? primaryColor : secondaryColor)
+                .edgesIgnoringSafeArea(.bottom)
+                .frame(width: 400)
+                
+                FloatingButton(items: floatingButtons)
+                    .environmentObject(theme)
             }
-            .scrollContentBackground(.hidden)
-            .background(LinearGradient(colors: darkMode ? [primaryColor, Color(red: 28/255, green: 28/255, blue: 30/255)] : [secondaryColor, .white], startPoint: .bottom, endPoint: .top))
-            .edgesIgnoringSafeArea(.bottom)
-            .frame(width: 400)
         }
         .onAppear {
             displayManager.loadEvents()
-            setupTimer()
+            timer = Timer.scheduledTimer(withTimeInterval: 1/20, repeats: true) { _ in
+                // Update time
+                time = Date().formatted(date: .omitted, time: .shortened)
+                
+                
+                
+                // Update events
+                events = displayManager.getEvents()
+                
+                counter += 1
+                totalCounter += 1
+                
+                displayManager.updateHUDInfo()
+                
+                if displayOn {
+                    let currentDisplay = mainDisplayLoop()
+                    sendTextCommand(text: currentDisplay)
+                } else {
+                    sendTextCommand()
+                }
+            }
         }
         .onDisappear {
             timer?.invalidate()
@@ -168,37 +243,8 @@ struct ContentView: View {
         }
     }
     
-    private func setupTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 1/20, repeats: true) { _ in
-            updateTimerData()
-        }
-    }
-    
-    private func updateTimerData() {
-        // Update time
-        time = Date().formatted(date: .omitted, time: .shortened)
-        
-        // Update music info
-        curSong = musicMonitor.curSong
-        progressBar = musicMonitor.curSong.progress
-        
-        // Update events
-        events = displayManager.getEvents()
-        
-        counter += 1
-        totalCounter += 1
-        
-        displayManager.updateHUDInfo()
-        
-        if displayOn {
-            let currentDisplay = mainDisplayLoop()
-            sendTextCommand(text: currentDisplay)
-        } else {
-            sendTextCommand()
-        }
-    }
-    
     func mainDisplayLoop() -> String{
+        print("mainDisplayLoop() ran")
         var textOutput: String = ""
         
         if currentPage == "Default"{ // DEFAULT PAGE HANDLER
@@ -229,6 +275,10 @@ struct ContentView: View {
     }
 }
 
+class ThemeColors: ObservableObject {
+    @Published var primaryColor: Color = Color(red: 10/255, green: 25/255, blue: 10/255)
+    @Published var secondaryColor: Color = Color(red: 175/255, green: 220/255, blue: 175/255)
+}
 
 #Preview {
     ContentView()
