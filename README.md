@@ -13,6 +13,7 @@
  - Maybe look into Apple Health stats/ring
  - Notification mirroring
  - glasses brightness and on/off toggle in some way on device
+ - Siri shortcuts/AppIntents support for a few actions
 
 
 
