@@ -2,14 +2,17 @@
  - Time and date
  - Current media + progress bar
  - Even G1 glasses support (currently in test branch)
- - Current weather, temp, and wind speed
+ - Upcoming calendar events
+
+## In Progress
+ - Current weather, temp, and wind speed (API issues)
+ - Battery stats
+
    
 ## Possible future features
  - Maybe look into Apple Health stats/ring
- - Battery stats for glasses and phone/watch
  - Notification mirroring
  - glasses brightness and on/off toggle in some way on device
- - Upcoming calendar events
 
 
 
