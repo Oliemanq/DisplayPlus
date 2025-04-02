@@ -54,19 +54,6 @@ class DisplayManager: ObservableObject {
         if curTemp != nil {
             currentDisplayLines.append(centerText(text:("\(Int(curTemp ?? 0.0))°F")))
         }
-
-        if eventsFormatted.count <= 2 {
-            for event in eventsFormatted {
-                currentDisplayLines.append(event.titleLine)
-                currentDisplayLines.append(event.subtitleLine)
-            }
-        }else{
-            for i in 0...1{
-                currentDisplayLines.append(eventsFormatted[i].titleLine)
-                currentDisplayLines.append(eventsFormatted[i].subtitleLine)
-            }
-            //EVENTUAL HANDLING FOR MORE THAN 5 LINES
-        }
         
         
         return(currentDisplayLines)
@@ -76,7 +63,7 @@ class DisplayManager: ObservableObject {
     func musicDisplay() -> [String]{
         var currentDisplayLines: [String] = []
 
-        currentDisplayLines.append(String(centerText(text: "\(time) \(getTodayWeekDay())")))
+        currentDisplayLines.append(String(centerText(text: "\(time) \(getTodayWeekDay()) ")))
         if curTemp != nil {
             currentDisplayLines.append(centerText(text:("\(Int(curTemp ?? 0.0))°F")))
         }
@@ -88,6 +75,27 @@ class DisplayManager: ObservableObject {
             currentDisplayLines.append(centerText(text: ("\(musicMonitor.curSong.title) - \(musicMonitor.curSong.artist)")))
         }
         currentDisplayLines.append("\(Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))) \(songProgAsBars) \(Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond)))")
+        return currentDisplayLines
+    }
+    
+    func calendarDisplay() -> [String]{
+        var currentDisplayLines: [String] = []
+        
+        currentDisplayLines.append(String(centerText(text: "\(time) \(getTodayWeekDay())")))
+        
+        if eventsFormatted.count <= 2 {
+            for event in eventsFormatted {
+                currentDisplayLines.append(centerText(text: (event.titleLine)))
+                currentDisplayLines.append(centerText(text: (event.subtitleLine)))
+            }
+        }else{
+            for i in 0...1{
+                currentDisplayLines.append(centerText(text: eventsFormatted[i].titleLine))
+                currentDisplayLines.append(centerText(text: eventsFormatted[i].subtitleLine))
+            }
+            //EVENTUAL HANDLING FOR MORE THAN 5 LINES
+        }
+        
         return currentDisplayLines
     }
     

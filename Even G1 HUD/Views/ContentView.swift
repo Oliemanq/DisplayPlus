@@ -2,10 +2,9 @@ import SwiftUI
 import EventKit
 
 struct ContentView: View {
-    @State public var displayOn: Bool = true
-    
     @StateObject private var displayManager = DisplayManager()
     @State var textOutput: String = ""
+    @State var autoOff: Bool = false
 
     @State public var currentPage: String = "Default"
     @StateObject private var bleManager = G1BLEManager()
@@ -40,18 +39,24 @@ struct ContentView: View {
         let secondaryColor  = theme.secondaryColor
         
         let floatingButtons: [FloatingButtonItem] = [
+            .init(iconSystemName: "clock", extraText: "Default screen", action: {
+                currentPage = "Default"
+                print("Default screen")
+            }),
             .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {
                 currentPage = "Music"
                 print("Music page")
             }),
+            .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
+                currentPage = "Calendar"
+                print("Calendar screen")
+            }),
             .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "RearView", action: {
                 currentPage = "RearView"
                 print("RearView screen")
-            }),
-            .init(iconSystemName: "clock", extraText: "Default screen", action: {
-                currentPage = "Default"
-                print("Default screen")
             })
+            
+            
             
         ]
         
@@ -82,7 +87,7 @@ struct ContentView: View {
                         Spacer()
                     }
                     .listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
                     
                     // Current playing music plus progress bar
@@ -108,8 +113,8 @@ struct ContentView: View {
                                 .font(.caption)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                 
-                            if musicMonitor.curSong.duration != 0 {
-                                ProgressView(value: musicMonitor.curSong.currentTime / musicMonitor.curSong.duration, total: 1).tint(!darkMode ? primaryColor : secondaryColor)
+                            if !(musicMonitor.curSong.duration < musicMonitor.currentTime) {
+                                ProgressView(value: musicMonitor.curSong.percentagePlayed).tint(!darkMode ? primaryColor : secondaryColor)
                             }
                             
                             Text("\(formattedduration)")
@@ -119,7 +124,7 @@ struct ContentView: View {
                         }
                     }
                     .listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
                     
                     
@@ -127,7 +132,7 @@ struct ContentView: View {
                         .font(.headline)
                         .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                         .listRowBackground(
-                            VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                            VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                         )
 
                     if isLoading {
@@ -157,7 +162,7 @@ struct ContentView: View {
                                 }
                             }
                             .listRowBackground(
-                                VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                             )
                         }
                     }
@@ -166,13 +171,13 @@ struct ContentView: View {
                         .font(.headline)
                         .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                         .listRowBackground(
-                            VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                            VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                         )
 
                     
                     Spacer()
                         .listRowBackground(
-                            VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                            VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                         )
                     
                     
@@ -189,14 +194,14 @@ struct ContentView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         
                     }.listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
                     
                     HStack{
                         Spacer()
-                        Button(displayOn ? "Turn display off" : "Turn display on"){
-                            displayOn.toggle()
-                            print(String(displayOn))
+                        Button(bleManager.displayOn ? "Turn display off" : "Turn display on"){
+                            bleManager.displayOn.toggle()
+                            print(String(bleManager.displayOn))
                             sendTextCommand()
                         }
                         .padding(2)
@@ -207,7 +212,22 @@ struct ContentView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         
                     }.listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                    )
+                    HStack{
+                        Spacer()
+                        Button ("Auto shut off: \(autoOff ? "on" : "off")"){
+                            autoOff.toggle()
+                        }
+                        .padding(2)
+                        .frame(width: 150, height: 30)
+                        .background((!darkMode ? primaryColor : secondaryColor))
+                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                        .buttonStyle(.borderless)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .listRowBackground(
+                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
                     
                     VStack{
@@ -216,14 +236,14 @@ struct ContentView: View {
                             .font(.system(size: 11))
 
                     }.listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
                     HStack{
                         Spacer()
                         Text("Connection status: \(bleManager.connectionStatus)")
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                     }.listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: darkMode ? .systemThinMaterialDark : .systemThinMaterialLight))
+                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
 
                 }
@@ -240,14 +260,24 @@ struct ContentView: View {
         .onAppear {
             displayManager.loadEvents()
             events = displayManager.getEvents()
+            var displayOnCounter: Int = 0
             
-            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            timer = Timer.scheduledTimer(withTimeInterval: 1/2, repeats: true) { _ in
+                
                 // Update time
                 time = Date().formatted(date: .omitted, time: .shortened)
                 
-                if totalCounter.truncatingRemainder(dividingBy: 60) == 0 {
-                    displayManager.loadEvents()
+                displayManager.loadEvents()
+                if autoOff{
+                    if bleManager.displayOn {
+                        displayOnCounter += 1
+                    }
+                    if displayOnCounter == 10*2{
+                        displayOnCounter = 0
+                        bleManager.displayOn.toggle()
+                    }
                 }
+                
 
                 // Update events
                 
@@ -256,7 +286,7 @@ struct ContentView: View {
                 
                 displayManager.updateHUDInfo()
                 
-                if displayOn {
+                if bleManager.displayOn {
                     let currentDisplay = mainDisplayLoop()
                     sendTextCommand(text: currentDisplay)
                 } else {
@@ -287,7 +317,13 @@ struct ContentView: View {
                 textOutput += line + "\n"
             }
         }else if currentPage == "RearView"{
+            
             textOutput = "To be implemented later, getting UI in place"
+            
+        }else if currentPage == "Calendar"{ //CALENDAR PAGE HANDLER
+            for line in displayManager.calendarDisplay() {
+                textOutput += line + "\n"
+            }
         }else{
             textOutput = "No page selected"
         }

@@ -67,4 +67,8 @@ struct Song{
     var album: String
     var duration: TimeInterval
     var currentTime: TimeInterval
+    
+    var percentagePlayed: Double {
+        return currentTime / duration
+    }
 }

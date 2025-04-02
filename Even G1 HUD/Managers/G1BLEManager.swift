@@ -15,6 +15,8 @@
 import CoreBluetooth
 
 class G1BLEManager: NSObject, ObservableObject{
+    @Published var displayOn: Bool = true
+    
     @Published var connectionStatus: String = "Disconnected"
     
     private var centralManager: CBCentralManager!
@@ -319,17 +321,34 @@ extension G1BLEManager: CBPeripheralDelegate {
 
     func processIncomingData(_ byteArray: [UInt8], _ data: Data, _ name: String? = nil) {
         // Example: Check if first byte matches a known command
+        print(byteArray)
+        print("\(data as NSData)")
+
         switch byteArray.first {
-        case 0x4E: // Example command identifier
-            print("")
-        case 0xf5:
-            if name!.contains("L"){
-                touchBarDouble(side: "L")
-            }else if name!.contains("R") {
-                touchBarDouble(side: "R")
+        case 245:
+
+            switch byteArray[1] {
+                case 0:
+                if name!.contains("L"){
+                    touchBarSingle(side: "L")
+                }else if name!.contains("R") {
+                    touchBarSingle(side: "R")
+                }
+                
+                case 0x00:
+                
+                if name!.contains("L"){
+                    touchBarDouble(side: "L")
+                }else if name!.contains("R") {
+                    touchBarDouble(side: "R")
+                }
+                
+            default:
+                break
             }
+            
         default:
-            print("Received: \(data as NSData)")
+            print("Other")
 
         }
     }
@@ -344,7 +363,16 @@ extension G1BLEManager: CBPeripheralDelegate {
         print("Handling stop command with data: \(data)")
     }
     func touchBarDouble(side: String){
+        if side == "R"{
+            displayOn = !displayOn
+        }
         print("Double tap on \(side) side")
+    }
+    func touchBarSingle(side: String){
+        if side == "L"{
+            print("Switch page eventually")
+        }
+        print("single tap on \(side) side")
     }
     
     // Called if a write with response completes
