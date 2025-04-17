@@ -5,7 +5,6 @@
 //  Created by Oliver Heisel on 3/8/25.
 //
 
-
 //
 //  G1BLEManager.swift
 //  G1TestApp
@@ -49,12 +48,16 @@ class G1BLEManager: NSObject, ObservableObject{
     // MARK: - Public Methods
     
     /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
-    
-    
     func startScan() {
         guard centralManager.state == .poweredOn else {
             print("Bluetooth is not powered on. Cannot start scan.")
             return
+        }
+        
+        let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceUUID])
+        for peripheral in connectedPeripherals {
+            print("Found previously connected peripheral: \(peripheral.name ?? "Unknown")")
+            handleDiscoveredPeripheral(peripheral)
         }
         
         connectionStatus = "Scanning..."
@@ -145,6 +148,43 @@ class G1BLEManager: NSObject, ObservableObject{
         let data = Data(packet)
         writeData(data, to: arm)
     }
+    
+    private func handleDiscoveredPeripheral(_ peripheral: CBPeripheral) {
+        guard let name = peripheral.name else { return }
+
+        let components = name.components(separatedBy: "_")
+        guard components.count >= 4 else { return }
+
+        let channelNumber = components[1]
+        let sideIndicator = components[2]
+        let pairKey = "Pair_\(channelNumber)"
+
+        if sideIndicator == "L" {
+            discoveredLeft[pairKey] = peripheral
+            print("Potential left peripheral for channel \(channelNumber).")
+        } else if sideIndicator == "R" {
+            discoveredRight[pairKey] = peripheral
+            print("Potential right peripheral for channel \(channelNumber).")
+        } else {
+            return
+        }
+
+        if let leftP = discoveredLeft[pairKey], let rightP = discoveredRight[pairKey] {
+            centralManager.stopScan()
+            connectionStatus = "Connecting to channel \(channelNumber)..."
+
+            leftPeripheral = leftP
+            rightPeripheral = rightP
+
+            leftPeripheral?.delegate = self
+            rightPeripheral?.delegate = self
+
+            centralManager.connect(leftP, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+            centralManager.connect(rightP, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+
+            print("Connecting left & right arms for channel \(channelNumber)...")
+        }
+    }
 }
 
 extension G1BLEManager: CBCentralManagerDelegate {
@@ -167,54 +207,7 @@ extension G1BLEManager: CBCentralManagerDelegate {
                         advertisementData: [String : Any],
                         rssi RSSI: NSNumber) {
         
-        guard let name = peripheral.name else { return }
-        // If we expect "Even G1_20_L_1BB8F0":
-        // components[0] = "Even G1"
-        // components[1] = "20"
-        // components[2] = "L"
-        // components[3] = "1BB8F0"
-        
-        let components = name.components(separatedBy: "_")
-        guard components.count >= 4 else { return }
-        
-        // For example:
-        let modelName = components[0]          // "Even G1"
-        let channelNumber = components[1]      // "20"
-        let sideIndicator = components[2]      // "L" or "R"
-        let suffix = components[3]            // "9BB9F0"
-        
-        let _ = modelName + suffix //to make xcode shut up about not using the variables
-        
-        let pairKey = "Pair_\(channelNumber)"
-        
-        // Now we can match L or R properly
-        if sideIndicator == "L" {
-            discoveredLeft[pairKey] = peripheral
-            print("Potential left peripheral for channel \(channelNumber).")
-        } else if sideIndicator == "R" {
-            discoveredRight[pairKey] = peripheral
-            print("Potential right peripheral for channel \(channelNumber).")
-        } else {
-            // Not recognized as L or R
-            return
-        }
-        
-        // If we've discovered both sides for the same channel, connect them
-        if let leftP = discoveredLeft[pairKey], let rightP = discoveredRight[pairKey] {
-            central.stopScan()
-            connectionStatus = "Connecting to channel \(channelNumber)..."
-            
-            leftPeripheral = leftP
-            rightPeripheral = rightP
-            
-            leftPeripheral?.delegate = self
-            rightPeripheral?.delegate = self
-            
-            central.connect(leftP, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
-            central.connect(rightP, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
-            
-            print("Connecting left & right arms for channel \(channelNumber)...")
-        }
+        handleDiscoveredPeripheral(peripheral)
     }
     
     /// Called when a peripheral is connected (left or right).
@@ -323,24 +316,16 @@ extension G1BLEManager: CBPeripheralDelegate {
         // Example: Check if first byte matches a known command
         print(byteArray)
         print("\(data as NSData)")
-
+        
         switch byteArray.first {
         case 245:
-
+            
             switch byteArray[1] {
-                case 0:
+            case 0:
                 if name!.contains("L"){
                     touchBarSingle(side: "L")
                 }else if name!.contains("R") {
                     touchBarSingle(side: "R")
-                }
-                
-                case 0x00:
-                
-                if name!.contains("L"){
-                    touchBarDouble(side: "L")
-                }else if name!.contains("R") {
-                    touchBarDouble(side: "R")
                 }
                 
             default:
@@ -349,7 +334,7 @@ extension G1BLEManager: CBPeripheralDelegate {
             
         default:
             print("Other")
-
+            
         }
     }
 
@@ -386,4 +371,3 @@ extension G1BLEManager: CBPeripheralDelegate {
         }
     }
 }
-
