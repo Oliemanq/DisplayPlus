@@ -14,11 +14,9 @@ import MapKit
 import OpenMeteoSdk
 
 
-class DisplayManager {    
+class DisplayManager: ObservableObject {    
     @State var currentDisplay: String = ""
     @State var currentPage: String = "Default"
-    @State var refresh = 0
-
     
     var time = Date().formatted(date: .omitted, time: .shortened)
     var timer: Timer?
@@ -43,36 +41,18 @@ class DisplayManager {
         time = Date().formatted(date: .omitted, time: .shortened)
         musicMonitor.updateCurrentSong()
         songProgAsBars = progressBar(
-            value: Double(musicMonitor.curSong.currentTime.components.seconds),
-            max: Double(musicMonitor.curSong.duration.components.seconds)
+            value: Double(musicMonitor.curSong.currentTime),
+            max: Double(musicMonitor.curSong.duration)
         )
-        
-        loadEvents()
-
-        if refresh == 20 {
-            refresh = 0
-        }else{
-            refresh += 1
-        }
     }
 
     func defaultDisplay() -> [String] {
-        currentPage = "Default"
         var currentDisplayLines: [String] = []
         
         currentDisplayLines.append(String(centerText(text: "\(time) \(getTodayWeekDay())")))
 
         if curTemp != nil {
             currentDisplayLines.append(centerText(text:("\(Int(curTemp ?? 0.0))°F")))
-        }
-
-        if eventsFormatted.count < 2 {
-            for event in eventsFormatted {
-                currentDisplayLines.append(event.titleLine)
-                currentDisplayLines.append(event.subtitleLine)
-            }
-        }else{
-            //EVENTUAL HANDLING FOR MORE THAN 5 LINES
         }
         
         
@@ -83,7 +63,7 @@ class DisplayManager {
     func musicDisplay() -> [String]{
         var currentDisplayLines: [String] = []
 
-        currentDisplayLines.append(String(centerText(text: "\(time) \(getTodayWeekDay())")))
+        currentDisplayLines.append(String(centerText(text: "\(time) \(getTodayWeekDay()) ")))
         if curTemp != nil {
             currentDisplayLines.append(centerText(text:("\(Int(curTemp ?? 0.0))°F")))
         }
@@ -94,7 +74,28 @@ class DisplayManager {
         }else{
             currentDisplayLines.append(centerText(text: ("\(musicMonitor.curSong.title) - \(musicMonitor.curSong.artist)")))
         }
-        currentDisplayLines.append("\(musicMonitor.curSong.currentTime.formatted(.time(pattern: .minuteSecond))) \(songProgAsBars) \(musicMonitor.curSong.duration.formatted(.time(pattern: .minuteSecond)))")
+        currentDisplayLines.append("\(Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))) \(songProgAsBars) \(Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond)))")
+        return currentDisplayLines
+    }
+    
+    func calendarDisplay() -> [String]{
+        var currentDisplayLines: [String] = []
+        
+        currentDisplayLines.append(String(centerText(text: "\(time) \(getTodayWeekDay())")))
+        
+        if eventsFormatted.count <= 2 {
+            for event in eventsFormatted {
+                currentDisplayLines.append(centerText(text: (event.titleLine)))
+                currentDisplayLines.append(centerText(text: (event.subtitleLine)))
+            }
+        }else{
+            for i in 0...1{
+                currentDisplayLines.append(centerText(text: eventsFormatted[i].titleLine))
+                currentDisplayLines.append(centerText(text: eventsFormatted[i].subtitleLine))
+            }
+            //EVENTUAL HANDLING FOR MORE THAN 5 LINES
+        }
+        
         return currentDisplayLines
     }
     
@@ -175,6 +176,9 @@ class DisplayManager {
     }
     
     func loadEvents() {
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "h:mm a"
+        
         cal.fetchEventsForNextDay { result in
             DispatchQueue.main.async {
                 self.updateAuthorizationStatus()
@@ -188,8 +192,12 @@ class DisplayManager {
                         )
                         
                         if let title = event.title, let startDate = event.startDate, let endDate = event.endDate {
-                            eventTemp.titleLine = ("\(title)")
-                            eventTemp.subtitleLine = ("\(startDate) - \(endDate)")
+                            if (title == "Shift as Computer Maintenance at TechCenter at TC/Lib/Comp Maint"){
+                                eventTemp.titleLine = ("Work")
+                            }else{
+                                eventTemp.titleLine = ("\(title)")
+                            }
+                            eventTemp.subtitleLine = ("\(timeFormatter.string(from: startDate)) - \(timeFormatter.string(from: endDate))")
                             self.eventsFormatted.append(eventTemp)
                         }
                     }

@@ -5,7 +5,6 @@
 //  Created by Oliver Heisel on 3/8/25.
 //
 
-
 //
 //  G1BLEManager.swift
 //  G1TestApp
@@ -15,6 +14,8 @@
 import CoreBluetooth
 
 class G1BLEManager: NSObject, ObservableObject{
+    @Published var displayOn: Bool = true
+    
     @Published var connectionStatus: String = "Disconnected"
     
     private var centralManager: CBCentralManager!
@@ -47,12 +48,16 @@ class G1BLEManager: NSObject, ObservableObject{
     // MARK: - Public Methods
     
     /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
-    
-    
     func startScan() {
         guard centralManager.state == .poweredOn else {
             print("Bluetooth is not powered on. Cannot start scan.")
             return
+        }
+        
+        let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceUUID])
+        for peripheral in connectedPeripherals {
+            print("Found previously connected peripheral: \(peripheral.name ?? "Unknown")")
+            handleDiscoveredPeripheral(peripheral)
         }
         
         connectionStatus = "Scanning..."
@@ -143,6 +148,43 @@ class G1BLEManager: NSObject, ObservableObject{
         let data = Data(packet)
         writeData(data, to: arm)
     }
+    
+    private func handleDiscoveredPeripheral(_ peripheral: CBPeripheral) {
+        guard let name = peripheral.name else { return }
+
+        let components = name.components(separatedBy: "_")
+        guard components.count >= 4 else { return }
+
+        let channelNumber = components[1]
+        let sideIndicator = components[2]
+        let pairKey = "Pair_\(channelNumber)"
+
+        if sideIndicator == "L" {
+            discoveredLeft[pairKey] = peripheral
+            print("Potential left peripheral for channel \(channelNumber).")
+        } else if sideIndicator == "R" {
+            discoveredRight[pairKey] = peripheral
+            print("Potential right peripheral for channel \(channelNumber).")
+        } else {
+            return
+        }
+
+        if let leftP = discoveredLeft[pairKey], let rightP = discoveredRight[pairKey] {
+            centralManager.stopScan()
+            connectionStatus = "Connecting to channel \(channelNumber)..."
+
+            leftPeripheral = leftP
+            rightPeripheral = rightP
+
+            leftPeripheral?.delegate = self
+            rightPeripheral?.delegate = self
+
+            centralManager.connect(leftP, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+            centralManager.connect(rightP, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+
+            print("Connecting left & right arms for channel \(channelNumber)...")
+        }
+    }
 }
 
 extension G1BLEManager: CBCentralManagerDelegate {
@@ -165,54 +207,7 @@ extension G1BLEManager: CBCentralManagerDelegate {
                         advertisementData: [String : Any],
                         rssi RSSI: NSNumber) {
         
-        guard let name = peripheral.name else { return }
-        // If we expect "Even G1_20_L_1BB8F0":
-        // components[0] = "Even G1"
-        // components[1] = "20"
-        // components[2] = "L"
-        // components[3] = "1BB8F0"
-        
-        let components = name.components(separatedBy: "_")
-        guard components.count >= 4 else { return }
-        
-        // For example:
-        let modelName = components[0]          // "Even G1"
-        let channelNumber = components[1]      // "20"
-        let sideIndicator = components[2]      // "L" or "R"
-        let suffix = components[3]            // "9BB9F0"
-        
-        let _ = modelName + suffix //to make xcode shut up about not using the variables
-        
-        let pairKey = "Pair_\(channelNumber)"
-        
-        // Now we can match L or R properly
-        if sideIndicator == "L" {
-            discoveredLeft[pairKey] = peripheral
-            print("Potential left peripheral for channel \(channelNumber).")
-        } else if sideIndicator == "R" {
-            discoveredRight[pairKey] = peripheral
-            print("Potential right peripheral for channel \(channelNumber).")
-        } else {
-            // Not recognized as L or R
-            return
-        }
-        
-        // If we've discovered both sides for the same channel, connect them
-        if let leftP = discoveredLeft[pairKey], let rightP = discoveredRight[pairKey] {
-            central.stopScan()
-            connectionStatus = "Connecting to channel \(channelNumber)..."
-            
-            leftPeripheral = leftP
-            rightPeripheral = rightP
-            
-            leftPeripheral?.delegate = self
-            rightPeripheral?.delegate = self
-            
-            central.connect(leftP, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
-            central.connect(rightP, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
-            
-            print("Connecting left & right arms for channel \(channelNumber)...")
-        }
+        handleDiscoveredPeripheral(peripheral)
     }
     
     /// Called when a peripheral is connected (left or right).
@@ -308,10 +303,61 @@ extension G1BLEManager: CBPeripheralDelegate {
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        //guard let data = characteristic.value else { return }
-        // Here you can parse incoming data from leftRChar/rightRChar
-        // For example:
-        //print("Received from \(peripheral.name ?? "unknown") (uuid: \(characteristic.uuid)): \(data as NSData)")
+        guard let data = characteristic.value else { return }
+        
+        // Convert Data to a byte array
+        let byteArray = [UInt8](data)
+        
+        // Process the data based on the protocol from EvenDemoApp
+        processIncomingData(byteArray, data, peripheral.name)
+    }
+
+    func processIncomingData(_ byteArray: [UInt8], _ data: Data, _ name: String? = nil) {
+        // Example: Check if first byte matches a known command
+        print(byteArray)
+        print("\(data as NSData)")
+        
+        switch byteArray.first {
+        case 245:
+            
+            switch byteArray[1] {
+            case 0:
+                if name!.contains("L"){
+                    touchBarSingle(side: "L")
+                }else if name!.contains("R") {
+                    touchBarSingle(side: "R")
+                }
+                
+            default:
+                break
+            }
+            
+        default:
+            print("Other")
+            
+        }
+    }
+
+    func handleStartAction(_ data: [UInt8]) {
+        // Handle start command
+        print("Handling start command with data: \(data)")
+    }
+
+    func handleStopAction(_ data: [UInt8]) {
+        // Handle stop command
+        print("Handling stop command with data: \(data)")
+    }
+    func touchBarDouble(side: String){
+        if side == "R"{
+            displayOn = !displayOn
+        }
+        print("Double tap on \(side) side")
+    }
+    func touchBarSingle(side: String){
+        if side == "L"{
+            print("Switch page eventually")
+        }
+        print("single tap on \(side) side")
     }
     
     // Called if a write with response completes
