@@ -1,7 +1,7 @@
 ## Features
  - Time and date
  - Current media + progress bar
- - Even G1 glasses support (currently in test branch)
+ - Even G1 glasses support
  - Upcoming calendar events
 
 ## In Progress
