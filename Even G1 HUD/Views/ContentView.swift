@@ -258,9 +258,9 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            displayManager.loadEvents()
             events = displayManager.getEvents()
             var displayOnCounter: Int = 0
+            UIDevice.current.isBatteryMonitoringEnabled = true
             
             timer = Timer.scheduledTimer(withTimeInterval: 1/2, repeats: true) { _ in
                 

@@ -49,7 +49,10 @@ class DisplayManager: ObservableObject {
     func defaultDisplay() -> [String] {
         var currentDisplayLines: [String] = []
         
-        currentDisplayLines.append(String(centerText(text: "\(time) \(getTodayWeekDay())")))
+        var batteryLevel: Float { UIDevice.current.batteryLevel }
+        let batteryLevelFormatted = (Int)(batteryLevel * 100)
+        
+        currentDisplayLines.append(String(centerText(text: "\(time) \(getTodayWeekDay()) \(batteryLevelFormatted)%")))
 
         if curTemp != nil {
             currentDisplayLines.append(centerText(text:("\(Int(curTemp ?? 0.0))°F")))
