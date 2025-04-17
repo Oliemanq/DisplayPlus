@@ -5,11 +5,11 @@
  - Upcoming calendar events
 
 ## In Progress
- - Current weather, temp, and wind speed (API issues)
  - Battery stats
  - Siri shortcuts/AppIntents support for a few actions
 
-
+##Postponed till further notice
+ - Current weather, temp, and wind speed (API issues)
    
 ## Possible future features
  - Maybe look into Apple Health stats/ring
