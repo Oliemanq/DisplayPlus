@@ -1,19 +1,20 @@
 ## Features
  - Time and date
  - Current media + progress bar
- - Even G1 glasses support (currently in test branch)
+ - Even G1 glasses support
  - Upcoming calendar events
 
 ## In Progress
- - Current weather, temp, and wind speed (API issues)
  - Battery stats
+ - Siri shortcuts/AppIntents support for a few actions
 
+## Postponed till further notice
+ - Current weather, temp, and wind speed (API issues)
    
 ## Possible future features
  - Maybe look into Apple Health stats/ring
  - Notification mirroring
  - glasses brightness and on/off toggle in some way on device
- - Siri shortcuts/AppIntents support for a few actions
 
 
 
