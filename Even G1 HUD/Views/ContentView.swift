@@ -1,12 +1,13 @@
 import SwiftUI
+import SwiftData
 import EventKit
+import AppIntents
 
 struct ContentView: View {
     @StateObject private var displayManager = DisplayManager()
     @State var textOutput: String = ""
     @State var autoOff: Bool = false
 
-    @State public var currentPage: String = "Default"
     @StateObject private var bleManager = G1BLEManager()
     @State private var counter: CGFloat = 0
     @State private var totalCounter: CGFloat = 0
@@ -17,6 +18,11 @@ struct ContentView: View {
     @State private var timer: Timer?
     
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.modelContext) private var context
+    @Query() private var displayDetailsList: [DataItem]
+    
+    @AppStorage("currentPage") private var currentPage = "Default"
+    @AppStorage("displayOn") private var displayOn = true
     
     @State private var isLoading = false
     @State private var errorMessage: String?
@@ -31,7 +37,6 @@ struct ContentView: View {
     
     @StateObject var theme = ThemeColors()
 
-    
     var body: some View {
         let darkMode: Bool = (colorScheme == .dark)
         
@@ -40,24 +45,21 @@ struct ContentView: View {
         
         let floatingButtons: [FloatingButtonItem] = [
             .init(iconSystemName: "clock", extraText: "Default screen", action: {
-                currentPage = "Default"
+                displayDetailsList.first?.currentPage = "Default"
                 print("Default screen")
             }),
             .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {
-                currentPage = "Music"
+                displayDetailsList.first?.currentPage = "Music"
                 print("Music page")
             }),
             .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
-                currentPage = "Calendar"
+                displayDetailsList.first?.currentPage = "Calendar"
                 print("Calendar screen")
             }),
             .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "RearView", action: {
-                currentPage = "RearView"
+                displayDetailsList.first?.currentPage = "RearView"
                 print("RearView screen")
             })
-            
-            
-            
         ]
         
         NavigationStack {
@@ -68,14 +70,14 @@ struct ContentView: View {
                         VStack {
                             Text(time)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-
+                            
                             HStack {
                                 ForEach(daysOfWeek, id: \.self) { day in
                                     if day == displayManager.getTodayWeekDay() {
                                         Text(day).bold()
                                             .padding(0)
                                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-
+                                        
                                     } else {
                                         Text(day)
                                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
@@ -99,11 +101,11 @@ struct ContentView: View {
                             Text(musicMonitor.curSong.album)
                                 .font(.subheadline)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-
+                            
                             Text(musicMonitor.curSong.artist)
                                 .font(.subheadline)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-
+                            
                         }
                         HStack {
                             let formattedCurrentTime = Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))
@@ -112,7 +114,7 @@ struct ContentView: View {
                             Text("\(formattedCurrentTime)")
                                 .font(.caption)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                
+                            
                             if !(musicMonitor.curSong.duration < musicMonitor.currentTime) {
                                 ProgressView(value: musicMonitor.curSong.percentagePlayed).tint(!darkMode ? primaryColor : secondaryColor)
                             }
@@ -120,7 +122,7 @@ struct ContentView: View {
                             Text("\(formattedduration)")
                                 .font(.caption)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-
+                            
                         }
                     }
                     .listRowBackground(
@@ -134,7 +136,7 @@ struct ContentView: View {
                         .listRowBackground(
                             VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                         )
-
+                    
                     if isLoading {
                         ProgressView("Loading events...")
                     } else {
@@ -143,22 +145,22 @@ struct ContentView: View {
                                 Text(event.title)
                                     .font(.caption)
                                     .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-
+                                
                                 
                                 HStack {
                                     Text(formatter.string(from: event.startDate))
                                         .font(.caption2)
                                         .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-
+                                    
                                     Text("-")
                                         .font(.caption2)
                                         .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-
+                                    
                                     
                                     Text(formatter.string(from: event.endDate))
                                         .font(.caption2)
                                         .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-
+                                    
                                 }
                             }
                             .listRowBackground(
@@ -173,7 +175,7 @@ struct ContentView: View {
                         .listRowBackground(
                             VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                         )
-
+                    
                     
                     Spacer()
                         .listRowBackground(
@@ -199,10 +201,13 @@ struct ContentView: View {
                     
                     HStack{
                         Spacer()
-                        Button(bleManager.displayOn ? "Turn display off" : "Turn display on"){
-                            bleManager.displayOn.toggle()
-                            print(String(bleManager.displayOn))
-                            sendTextCommand()
+                        Button(displayDetailsList.first?.displayOn == true ? "Turn display off" : "Turn display on"){
+                            if let displayDetails = displayDetailsList.first {
+                                displayDetails.displayOn.toggle()
+                                displayOn.toggle()
+                                
+                                sendTextCommand()
+                            }
                         }
                         .padding(2)
                         .frame(width: 150, height: 30)
@@ -234,7 +239,7 @@ struct ContentView: View {
                         Text(textOutput)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             .font(.system(size: 11))
-
+                        
                     }.listRowBackground(
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
@@ -245,7 +250,7 @@ struct ContentView: View {
                     }.listRowBackground(
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
-
+                    
                 }
                 
                 .scrollContentBackground(.hidden)
@@ -258,6 +263,12 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            if displayDetailsList.isEmpty {
+                let newItem = DataItem()
+                context.insert(newItem)
+                try? context.save()
+            }
+            
             events = displayManager.getEvents()
             var displayOnCounter: Int = 0
             UIDevice.current.isBatteryMonitoringEnabled = true
@@ -268,27 +279,31 @@ struct ContentView: View {
                 time = Date().formatted(date: .omitted, time: .shortened)
                 
                 displayManager.loadEvents()
-                if autoOff{
-                    if bleManager.displayOn {
+                if autoOff {
+                    if displayOn {
                         displayOnCounter += 1
                     }
-                    if displayOnCounter == 10*2{
+                    if displayOnCounter == 5*2 {
                         displayOnCounter = 0
-                        bleManager.displayOn.toggle()
+                        displayDetailsList.first!.displayOn.toggle()
+                        displayOn.toggle()
                     }
                 }
                 
-
-                // Update events
                 
+                // Update events
                 counter += 1
                 totalCounter += 1
                 
                 displayManager.updateHUDInfo()
                 
-                if bleManager.displayOn {
-                    let currentDisplay = mainDisplayLoop()
-                    sendTextCommand(text: currentDisplay)
+                if let displayDetails = displayDetailsList.first {
+                    if displayDetails.displayOn {
+                        let currentDisplay = mainDisplayLoop()
+                        sendTextCommand(text: currentDisplay)
+                    } else {
+                        sendTextCommand()
+                    }
                 } else {
                     sendTextCommand()
                 }
@@ -298,33 +313,41 @@ struct ContentView: View {
             timer?.invalidate()
             bleManager.disconnect()
         }
+        .onChange(of: currentPage) { oldValue, newValue in
+            syncAppStorageToModel()
+        }
+        .onChange(of: displayOn) { oldValue, newValue in
+            syncAppStorageToModel()
+        }
     }
     
     func mainDisplayLoop() -> String{
         textOutput = ""
         
-        if currentPage == "Default"{ // DEFAULT PAGE HANDLER
-            let displayLines = displayManager.defaultDisplay()
-            if displayLines.isEmpty{
-                textOutput = "broken"
-            }else{
-                for line in displayLines {
+        if let page = displayDetailsList.first?.currentPage {
+            if page == "Default"{ // DEFAULT PAGE HANDLER
+                let displayLines = displayManager.defaultDisplay()
+                if displayLines.isEmpty{
+                    textOutput = "broken"
+                } else {
+                    for line in displayLines {
+                        textOutput += line + "\n"
+                    }
+                }
+            } else if page == "Music"{ // MUSIC PAGE HANDLER
+                for line in displayManager.musicDisplay() {
                     textOutput += line + "\n"
                 }
+            } else if page == "RearView"{
+                textOutput = "To be implemented later, getting UI in place"
+            } else if page == "Calendar"{ // CALENDAR PAGE HANDLER
+                for line in displayManager.calendarDisplay() {
+                    textOutput += line + "\n"
+                }
+            } else {
+                textOutput = "No page selected"
             }
-        }else if currentPage == "Music"{ //MUSIC PAGE HANDLER
-            for line in displayManager.musicDisplay() {
-                textOutput += line + "\n"
-            }
-        }else if currentPage == "RearView"{
-            
-            textOutput = "To be implemented later, getting UI in place"
-            
-        }else if currentPage == "Calendar"{ //CALENDAR PAGE HANDLER
-            for line in displayManager.calendarDisplay() {
-                textOutput += line + "\n"
-            }
-        }else{
+        } else {
             textOutput = "No page selected"
         }
         return textOutput
@@ -337,6 +360,23 @@ struct ContentView: View {
         bleManager.sendTextCommand(seq: UInt8(self.counter), text: text)
         
     }
+    private func syncAppStorageToModel() {
+        guard let item = displayDetailsList.first else {
+            let newItem = DataItem()
+            newItem.currentPage = currentPage
+            newItem.displayOn = displayOn
+            context.insert(newItem)
+            return
+        }
+
+        if item.currentPage != currentPage {
+            item.currentPage = currentPage
+        }
+
+        if item.displayOn != displayOn {
+            item.displayOn = displayOn
+        }
+    }
 }
 
 class ThemeColors: ObservableObject {
@@ -347,4 +387,3 @@ class ThemeColors: ObservableObject {
 #Preview {
     ContentView()
 }
-

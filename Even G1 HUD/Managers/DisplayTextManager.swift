@@ -14,10 +14,7 @@ import MapKit
 import OpenMeteoSdk
 
 
-class DisplayManager: ObservableObject {    
-    @State var currentDisplay: String = ""
-    @State var currentPage: String = "Default"
-    
+class DisplayManager: ObservableObject {
     var time = Date().formatted(date: .omitted, time: .shortened)
     var timer: Timer?
     

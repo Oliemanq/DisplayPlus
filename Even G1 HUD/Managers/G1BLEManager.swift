@@ -12,9 +12,12 @@
 //  Created by Atlas on 2/22/25.
 //
 import CoreBluetooth
+import SwiftData
+import SwiftUI
 
 class G1BLEManager: NSObject, ObservableObject{
-    @Published var displayOn: Bool = true
+    @Environment(\.modelContext) private var modelContext
+    @Query() private var displayDetails: [DataItem]
     
     @Published var connectionStatus: String = "Disconnected"
     
@@ -349,7 +352,7 @@ extension G1BLEManager: CBPeripheralDelegate {
     }
     func touchBarDouble(side: String){
         if side == "R"{
-            displayOn = !displayOn
+            displayDetails.first!.displayOn = !displayDetails.first!.displayOn
         }
         print("Double tap on \(side) side")
     }
