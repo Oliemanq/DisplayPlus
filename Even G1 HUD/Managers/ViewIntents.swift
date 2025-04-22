@@ -10,6 +10,23 @@ import AppIntents
 import SwiftUI
 import SwiftData
 
+struct ConnectionStatus: AppIntent {
+    static let title: LocalizedStringResource = "Check connection status"
+    
+    var connectionStatus: String = UserDefaults.standard.string(forKey: "connectionStatus") ?? ""
+    
+    func perform() async throws -> some IntentResult & ReturnsValue<Bool> {
+        if connectionStatus != "" {
+            let connected = connectionStatus.contains("Connected")
+            print((connected ? "Connected" : "Disconnected"))
+            return .result(value: connected)
+        }else{
+            print("BROKEN ----------------------------------------")
+            return .result(value: false)
+        }
+    }
+}
+
 
 struct PageIntents{
     @AppStorage("currentPage") static private var currentPage = "Default"

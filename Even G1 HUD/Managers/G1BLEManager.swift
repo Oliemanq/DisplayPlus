@@ -19,7 +19,8 @@ class G1BLEManager: NSObject, ObservableObject{
     @Environment(\.modelContext) private var modelContext
     @Query() private var displayDetails: [DataItem]
     
-    @Published var connectionStatus: String = "Disconnected"
+    @AppStorage("connectionStatus") public var connectionStatus = "Disconnected"
+
     
     private var centralManager: CBCentralManager!
     // Left & Right peripheral references
@@ -60,6 +61,7 @@ class G1BLEManager: NSObject, ObservableObject{
         let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceUUID])
         for peripheral in connectedPeripherals {
             print("Found previously connected peripheral: \(peripheral.name ?? "Unknown")")
+            
             handleDiscoveredPeripheral(peripheral)
         }
         

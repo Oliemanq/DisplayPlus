@@ -327,6 +327,7 @@ struct ContentView: View {
         if let page = displayDetailsList.first?.currentPage {
             if page == "Default"{ // DEFAULT PAGE HANDLER
                 let displayLines = displayManager.defaultDisplay()
+                
                 if displayLines.isEmpty{
                     textOutput = "broken"
                 } else {
@@ -334,16 +335,22 @@ struct ContentView: View {
                         textOutput += line + "\n"
                     }
                 }
+                
+                
             } else if page == "Music"{ // MUSIC PAGE HANDLER
+                
                 for line in displayManager.musicDisplay() {
                     textOutput += line + "\n"
                 }
+                
             } else if page == "RearView"{
                 textOutput = "To be implemented later, getting UI in place"
+                
             } else if page == "Calendar"{ // CALENDAR PAGE HANDLER
                 for line in displayManager.calendarDisplay() {
                     textOutput += line + "\n"
                 }
+                
             } else {
                 textOutput = "No page selected"
             }
