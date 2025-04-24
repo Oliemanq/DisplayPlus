@@ -115,9 +115,7 @@ struct ContentView: View {
                                 .font(.caption)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             
-                            if !(musicMonitor.curSong.duration < musicMonitor.currentTime) {
-                                ProgressView(value: musicMonitor.curSong.percentagePlayed).tint(!darkMode ? primaryColor : secondaryColor)
-                            }
+                            
                             
                             Text("\(formattedduration)")
                                 .font(.caption)
