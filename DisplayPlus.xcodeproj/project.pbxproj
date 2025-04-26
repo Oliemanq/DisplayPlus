@@ -7,174 +7,252 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4E90FC772D90EC5300C75E4F /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 4E90FC762D90EC5300C75E4F /* OpenMeteoSdk */; };
+		4E7010932DBD70F400F868F4 /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 4E7010922DBD70F400F868F4 /* OpenMeteoSdk */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		4E7210F42DBD6737005DC476 /* PBXContainerItemProxy */ = {
+		4E70105C2DBD6F4900F868F4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 4EEF61352D77D39C0017F00D /* Project object */;
+			containerPortal = 4E7010462DBD6F4700F868F4 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 4EEF613C2D77D39C0017F00D;
-			remoteInfo = "Even G1 HUD";
+			remoteGlobalIDString = 4E70104D2DBD6F4800F868F4;
+			remoteInfo = DisplayPlus;
+		};
+		4E7010662DBD6F4900F868F4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4E7010462DBD6F4700F868F4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4E70104D2DBD6F4800F868F4;
+			remoteInfo = DisplayPlus;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		4E7210F02DBD6737005DC476 /* DisplayPlus Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "DisplayPlus Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4EEF613D2D77D39C0017F00D /* DisplayPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DisplayPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E70104E2DBD6F4800F868F4 /* DisplayPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DisplayPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E70105B2DBD6F4900F868F4 /* DisplayPlusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DisplayPlusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E7010652DBD6F4900F868F4 /* DisplayPlusUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DisplayPlusUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4E7010B22DBD714000F868F4 /* Exceptions for "DisplayPlus" folder in "DisplayPlus" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4E70104D2DBD6F4800F868F4 /* DisplayPlus */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		4E7210F12DBD6737005DC476 /* DisplayPlus Tests */ = {
+		4E7010502DBD6F4800F868F4 /* DisplayPlus */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "DisplayPlus Tests";
+			exceptions = (
+				4E7010B22DBD714000F868F4 /* Exceptions for "DisplayPlus" folder in "DisplayPlus" target */,
+			);
+			path = DisplayPlus;
 			sourceTree = "<group>";
 		};
-		4EEF613F2D77D39C0017F00D /* DisplayPlus */ = {
+		4E70105E2DBD6F4900F868F4 /* DisplayPlusTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DisplayPlus;
+			path = DisplayPlusTests;
+			sourceTree = "<group>";
+		};
+		4E7010682DBD6F4900F868F4 /* DisplayPlusUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = DisplayPlusUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		4E7210ED2DBD6737005DC476 /* Frameworks */ = {
+		4E70104B2DBD6F4800F868F4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E7010932DBD70F400F868F4 /* OpenMeteoSdk in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E7010582DBD6F4900F868F4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		4EEF613A2D77D39C0017F00D /* Frameworks */ = {
+		4E7010622DBD6F4900F868F4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4E90FC772D90EC5300C75E4F /* OpenMeteoSdk in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		4EEF61342D77D39C0017F00D = {
+		4E7010452DBD6F4700F868F4 = {
 			isa = PBXGroup;
 			children = (
-				4EEF613F2D77D39C0017F00D /* DisplayPlus */,
-				4E7210F12DBD6737005DC476 /* DisplayPlus Tests */,
-				4EEF613E2D77D39C0017F00D /* Products */,
+				4E7010502DBD6F4800F868F4 /* DisplayPlus */,
+				4E70105E2DBD6F4900F868F4 /* DisplayPlusTests */,
+				4E7010682DBD6F4900F868F4 /* DisplayPlusUITests */,
+				4E7010912DBD70F400F868F4 /* Frameworks */,
+				4E70104F2DBD6F4800F868F4 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		4EEF613E2D77D39C0017F00D /* Products */ = {
+		4E70104F2DBD6F4800F868F4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				4EEF613D2D77D39C0017F00D /* DisplayPlus.app */,
-				4E7210F02DBD6737005DC476 /* DisplayPlus Tests.xctest */,
+				4E70104E2DBD6F4800F868F4 /* DisplayPlus.app */,
+				4E70105B2DBD6F4900F868F4 /* DisplayPlusTests.xctest */,
+				4E7010652DBD6F4900F868F4 /* DisplayPlusUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		4E7010912DBD70F400F868F4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4E7210EF2DBD6737005DC476 /* DisplayPlus Tests */ = {
+		4E70104D2DBD6F4800F868F4 /* DisplayPlus */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4E7210F62DBD6737005DC476 /* Build configuration list for PBXNativeTarget "DisplayPlus Tests" */;
+			buildConfigurationList = 4E70106F2DBD6F4900F868F4 /* Build configuration list for PBXNativeTarget "DisplayPlus" */;
 			buildPhases = (
-				4E7210EC2DBD6737005DC476 /* Sources */,
-				4E7210ED2DBD6737005DC476 /* Frameworks */,
-				4E7210EE2DBD6737005DC476 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				4E7210F52DBD6737005DC476 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				4E7210F12DBD6737005DC476 /* DisplayPlus Tests */,
-			);
-			name = "DisplayPlus Tests";
-			packageProductDependencies = (
-			);
-			productName = "Even G1 HUD Tests";
-			productReference = 4E7210F02DBD6737005DC476 /* DisplayPlus Tests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		4EEF613C2D77D39C0017F00D /* DisplayPlus */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4EEF61612D77D39D0017F00D /* Build configuration list for PBXNativeTarget "DisplayPlus" */;
-			buildPhases = (
-				4EEF61392D77D39C0017F00D /* Sources */,
-				4EEF613A2D77D39C0017F00D /* Frameworks */,
-				4EEF613B2D77D39C0017F00D /* Resources */,
+				4E70104A2DBD6F4800F868F4 /* Sources */,
+				4E70104B2DBD6F4800F868F4 /* Frameworks */,
+				4E70104C2DBD6F4800F868F4 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				4EEF613F2D77D39C0017F00D /* DisplayPlus */,
+				4E7010502DBD6F4800F868F4 /* DisplayPlus */,
 			);
 			name = DisplayPlus;
 			packageProductDependencies = (
-				4E90FC762D90EC5300C75E4F /* OpenMeteoSdk */,
+				4E7010922DBD70F400F868F4 /* OpenMeteoSdk */,
 			);
-			productName = "Even G1 HUD";
-			productReference = 4EEF613D2D77D39C0017F00D /* DisplayPlus.app */;
+			productName = DisplayPlus;
+			productReference = 4E70104E2DBD6F4800F868F4 /* DisplayPlus.app */;
 			productType = "com.apple.product-type.application";
+		};
+		4E70105A2DBD6F4900F868F4 /* DisplayPlusTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4E7010722DBD6F4900F868F4 /* Build configuration list for PBXNativeTarget "DisplayPlusTests" */;
+			buildPhases = (
+				4E7010572DBD6F4900F868F4 /* Sources */,
+				4E7010582DBD6F4900F868F4 /* Frameworks */,
+				4E7010592DBD6F4900F868F4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4E70105D2DBD6F4900F868F4 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4E70105E2DBD6F4900F868F4 /* DisplayPlusTests */,
+			);
+			name = DisplayPlusTests;
+			packageProductDependencies = (
+			);
+			productName = DisplayPlusTests;
+			productReference = 4E70105B2DBD6F4900F868F4 /* DisplayPlusTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		4E7010642DBD6F4900F868F4 /* DisplayPlusUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4E7010752DBD6F4900F868F4 /* Build configuration list for PBXNativeTarget "DisplayPlusUITests" */;
+			buildPhases = (
+				4E7010612DBD6F4900F868F4 /* Sources */,
+				4E7010622DBD6F4900F868F4 /* Frameworks */,
+				4E7010632DBD6F4900F868F4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4E7010672DBD6F4900F868F4 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4E7010682DBD6F4900F868F4 /* DisplayPlusUITests */,
+			);
+			name = DisplayPlusUITests;
+			packageProductDependencies = (
+			);
+			productName = DisplayPlusUITests;
+			productReference = 4E7010652DBD6F4900F868F4 /* DisplayPlusUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		4EEF61352D77D39C0017F00D /* Project object */ = {
+		4E7010462DBD6F4700F868F4 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1630;
 				LastUpgradeCheck = 1630;
 				TargetAttributes = {
-					4E7210EF2DBD6737005DC476 = {
+					4E70104D2DBD6F4800F868F4 = {
 						CreatedOnToolsVersion = 16.3;
-						TestTargetID = 4EEF613C2D77D39C0017F00D;
 					};
-					4EEF613C2D77D39C0017F00D = {
-						CreatedOnToolsVersion = 16.2;
+					4E70105A2DBD6F4900F868F4 = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 4E70104D2DBD6F4800F868F4;
+					};
+					4E7010642DBD6F4900F868F4 = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 4E70104D2DBD6F4800F868F4;
 					};
 				};
 			};
-			buildConfigurationList = 4EEF61382D77D39C0017F00D /* Build configuration list for PBXProject "DisplayPlus" */;
+			buildConfigurationList = 4E7010492DBD6F4700F868F4 /* Build configuration list for PBXProject "DisplayPlus" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = 4EEF61342D77D39C0017F00D;
+			mainGroup = 4E7010452DBD6F4700F868F4;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				4E90FC752D90EC5300C75E4F /* XCRemoteSwiftPackageReference "sdk" */,
+				4E7010902DBD700C00F868F4 /* XCRemoteSwiftPackageReference "sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 4EEF613E2D77D39C0017F00D /* Products */;
+			productRefGroup = 4E70104F2DBD6F4800F868F4 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				4EEF613C2D77D39C0017F00D /* DisplayPlus */,
-				4E7210EF2DBD6737005DC476 /* DisplayPlus Tests */,
+				4E70104D2DBD6F4800F868F4 /* DisplayPlus */,
+				4E70105A2DBD6F4900F868F4 /* DisplayPlusTests */,
+				4E7010642DBD6F4900F868F4 /* DisplayPlusUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		4E7210EE2DBD6737005DC476 /* Resources */ = {
+		4E70104C2DBD6F4800F868F4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		4EEF613B2D77D39C0017F00D /* Resources */ = {
+		4E7010592DBD6F4900F868F4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E7010632DBD6F4900F868F4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -184,14 +262,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		4E7210EC2DBD6737005DC476 /* Sources */ = {
+		4E70104A2DBD6F4800F868F4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		4EEF61392D77D39C0017F00D /* Sources */ = {
+		4E7010572DBD6F4900F868F4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E7010612DBD6F4900F868F4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -201,53 +286,20 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		4E7210F52DBD6737005DC476 /* PBXTargetDependency */ = {
+		4E70105D2DBD6F4900F868F4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 4EEF613C2D77D39C0017F00D /* DisplayPlus */;
-			targetProxy = 4E7210F42DBD6737005DC476 /* PBXContainerItemProxy */;
+			target = 4E70104D2DBD6F4800F868F4 /* DisplayPlus */;
+			targetProxy = 4E70105C2DBD6F4900F868F4 /* PBXContainerItemProxy */;
+		};
+		4E7010672DBD6F4900F868F4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4E70104D2DBD6F4800F868F4 /* DisplayPlus */;
+			targetProxy = 4E7010662DBD6F4900F868F4 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		4E7210F72DBD6737005DC476 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 339H2WC2Z9;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUD-Tests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DisplayPlus.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DisplayPlus";
-			};
-			name = Debug;
-		};
-		4E7210F82DBD6737005DC476 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 339H2WC2Z9;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUD-Tests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DisplayPlus.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DisplayPlus";
-			};
-			name = Release;
-		};
-		4EEF615F2D77D39D0017F00D /* Debug */ = {
+		4E70106D2DBD6F4900F868F4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -300,7 +352,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -311,7 +363,7 @@
 			};
 			name = Debug;
 		};
-		4EEF61602D77D39D0017F00D /* Release */ = {
+		4E70106E2DBD6F4900F868F4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -358,7 +410,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -368,118 +420,185 @@
 			};
 			name = Release;
 		};
-		4EEF61622D77D39D0017F00D /* Debug */ = {
+		4E7010702DBD6F4900F868F4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = DisplayPlus/DisplayPlus.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CREATE_INFOPLIST_SECTION_IN_BINARY = NO;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 339H2WC2Z9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DisplayPlus/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = DisplayPlus;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSAppleMusicUsageDescription = "This is needed to get the current playing media to display on the glasses";
-				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This is needed to communicate with the smart glasses";
-				INFOPLIST_KEY_NSCalendarsUsageDescription = "This is needed to display upcoming events";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This is needed to get current weather constistantly";
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Needed to get current playing song data";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Needed to comunicate with glasses";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Needed to access upcoming events for displaying on glasses";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Needed to update weather according to location";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_PREPROCESS = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.Oliemanq.DisplayPlus;
+				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
-		4EEF61632D77D39D0017F00D /* Release */ = {
+		4E7010712DBD6F4900F868F4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = DisplayPlus/DisplayPlus.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CREATE_INFOPLIST_SECTION_IN_BINARY = NO;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 339H2WC2Z9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DisplayPlus/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = DisplayPlus;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSAppleMusicUsageDescription = "This is needed to get the current playing media to display on the glasses";
-				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This is needed to communicate with the smart glasses";
-				INFOPLIST_KEY_NSCalendarsUsageDescription = "This is needed to display upcoming events";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This is needed to get current weather constistantly";
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Needed to get current playing song data";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Needed to comunicate with glasses";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Needed to access upcoming events for displaying on glasses";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Needed to update weather according to location";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_PREPROCESS = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.Oliemanq.DisplayPlus;
+				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
+		4E7010732DBD6F4900F868F4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlusTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DisplayPlus.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DisplayPlus";
+			};
+			name = Debug;
+		};
+		4E7010742DBD6F4900F868F4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlusTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DisplayPlus.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DisplayPlus";
+			};
+			name = Release;
+		};
+		4E7010762DBD6F4900F868F4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlusUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = DisplayPlus;
+			};
+			name = Debug;
+		};
+		4E7010772DBD6F4900F868F4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlusUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = DisplayPlus;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4E7210F62DBD6737005DC476 /* Build configuration list for PBXNativeTarget "DisplayPlus Tests" */ = {
+		4E7010492DBD6F4700F868F4 /* Build configuration list for PBXProject "DisplayPlus" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				4E7210F72DBD6737005DC476 /* Debug */,
-				4E7210F82DBD6737005DC476 /* Release */,
+				4E70106D2DBD6F4900F868F4 /* Debug */,
+				4E70106E2DBD6F4900F868F4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4EEF61382D77D39C0017F00D /* Build configuration list for PBXProject "DisplayPlus" */ = {
+		4E70106F2DBD6F4900F868F4 /* Build configuration list for PBXNativeTarget "DisplayPlus" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				4EEF615F2D77D39D0017F00D /* Debug */,
-				4EEF61602D77D39D0017F00D /* Release */,
+				4E7010702DBD6F4900F868F4 /* Debug */,
+				4E7010712DBD6F4900F868F4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4EEF61612D77D39D0017F00D /* Build configuration list for PBXNativeTarget "DisplayPlus" */ = {
+		4E7010722DBD6F4900F868F4 /* Build configuration list for PBXNativeTarget "DisplayPlusTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				4EEF61622D77D39D0017F00D /* Debug */,
-				4EEF61632D77D39D0017F00D /* Release */,
+				4E7010732DBD6F4900F868F4 /* Debug */,
+				4E7010742DBD6F4900F868F4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4E7010752DBD6F4900F868F4 /* Build configuration list for PBXNativeTarget "DisplayPlusUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4E7010762DBD6F4900F868F4 /* Debug */,
+				4E7010772DBD6F4900F868F4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -487,7 +606,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		4E90FC752D90EC5300C75E4F /* XCRemoteSwiftPackageReference "sdk" */ = {
+		4E7010902DBD700C00F868F4 /* XCRemoteSwiftPackageReference "sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/open-meteo/sdk.git";
 			requirement = {
@@ -498,12 +617,12 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		4E90FC762D90EC5300C75E4F /* OpenMeteoSdk */ = {
+		4E7010922DBD70F400F868F4 /* OpenMeteoSdk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4E90FC752D90EC5300C75E4F /* XCRemoteSwiftPackageReference "sdk" */;
+			package = 4E7010902DBD700C00F868F4 /* XCRemoteSwiftPackageReference "sdk" */;
 			productName = OpenMeteoSdk;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 4EEF61352D77D39C0017F00D /* Project object */;
+	rootObject = 4E7010462DBD6F4700F868F4 /* Project object */;
 }
