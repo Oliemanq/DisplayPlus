@@ -9,16 +9,7 @@ import XCTest
 @testable import DisplayPlus
 
 final class DisplayPlusTests: XCTestCase {
-
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-    
-    func testCenterTest() throws {
+    func testCenterText() throws {
         //Given
         let textToCenter = "Hello World"
         let displayManager = DisplayManager()
@@ -45,6 +36,7 @@ final class DisplayPlusTests: XCTestCase {
         
         //Then
         XCTAssertEqual(bar, "[-----------------------|_____________________________]")
+            //Does not look even because of rendering on glasses not rendering characters of equal width
     }
     
     func testDefaultDisplay() throws {
@@ -65,4 +57,18 @@ final class DisplayPlusTests: XCTestCase {
         //Then
         XCTAssertEqual(textOutput, textOutputManual)
     }
+    
+    func testGetDay() throws {
+        //Given
+        let displayManager = DisplayManager()
+        
+        //When
+        let day = displayManager.getTodayWeekDay()
+        
+        //Then
+        XCTAssertTrue(day.count == 3)
+        XCTAssertEqual(day, "Sat")
+    }
+    
+    
 }
