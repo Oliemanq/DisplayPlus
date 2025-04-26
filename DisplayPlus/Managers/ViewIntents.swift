@@ -29,13 +29,11 @@ struct ConnectionStatus: AppIntent {
 
 
 struct PageIntents{
-    @AppStorage("currentPage") static private var currentPage = "Default"
-
     struct MusicPage: AppIntent {
         static let title: LocalizedStringResource = "Change view to music"
         
         func perform() async throws -> some IntentResult & ProvidesDialog {
-            PageIntents.currentPage = "Music"
+            UserDefaults.standard.set("Music", forKey: "currentPage")
             return .result(dialog: "Changed view to music")
         }
     }
@@ -44,7 +42,7 @@ struct PageIntents{
         static let title: LocalizedStringResource = "Change view to calendar"
             
         func perform() async throws -> some IntentResult & ProvidesDialog {
-            PageIntents.currentPage = "Calendar"
+            UserDefaults.standard.set("Calendar", forKey: "currentPage")
             return .result(dialog: "Changed view to Calendar")
         }
     }
@@ -52,7 +50,7 @@ struct PageIntents{
         static let title: LocalizedStringResource = "Change view to the default"
         
         func perform() async throws -> some IntentResult & ProvidesDialog {
-            PageIntents.currentPage = "Default"
+            UserDefaults.standard.set("Default", forKey: "currentPage")
             return .result(dialog: "Changed view to the default")
         }
     }
@@ -60,19 +58,17 @@ struct PageIntents{
         static let title: LocalizedStringResource = "Get current view"
         
         func perform() async throws -> some IntentResult {
-            return .result(value: PageIntents.currentPage)
+            return .result(value: UserDefaults.standard.string(forKey: "currentPage"))
         }
     }
 }
 
 struct DisplayIntents {
-    @AppStorage("displayOn") static private var displayOn = true
-    
     struct ToggleDisplayOn: AppIntent {
         static let title: LocalizedStringResource = "Turn the display on"
         
         func perform() async throws -> some IntentResult & ProvidesDialog {
-            DisplayIntents.displayOn = true
+            UserDefaults.standard.set(true, forKey: "displayOn")
             return .result(dialog: "Turned display on")
         }
     }
@@ -81,7 +77,7 @@ struct DisplayIntents {
         static let title: LocalizedStringResource = "Turn the display off"
         
         func perform() async throws -> some IntentResult & ProvidesDialog {
-            DisplayIntents.displayOn = false
+            UserDefaults.standard.set(false, forKey: "displayOn")
             return .result(dialog: "Turned display off")
         }
     }
@@ -90,7 +86,7 @@ struct DisplayIntents {
         static let title: LocalizedStringResource = "Get display status"
         
         func perform() async throws -> some IntentResult & ReturnsValue<Bool> {
-            return .result(value: DisplayIntents.displayOn)
+            return .result(value: UserDefaults.standard.bool(forKey: "displayOn"))
         }
     }
 }

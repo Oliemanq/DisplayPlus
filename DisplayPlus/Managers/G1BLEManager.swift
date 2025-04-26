@@ -16,8 +16,6 @@ import SwiftData
 import SwiftUI
 
 class G1BLEManager: NSObject, ObservableObject{
-    @Environment(\.modelContext) private var modelContext
-    @Query() private var displayDetails: [DataItem]
     
     @AppStorage("connectionStatus") public var connectionStatus = "Disconnected"
 
@@ -65,7 +63,7 @@ class G1BLEManager: NSObject, ObservableObject{
             handleDiscoveredPeripheral(peripheral)
         }
         
-        connectionStatus = "Scanning..."
+        UserDefaults.standard.set("Scanning...", forKey: "connectionStatus")
         // You can filter by the UART service, but if you need the name to parse left vs right,
         // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
         centralManager.scanForPeripherals(withServices: nil, options: nil)
@@ -93,7 +91,7 @@ class G1BLEManager: NSObject, ObservableObject{
         rightWChar = nil
         rightRChar = nil
         
-        connectionStatus = "Disconnected"
+        UserDefaults.standard.set("Disconnected", forKey: "connectionStatus")
         print("Disconnected from G1 glasses.")
     }
     
@@ -176,7 +174,7 @@ class G1BLEManager: NSObject, ObservableObject{
 
         if let leftP = discoveredLeft[pairKey], let rightP = discoveredRight[pairKey] {
             centralManager.stopScan()
-            connectionStatus = "Connecting to channel \(channelNumber)..."
+            UserDefaults.standard.set("Connecting to channel \(channelNumber)...", forKey: "connectionStatus")
 
             leftPeripheral = leftP
             rightPeripheral = rightP
@@ -228,7 +226,7 @@ extension G1BLEManager: CBCentralManagerDelegate {
         // If both arms are connected, update status
         if let lp = leftPeripheral, let rp = rightPeripheral,
            lp.state == .connected, rp.state == .connected {
-            connectionStatus = "Connected to G1 Glasses (both arms)."
+            UserDefaults.standard.set("Connected to G1 Glasses (both arms).", forKey: "connectionStatus")
         }
     }
     
@@ -354,7 +352,7 @@ extension G1BLEManager: CBPeripheralDelegate {
     }
     func touchBarDouble(side: String){
         if side == "R"{
-            displayDetails.first!.displayOn = !displayDetails.first!.displayOn
+            UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "displayOn"), forKey: "displayOn")
         }
         print("Double tap on \(side) side")
     }

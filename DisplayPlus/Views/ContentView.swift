@@ -6,8 +6,7 @@ import AppIntents
 struct ContentView: View {
     @StateObject private var displayManager = DisplayManager()
     @State var textOutput: String = ""
-    @State var autoOff: Bool = false
-
+    
     @StateObject private var bleManager = G1BLEManager()
     @State private var counter: CGFloat = 0
     @State private var totalCounter: CGFloat = 0
@@ -23,6 +22,7 @@ struct ContentView: View {
     
     @AppStorage("currentPage") private var currentPage = "Default"
     @AppStorage("displayOn") private var displayOn = true
+    @AppStorage("autoOff") private var autoOff: Bool = false
     
     @State private var isLoading = false
     @State private var errorMessage: String?
@@ -45,19 +45,19 @@ struct ContentView: View {
         
         let floatingButtons: [FloatingButtonItem] = [
             .init(iconSystemName: "clock", extraText: "Default screen", action: {
-                displayDetailsList.first?.currentPage = "Default"
+                UserDefaults.standard.set("Default", forKey: "currentPage")
                 print("Default screen")
             }),
             .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {
-                displayDetailsList.first?.currentPage = "Music"
+                UserDefaults.standard.set("Music", forKey: "currentPage")
                 print("Music page")
             }),
             .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
-                displayDetailsList.first?.currentPage = "Calendar"
+                UserDefaults.standard.set("Calendar", forKey: "currentPage")
                 print("Calendar screen")
             }),
             .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "RearView", action: {
-                displayDetailsList.first?.currentPage = "RearView"
+                UserDefaults.standard.set("RearView", forKey: "currentPage")
                 print("RearView screen")
             })
         ]
@@ -199,13 +199,10 @@ struct ContentView: View {
                     
                     HStack{
                         Spacer()
-                        Button(displayDetailsList.first?.displayOn == true ? "Turn display off" : "Turn display on"){
-                            if let displayDetails = displayDetailsList.first {
-                                displayDetails.displayOn.toggle()
-                                displayOn.toggle()
-                                
-                                sendTextCommand()
-                            }
+                        Button(UserDefaults.standard.bool(forKey: "displayOn") == true ? "Turn display off" : "Turn display on"){
+                            
+                            UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "displayOn"), forKey: "displayOn")
+                            sendTextCommand()
                         }
                         .padding(2)
                         .frame(width: 150, height: 30)
@@ -219,8 +216,8 @@ struct ContentView: View {
                     )
                     HStack{
                         Spacer()
-                        Button ("Auto shut off: \(autoOff ? "on" : "off")"){
-                            autoOff.toggle()
+                        Button ("Auto shut off: \(UserDefaults.standard.bool(forKey: "autoOff") ? "on" : "off")"){
+                            UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "autoOff"), forKey: "autoOff")
                         }
                         .padding(2)
                         .frame(width: 150, height: 30)
@@ -272,57 +269,51 @@ struct ContentView: View {
             UIDevice.current.isBatteryMonitoringEnabled = true
             
             timer = Timer.scheduledTimer(withTimeInterval: 1/2, repeats: true) { _ in
+                displayManager.updateHUDInfo()
                 
                 // Update time
                 time = Date().formatted(date: .omitted, time: .shortened)
                 
                 displayManager.loadEvents()
-                if autoOff {
-                    if displayOn {
+                if UserDefaults.standard.bool(forKey: "autoOff") {
+                    if UserDefaults.standard.bool(forKey: "displayOn") {
                         displayOnCounter += 1
                     }
-                    if displayOnCounter == 5*2 {
+                    if displayOnCounter >= 5*2 {
                         displayOnCounter = 0
-                        displayDetailsList.first!.displayOn.toggle()
-                        displayOn.toggle()
+                        UserDefaults.standard.set(false, forKey: "displayOn")
                     }
                 }
                 
+                if UserDefaults.standard.bool(forKey: "displayOn") {
+                    let currentDisplay = mainDisplayLoop()
+                    sendTextCommand(text: currentDisplay)
+                }
                 
                 // Update events
                 counter += 1
                 totalCounter += 1
-                
-                displayManager.updateHUDInfo()
-                
-                if let displayDetails = displayDetailsList.first {
-                    if displayDetails.displayOn {
-                        let currentDisplay = mainDisplayLoop()
-                        sendTextCommand(text: currentDisplay)
-                    } else {
-                        sendTextCommand()
-                    }
-                } else {
-                    sendTextCommand()
+                if UInt8(counter) >= 255{
+                    counter = 0
                 }
             }
         }
         .onDisappear {
             timer?.invalidate()
             bleManager.disconnect()
+            
+        }.onChange(of: displayOn) { oldValue, newValue in
+            if !newValue{
+                sendTextCommand()
+            }
         }
-        .onChange(of: currentPage) { oldValue, newValue in
-            syncAppStorageToModel()
-        }
-        .onChange(of: displayOn) { oldValue, newValue in
-            syncAppStorageToModel()
-        }
+        
     }
     
     func mainDisplayLoop() -> String{
         textOutput = ""
         
-        if let page = displayDetailsList.first?.currentPage {
+        if let page = UserDefaults.standard.string(forKey: "currentPage") {
             if page == "Default"{ // DEFAULT PAGE HANDLER
                 let displayLines = displayManager.defaultDisplay()
                 
@@ -359,28 +350,8 @@ struct ContentView: View {
     }
     
     func sendTextCommand(text: String = ""){
-        if UInt8(self.counter) >= 255{
-            self.counter = 0
-        }
         bleManager.sendTextCommand(seq: UInt8(self.counter), text: text)
         
-    }
-    private func syncAppStorageToModel() {
-        guard let item = displayDetailsList.first else {
-            let newItem = DataItem()
-            newItem.currentPage = currentPage
-            newItem.displayOn = displayOn
-            context.insert(newItem)
-            return
-        }
-
-        if item.currentPage != currentPage {
-            item.currentPage = currentPage
-        }
-
-        if item.displayOn != displayOn {
-            item.displayOn = displayOn
-        }
     }
 }
 

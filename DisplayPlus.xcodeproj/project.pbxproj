@@ -11,14 +11,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		4EEF614E2D77D39D0017F00D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4EEF61352D77D39C0017F00D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 4EEF613C2D77D39C0017F00D;
-			remoteInfo = "Even G1 HUD";
-		};
-		4EEF61582D77D39D0017F00D /* PBXContainerItemProxy */ = {
+		4E7210F42DBD6737005DC476 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 4EEF61352D77D39C0017F00D /* Project object */;
 			proxyType = 1;
@@ -28,39 +21,36 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		4EEF613D2D77D39C0017F00D /* Even G1 HUD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Even G1 HUD.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4EEF614D2D77D39D0017F00D /* Even G1 HUDTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Even G1 HUDTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4EEF61572D77D39D0017F00D /* Even G1 HUDUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Even G1 HUDUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E7210F02DBD6737005DC476 /* DisplayPlus Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "DisplayPlus Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4EEF613D2D77D39C0017F00D /* DisplayPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DisplayPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		4EEF613F2D77D39C0017F00D /* Even G1 HUD */ = {
+		4E7210F12DBD6737005DC476 /* DisplayPlus Tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Even G1 HUD";
+			path = "DisplayPlus Tests";
+			sourceTree = "<group>";
+		};
+		4EEF613F2D77D39C0017F00D /* DisplayPlus */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = DisplayPlus;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		4E7210ED2DBD6737005DC476 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4EEF613A2D77D39C0017F00D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				4E90FC772D90EC5300C75E4F /* OpenMeteoSdk in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4EEF614A2D77D39D0017F00D /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4EEF61542D77D39D0017F00D /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,7 +60,8 @@
 		4EEF61342D77D39C0017F00D = {
 			isa = PBXGroup;
 			children = (
-				4EEF613F2D77D39C0017F00D /* Even G1 HUD */,
+				4EEF613F2D77D39C0017F00D /* DisplayPlus */,
+				4E7210F12DBD6737005DC476 /* DisplayPlus Tests */,
 				4EEF613E2D77D39C0017F00D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -78,9 +69,8 @@
 		4EEF613E2D77D39C0017F00D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				4EEF613D2D77D39C0017F00D /* Even G1 HUD.app */,
-				4EEF614D2D77D39D0017F00D /* Even G1 HUDTests.xctest */,
-				4EEF61572D77D39D0017F00D /* Even G1 HUDUITests.xctest */,
+				4EEF613D2D77D39C0017F00D /* DisplayPlus.app */,
+				4E7210F02DBD6737005DC476 /* DisplayPlus Tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -88,9 +78,32 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4EEF613C2D77D39C0017F00D /* Even G1 HUD */ = {
+		4E7210EF2DBD6737005DC476 /* DisplayPlus Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4EEF61612D77D39D0017F00D /* Build configuration list for PBXNativeTarget "Even G1 HUD" */;
+			buildConfigurationList = 4E7210F62DBD6737005DC476 /* Build configuration list for PBXNativeTarget "DisplayPlus Tests" */;
+			buildPhases = (
+				4E7210EC2DBD6737005DC476 /* Sources */,
+				4E7210ED2DBD6737005DC476 /* Frameworks */,
+				4E7210EE2DBD6737005DC476 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4E7210F52DBD6737005DC476 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4E7210F12DBD6737005DC476 /* DisplayPlus Tests */,
+			);
+			name = "DisplayPlus Tests";
+			packageProductDependencies = (
+			);
+			productName = "Even G1 HUD Tests";
+			productReference = 4E7210F02DBD6737005DC476 /* DisplayPlus Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		4EEF613C2D77D39C0017F00D /* DisplayPlus */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4EEF61612D77D39D0017F00D /* Build configuration list for PBXNativeTarget "DisplayPlus" */;
 			buildPhases = (
 				4EEF61392D77D39C0017F00D /* Sources */,
 				4EEF613A2D77D39C0017F00D /* Frameworks */,
@@ -101,55 +114,15 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				4EEF613F2D77D39C0017F00D /* Even G1 HUD */,
+				4EEF613F2D77D39C0017F00D /* DisplayPlus */,
 			);
-			name = "Even G1 HUD";
+			name = DisplayPlus;
 			packageProductDependencies = (
 				4E90FC762D90EC5300C75E4F /* OpenMeteoSdk */,
 			);
 			productName = "Even G1 HUD";
-			productReference = 4EEF613D2D77D39C0017F00D /* Even G1 HUD.app */;
+			productReference = 4EEF613D2D77D39C0017F00D /* DisplayPlus.app */;
 			productType = "com.apple.product-type.application";
-		};
-		4EEF614C2D77D39D0017F00D /* Even G1 HUDTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4EEF61642D77D39D0017F00D /* Build configuration list for PBXNativeTarget "Even G1 HUDTests" */;
-			buildPhases = (
-				4EEF61492D77D39D0017F00D /* Sources */,
-				4EEF614A2D77D39D0017F00D /* Frameworks */,
-				4EEF614B2D77D39D0017F00D /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				4EEF614F2D77D39D0017F00D /* PBXTargetDependency */,
-			);
-			name = "Even G1 HUDTests";
-			packageProductDependencies = (
-			);
-			productName = "Even G1 HUDTests";
-			productReference = 4EEF614D2D77D39D0017F00D /* Even G1 HUDTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		4EEF61562D77D39D0017F00D /* Even G1 HUDUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4EEF61672D77D39D0017F00D /* Build configuration list for PBXNativeTarget "Even G1 HUDUITests" */;
-			buildPhases = (
-				4EEF61532D77D39D0017F00D /* Sources */,
-				4EEF61542D77D39D0017F00D /* Frameworks */,
-				4EEF61552D77D39D0017F00D /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				4EEF61592D77D39D0017F00D /* PBXTargetDependency */,
-			);
-			name = "Even G1 HUDUITests";
-			packageProductDependencies = (
-			);
-			productName = "Even G1 HUDUITests";
-			productReference = 4EEF61572D77D39D0017F00D /* Even G1 HUDUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
@@ -158,23 +131,19 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1620;
+				LastSwiftUpdateCheck = 1630;
 				LastUpgradeCheck = 1630;
 				TargetAttributes = {
+					4E7210EF2DBD6737005DC476 = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 4EEF613C2D77D39C0017F00D;
+					};
 					4EEF613C2D77D39C0017F00D = {
 						CreatedOnToolsVersion = 16.2;
 					};
-					4EEF614C2D77D39D0017F00D = {
-						CreatedOnToolsVersion = 16.2;
-						TestTargetID = 4EEF613C2D77D39C0017F00D;
-					};
-					4EEF61562D77D39D0017F00D = {
-						CreatedOnToolsVersion = 16.2;
-						TestTargetID = 4EEF613C2D77D39C0017F00D;
-					};
 				};
 			};
-			buildConfigurationList = 4EEF61382D77D39C0017F00D /* Build configuration list for PBXProject "Even G1 HUD" */;
+			buildConfigurationList = 4EEF61382D77D39C0017F00D /* Build configuration list for PBXProject "DisplayPlus" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -191,29 +160,21 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				4EEF613C2D77D39C0017F00D /* Even G1 HUD */,
-				4EEF614C2D77D39D0017F00D /* Even G1 HUDTests */,
-				4EEF61562D77D39D0017F00D /* Even G1 HUDUITests */,
+				4EEF613C2D77D39C0017F00D /* DisplayPlus */,
+				4E7210EF2DBD6737005DC476 /* DisplayPlus Tests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		4E7210EE2DBD6737005DC476 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4EEF613B2D77D39C0017F00D /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4EEF614B2D77D39D0017F00D /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4EEF61552D77D39D0017F00D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -223,21 +184,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		4E7210EC2DBD6737005DC476 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4EEF61392D77D39C0017F00D /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4EEF61492D77D39D0017F00D /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4EEF61532D77D39D0017F00D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -247,19 +201,52 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		4EEF614F2D77D39D0017F00D /* PBXTargetDependency */ = {
+		4E7210F52DBD6737005DC476 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 4EEF613C2D77D39C0017F00D /* Even G1 HUD */;
-			targetProxy = 4EEF614E2D77D39D0017F00D /* PBXContainerItemProxy */;
-		};
-		4EEF61592D77D39D0017F00D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 4EEF613C2D77D39C0017F00D /* Even G1 HUD */;
-			targetProxy = 4EEF61582D77D39D0017F00D /* PBXContainerItemProxy */;
+			target = 4EEF613C2D77D39C0017F00D /* DisplayPlus */;
+			targetProxy = 4E7210F42DBD6737005DC476 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		4E7210F72DBD6737005DC476 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUD-Tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DisplayPlus.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DisplayPlus";
+			};
+			name = Debug;
+		};
+		4E7210F82DBD6737005DC476 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUD-Tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DisplayPlus.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DisplayPlus";
+			};
+			name = Release;
+		};
 		4EEF615F2D77D39D0017F00D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -386,16 +373,17 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Even G1 HUD/Even G1 HUD.entitlements";
+				CODE_SIGN_ENTITLEMENTS = DisplayPlus/DisplayPlus.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = NO;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Even G1 HUD/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 339H2WC2Z9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Even-G1-HUD-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Even G1 HUD";
+				INFOPLIST_FILE = DisplayPlus/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DisplayPlus;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "This is needed to get the current playing media to display on the glasses";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This is needed to communicate with the smart glasses";
@@ -404,15 +392,17 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_PREPROCESS = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Oliemanq.Even-G1-HUD";
+				PRODUCT_BUNDLE_IDENTIFIER = com.Oliemanq.DisplayPlus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -426,16 +416,17 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Even G1 HUD/Even G1 HUD.entitlements";
+				CODE_SIGN_ENTITLEMENTS = DisplayPlus/DisplayPlus.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = NO;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Even G1 HUD/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 339H2WC2Z9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Even-G1-HUD-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Even G1 HUD";
+				INFOPLIST_FILE = DisplayPlus/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DisplayPlus;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "This is needed to get the current playing media to display on the glasses";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This is needed to communicate with the smart glasses";
@@ -444,15 +435,17 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_PREPROCESS = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Oliemanq.Even-G1-HUD";
+				PRODUCT_BUNDLE_IDENTIFIER = com.Oliemanq.DisplayPlus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -461,78 +454,19 @@
 			};
 			name = Release;
 		};
-		4EEF61652D77D39D0017F00D /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUDTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Even G1 HUD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Even G1 HUD";
-			};
-			name = Debug;
-		};
-		4EEF61662D77D39D0017F00D /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUDTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Even G1 HUD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Even G1 HUD";
-			};
-			name = Release;
-		};
-		4EEF61682D77D39D0017F00D /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUDUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "Even G1 HUD";
-			};
-			name = Debug;
-		};
-		4EEF61692D77D39D0017F00D /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Oliemanq.Even-G1-HUDUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "Even G1 HUD";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4EEF61382D77D39C0017F00D /* Build configuration list for PBXProject "Even G1 HUD" */ = {
+		4E7210F62DBD6737005DC476 /* Build configuration list for PBXNativeTarget "DisplayPlus Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4E7210F72DBD6737005DC476 /* Debug */,
+				4E7210F82DBD6737005DC476 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4EEF61382D77D39C0017F00D /* Build configuration list for PBXProject "DisplayPlus" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4EEF615F2D77D39D0017F00D /* Debug */,
@@ -541,29 +475,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4EEF61612D77D39D0017F00D /* Build configuration list for PBXNativeTarget "Even G1 HUD" */ = {
+		4EEF61612D77D39D0017F00D /* Build configuration list for PBXNativeTarget "DisplayPlus" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4EEF61622D77D39D0017F00D /* Debug */,
 				4EEF61632D77D39D0017F00D /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		4EEF61642D77D39D0017F00D /* Build configuration list for PBXNativeTarget "Even G1 HUDTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				4EEF61652D77D39D0017F00D /* Debug */,
-				4EEF61662D77D39D0017F00D /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		4EEF61672D77D39D0017F00D /* Build configuration list for PBXNativeTarget "Even G1 HUDUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				4EEF61682D77D39D0017F00D /* Debug */,
-				4EEF61692D77D39D0017F00D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
