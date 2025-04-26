@@ -158,7 +158,7 @@ class DisplayManager: ObservableObject {
     }
     
     func progressBar(value: Double, max: Double) -> String {
-        let width = 45
+        let width = 46
         let percentage: Double = value/max
         let completedWidth = Int(percentage * Double(width))
 

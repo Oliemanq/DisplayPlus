@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct Even_G1_HUDApp: App {
+struct DisplayPlusApp: App {
     @StateObject private var musicMonitor = MusicMonitor()
     let container = try! ModelContainer(for: DataItem.self)
 
