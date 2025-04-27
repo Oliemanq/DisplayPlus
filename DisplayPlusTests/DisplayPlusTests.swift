@@ -6,6 +6,7 @@
 //
 
 import XCTest
+import SwiftUI
 @testable import DisplayPlus
 
 final class DisplayPlusTests: XCTestCase {
@@ -58,17 +59,35 @@ final class DisplayPlusTests: XCTestCase {
         XCTAssertEqual(textOutput, textOutputManual)
     }
     
-    func testGetDay() throws {
+    func testCalendar() throws {
         //Given
-        let displayManager = DisplayManager()
+        let d = DisplayManager()
+        let expectation = XCTestExpectation(description: "Events loaded")
         
         //When
-        let day = displayManager.getTodayWeekDay()
+        d.loadEvents {
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 5.0)
         
         //Then
-        XCTAssertTrue(day.count == 3)
-        XCTAssertEqual(day, "Sat")
+        XCTAssertFalse(d.events.isEmpty)
+        XCTAssertFalse(d.eventsFormatted.isEmpty)
+        XCTAssertNotNil(d.eventsFormatted.last?.titleLine)
+        XCTAssertNotNil(d.eventsFormatted.last)
+        XCTAssertEqual(d.eventsFormatted.last?.titleLine, "Test event")
     }
     
+    func testMainDisplayLoop() throws {
+        //Given
+        let ml = MainLoop()
+        @AppStorage("currentPage") var currentPage = "Default"
+
+        //When
+        ml.HandleText()
+        
+        //Then
+        XCTAssertNotNil(ml.textOutput)
+    }
     
 }

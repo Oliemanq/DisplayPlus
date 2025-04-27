@@ -5,13 +5,14 @@ import AppIntents
 
 struct ContentView: View {
     @StateObject private var displayManager = DisplayManager()
-    @State var textOutput: String = ""
     
     @StateObject private var bleManager = G1BLEManager()
     @State private var counter: CGFloat = 0
     @State private var totalCounter: CGFloat = 0
     
     @EnvironmentObject var musicMonitor: MusicMonitor
+    
+    private var mainLoop = MainLoop()
 
     @State private var time = Date().formatted(date: .omitted, time: .shortened)
     @State private var timer: Timer?
@@ -29,7 +30,7 @@ struct ContentView: View {
     @State private var authorizationStatus: String = "Checking..."
     
     @State private var progressBar: Double = 0.0
-    @State private var events: [EKEvent] = []
+    @State private var events: [event] = []
     
     private let daysOfWeek: [String] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     
@@ -138,34 +139,25 @@ struct ContentView: View {
                     if isLoading {
                         ProgressView("Loading events...")
                     } else {
-                        ForEach(events, id: \.eventIdentifier) { event in
+                        ForEach(events, id: \.self) { event in
+                            
                             VStack(alignment: .leading) {
-                                Text(event.title)
+                                Text(event.titleLine)
                                     .font(.caption)
                                     .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                 
                                 
-                                HStack {
-                                    Text(formatter.string(from: event.startDate))
-                                        .font(.caption2)
-                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                    
-                                    Text("-")
-                                        .font(.caption2)
-                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                    
-                                    
-                                    Text(formatter.string(from: event.endDate))
-                                        .font(.caption2)
-                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                    
-                                }
+                                Text(event.subtitleLine)
+                                    .font(.footnote)
+                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                
                             }
                             .listRowBackground(
                                 VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                             )
                         }
                     }
+                
                     
                     Text("end calendar")
                         .font(.headline)
@@ -231,7 +223,7 @@ struct ContentView: View {
                     )
                     
                     VStack{
-                        Text(textOutput)
+                        Text(mainLoop.textOutput)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             .font(.system(size: 11))
                         
@@ -264,17 +256,10 @@ struct ContentView: View {
                 try? context.save()
             }
             
-            events = displayManager.getEvents()
             var displayOnCounter: Int = 0
             UIDevice.current.isBatteryMonitoringEnabled = true
             
             timer = Timer.scheduledTimer(withTimeInterval: 1/2, repeats: true) { _ in
-                displayManager.updateHUDInfo()
-                
-                // Update time
-                time = Date().formatted(date: .omitted, time: .shortened)
-                
-                displayManager.loadEvents()
                 if UserDefaults.standard.bool(forKey: "autoOff") {
                     if UserDefaults.standard.bool(forKey: "displayOn") {
                         displayOnCounter += 1
@@ -285,9 +270,11 @@ struct ContentView: View {
                     }
                 }
                 
+                mainLoop.start()
+                
                 if UserDefaults.standard.bool(forKey: "displayOn") {
-                    let currentDisplay = mainDisplayLoop()
-                    sendTextCommand(text: currentDisplay)
+                    mainLoop.HandleText()
+                    sendTextCommand(text: mainLoop.textOutput)
                 }
                 
                 // Update events
@@ -300,6 +287,7 @@ struct ContentView: View {
         }
         .onDisappear {
             timer?.invalidate()
+            @AppStorage("connectionStatus") var connectionStatus: String = "Disconnected"
             bleManager.disconnect()
             
         }.onChange(of: displayOn) { oldValue, newValue in
@@ -308,45 +296,6 @@ struct ContentView: View {
             }
         }
         
-    }
-    
-    func mainDisplayLoop() -> String{
-        textOutput = ""
-        
-        if let page = UserDefaults.standard.string(forKey: "currentPage") {
-            if page == "Default"{ // DEFAULT PAGE HANDLER
-                let displayLines = displayManager.defaultDisplay()
-                
-                if displayLines.isEmpty{
-                    textOutput = "broken"
-                } else {
-                    for line in displayLines {
-                        textOutput += line + "\n"
-                    }
-                }
-                
-                
-            } else if page == "Music"{ // MUSIC PAGE HANDLER
-                
-                for line in displayManager.musicDisplay() {
-                    textOutput += line + "\n"
-                }
-                
-            } else if page == "RearView"{
-                textOutput = "To be implemented later, getting UI in place"
-                
-            } else if page == "Calendar"{ // CALENDAR PAGE HANDLER
-                for line in displayManager.calendarDisplay() {
-                    textOutput += line + "\n"
-                }
-                
-            } else {
-                textOutput = "No page selected"
-            }
-        } else {
-            textOutput = "No page selected"
-        }
-        return textOutput
     }
     
     func sendTextCommand(text: String = ""){

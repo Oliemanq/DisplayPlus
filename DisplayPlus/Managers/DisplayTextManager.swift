@@ -27,14 +27,15 @@ class DisplayManager: ObservableObject {
     var curWind: Float?
     
     private let cal = CalendarManager()
-    private var events: [EKEvent] = []
-    public var eventsFormatted: [event] = []
+    public var events: [EKEvent] = []
+    public var  eventsFormatted: [event] = []
     private var authorizationStatus = ""
     private var errorMessage: String = ""
     private var eventString: String = ""
     
     //Updating needed info
     func updateHUDInfo(){
+        print("update HUD info")
         time = Date().formatted(date: .omitted, time: .shortened)
         musicMonitor.updateCurrentSong()
         songProgAsBars = progressBar(
@@ -74,7 +75,11 @@ class DisplayManager: ObservableObject {
         }else{
             currentDisplayLines.append(centerText(text: ("\(musicMonitor.curSong.title) - \(musicMonitor.curSong.artist)")))
         }
+        print("running progress bar")
         currentDisplayLines.append("\(Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))) \(songProgAsBars) \(Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond)))")
+        print(songProgAsBars)
+        print(musicMonitor.curSong.duration)
+        print(musicMonitor.curSong.currentTime)
         return currentDisplayLines
     }
     
@@ -97,10 +102,6 @@ class DisplayManager: ObservableObject {
         }
         
         return currentDisplayLines
-    }
-    
-    func getEvents() -> [EKEvent]{
-        return events
     }
     
     func getTodayWeekDay()-> String{
@@ -164,7 +165,7 @@ class DisplayManager: ObservableObject {
 
         let completed = String(repeating: "-", count: completedWidth)
         let remaining = String(repeating: "_", count: Int(Double(width - completedWidth) * 1.2631578947))
-        let fullBar = "[" + completed + "|" + remaining + "]"        
+        let fullBar = "[" + completed + "|" + remaining + "]"
         return fullBar
     }
     
@@ -175,31 +176,44 @@ class DisplayManager: ObservableObject {
         return newText
     }
     
-    func loadEvents() {
+    public func loadEvents() {
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "h:mm a"
         
         cal.fetchEventsForNextDay { result in
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [self] in
                 self.updateAuthorizationStatus()
                 switch result {
                 case .success(let fetchedEvents):
-                    self.events = fetchedEvents
-                    for event in self.events {
+                    eventsFormatted.removeAll()
+                    events = fetchedEvents
+                    for event in events {
                         var eventTemp: event = .init(
                             titleLine: "",
                             subtitleLine: ""
                         )
                         
-                        if let title = event.title, let startDate = event.startDate, let endDate = event.endDate {
-                            if (title == "Shift as Computer Maintenance at TechCenter at TC/Lib/Comp Maint"){
+                        if event.title != nil{
+                            
+                            let title = event.title
+                            
+                            if (title! == "Shift as Computer Maintenance at TechCenter at TC/Lib/Comp Maint"){
                                 eventTemp.titleLine = ("Work")
                             }else{
-                                eventTemp.titleLine = ("\(title)")
+                                eventTemp.titleLine = ("\(title!)")
                             }
-                            eventTemp.subtitleLine = ("\(timeFormatter.string(from: startDate)) - \(timeFormatter.string(from: endDate))")
-                            self.eventsFormatted.append(eventTemp)
+                            
                         }
+                        if event.startDate != nil && event.endDate != nil {
+                            let startDate = event.startDate
+                            let endDate = event.endDate
+                            
+                            eventTemp.subtitleLine = ("\(timeFormatter.string(from: startDate!)) - \(timeFormatter.string(from: endDate!))")
+
+                        }
+                        
+                        eventsFormatted.append(eventTemp)
+                        
                     }
                 case .failure(let error):
                     self.errorMessage = error.localizedDescription
@@ -223,7 +237,8 @@ class DisplayManager: ObservableObject {
     }
 }
 
-struct event{
+struct event: Identifiable, Hashable{
+    var id = UUID()
     var titleLine: String
     var subtitleLine: String
 }
