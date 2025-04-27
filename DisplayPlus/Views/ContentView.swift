@@ -30,7 +30,6 @@ struct ContentView: View {
     @State private var authorizationStatus: String = "Checking..."
     
     @State private var progressBar: Double = 0.0
-    @State private var events: [event] = []
     
     private let daysOfWeek: [String] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     
@@ -139,7 +138,7 @@ struct ContentView: View {
                     if isLoading {
                         ProgressView("Loading events...")
                     } else {
-                        ForEach(events, id: \.self) { event in
+                        ForEach(displayManager.eventsFormatted) { event in
                             
                             VStack(alignment: .leading) {
                                 Text(event.titleLine)
@@ -258,6 +257,7 @@ struct ContentView: View {
             
             var displayOnCounter: Int = 0
             UIDevice.current.isBatteryMonitoringEnabled = true
+            mainLoop.update()
             
             timer = Timer.scheduledTimer(withTimeInterval: 1/2, repeats: true) { _ in
                 if UserDefaults.standard.bool(forKey: "autoOff") {
@@ -270,8 +270,10 @@ struct ContentView: View {
                     }
                 }
                 
-                mainLoop.start()
-                
+                // Update the mainLoop with the current counter value
+                if (counter.truncatingRemainder(dividingBy: 100) == 0){
+                    mainLoop.update()
+                }
                 if UserDefaults.standard.bool(forKey: "displayOn") {
                     mainLoop.HandleText()
                     sendTextCommand(text: mainLoop.textOutput)
@@ -280,7 +282,7 @@ struct ContentView: View {
                 // Update events
                 counter += 1
                 totalCounter += 1
-                if UInt8(counter) >= 255{
+                if UInt8(counter) >= 255 {
                     counter = 0
                 }
             }

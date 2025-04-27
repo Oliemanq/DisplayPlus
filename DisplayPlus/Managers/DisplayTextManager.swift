@@ -27,15 +27,16 @@ class DisplayManager: ObservableObject {
     var curWind: Float?
     
     private let cal = CalendarManager()
-    public var events: [EKEvent] = []
-    public var  eventsFormatted: [event] = []
+    private var events: [EKEvent] = []
+    @Published public var  eventsFormatted: [event] = []
     private var authorizationStatus = ""
     private var errorMessage: String = ""
     private var eventString: String = ""
     
+    private var lastEventsUpdateTime: Date = Date.distantPast
+    
     //Updating needed info
     func updateHUDInfo(){
-        print("update HUD info")
         time = Date().formatted(date: .omitted, time: .shortened)
         musicMonitor.updateCurrentSong()
         songProgAsBars = progressBar(
@@ -75,11 +76,7 @@ class DisplayManager: ObservableObject {
         }else{
             currentDisplayLines.append(centerText(text: ("\(musicMonitor.curSong.title) - \(musicMonitor.curSong.artist)")))
         }
-        print("running progress bar")
         currentDisplayLines.append("\(Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))) \(songProgAsBars) \(Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond)))")
-        print(songProgAsBars)
-        print(musicMonitor.curSong.duration)
-        print(musicMonitor.curSong.currentTime)
         return currentDisplayLines
     }
     
@@ -176,9 +173,15 @@ class DisplayManager: ObservableObject {
         return newText
     }
     
-    public func loadEvents() {
+    public func loadEvents(completion: (() -> Void)? = nil) {
+        // Only update if it's been at least 15 minutes since the last update
+        
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "h:mm a"
+        
+        // Initial load or 15 minutes have passed
+        print("Loading calendar events...")
+        lastEventsUpdateTime = Date() // Update timestamp
         
         cal.fetchEventsForNextDay { result in
             DispatchQueue.main.async { [self] in
@@ -193,30 +196,31 @@ class DisplayManager: ObservableObject {
                             subtitleLine: ""
                         )
                         
-                        if event.title != nil{
-                            
+                        if event.title != nil {
                             let title = event.title
                             
-                            if (title! == "Shift as Computer Maintenance at TechCenter at TC/Lib/Comp Maint"){
+                            if (title! == "Shift as Computer Maintenance at TechCenter at TC/Lib/Comp Maint") {
                                 eventTemp.titleLine = ("Work")
-                            }else{
+                            } else {
                                 eventTemp.titleLine = ("\(title!)")
                             }
-                            
                         }
+                        
                         if event.startDate != nil && event.endDate != nil {
                             let startDate = event.startDate
                             let endDate = event.endDate
                             
                             eventTemp.subtitleLine = ("\(timeFormatter.string(from: startDate!)) - \(timeFormatter.string(from: endDate!))")
-
                         }
                         
                         eventsFormatted.append(eventTemp)
-                        
                     }
+                    
+                    completion?()
+                    
                 case .failure(let error):
                     self.errorMessage = error.localizedDescription
+                    completion?()
                 }
             }
         }

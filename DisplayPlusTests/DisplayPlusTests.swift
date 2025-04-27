@@ -71,7 +71,6 @@ final class DisplayPlusTests: XCTestCase {
         wait(for: [expectation], timeout: 5.0)
         
         //Then
-        XCTAssertFalse(d.events.isEmpty)
         XCTAssertFalse(d.eventsFormatted.isEmpty)
         XCTAssertNotNil(d.eventsFormatted.last?.titleLine)
         XCTAssertNotNil(d.eventsFormatted.last)
