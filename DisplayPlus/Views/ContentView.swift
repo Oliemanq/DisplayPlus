@@ -271,9 +271,7 @@ struct ContentView: View {
                 }
                 
                 // Update the mainLoop with the current counter value
-                if (counter.truncatingRemainder(dividingBy: 100) == 0){
-                    mainLoop.update()
-                }
+                mainLoop.update()
                 if UserDefaults.standard.bool(forKey: "displayOn") {
                     mainLoop.HandleText()
                     sendTextCommand(text: mainLoop.textOutput)
