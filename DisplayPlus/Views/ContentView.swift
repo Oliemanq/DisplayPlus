@@ -4,7 +4,11 @@ import EventKit
 import AppIntents
 
 struct ContentView: View {
-    @StateObject private var displayManager = DisplayManager()
+    @ObservedObject var weather: weatherManager
+    
+    @StateObject var displayManager: DisplayManager
+    @StateObject var mainLoop: MainLoop
+
     
     @StateObject private var bleManager = G1BLEManager()
     @State private var counter: CGFloat = 0
@@ -12,7 +16,6 @@ struct ContentView: View {
     
     @EnvironmentObject var musicMonitor: MusicMonitor
     
-    private var mainLoop = MainLoop()
 
     @State private var time = Date().formatted(date: .omitted, time: .shortened)
     @State private var timer: Timer?
@@ -36,6 +39,14 @@ struct ContentView: View {
     let formatter = DateFormatter()
     
     @StateObject var theme = ThemeColors()
+    
+    init(weather: weatherManager){
+        _weather = ObservedObject(wrappedValue: weather)
+        
+        let initialDisplayManager = DisplayManager(weather: weather)
+        _displayManager = StateObject(wrappedValue: initialDisplayManager)
+        _mainLoop = StateObject(wrappedValue: MainLoop(displayManager: initialDisplayManager))
+    }
 
     var body: some View {
         let darkMode: Bool = (colorScheme == .dark)
@@ -46,19 +57,15 @@ struct ContentView: View {
         let floatingButtons: [FloatingButtonItem] = [
             .init(iconSystemName: "clock", extraText: "Default screen", action: {
                 UserDefaults.standard.set("Default", forKey: "currentPage")
-                print("Default screen")
             }),
             .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {
                 UserDefaults.standard.set("Music", forKey: "currentPage")
-                print("Music page")
             }),
             .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
                 UserDefaults.standard.set("Calendar", forKey: "currentPage")
-                print("Calendar screen")
             }),
             .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "RearView", action: {
                 UserDefaults.standard.set("RearView", forKey: "currentPage")
-                print("RearView screen")
             })
         ]
         
@@ -220,6 +227,27 @@ struct ContentView: View {
                     .listRowBackground(
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
+                    HStack{
+                        Spacer()
+                        Button("Get weather") {
+                            Task {
+                                do{
+                                    try await weather.fetchWeatherData()
+                                }catch{
+                                    print("Error fetching weather")
+                                }
+                            }
+                        }
+                        .padding(2)
+                        .frame(width: 150, height: 30)
+                        .background((!darkMode ? primaryColor : secondaryColor))
+                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                        .buttonStyle(.borderless)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .listRowBackground(
+                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                    )
                     
                     VStack{
                         Text(mainLoop.textOutput)
@@ -258,6 +286,9 @@ struct ContentView: View {
             var displayOnCounter: Int = 0
             UIDevice.current.isBatteryMonitoringEnabled = true
             mainLoop.update()
+            Task{
+                try await weather.fetchWeatherData()
+            }
             
             timer = Timer.scheduledTimer(withTimeInterval: 1/2, repeats: true) { _ in
                 if UserDefaults.standard.bool(forKey: "autoOff") {
@@ -310,5 +341,5 @@ class ThemeColors: ObservableObject {
 }
 
 #Preview {
-    ContentView()
+    ContentView(weather: weatherManager())
 }

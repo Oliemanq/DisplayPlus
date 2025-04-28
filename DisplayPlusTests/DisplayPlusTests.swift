@@ -13,7 +13,7 @@ final class DisplayPlusTests: XCTestCase {
     func testCenterText() throws {
         //Given
         let textToCenter = "Hello World"
-        let displayManager = DisplayManager()
+        let displayManager = DisplayManager(weather: weatherManager())
         
         //When
         let centeredText = displayManager.centerText(text: textToCenter)
@@ -28,7 +28,7 @@ final class DisplayPlusTests: XCTestCase {
     
     func testProgressBar() throws {
         //Given
-        let d = DisplayManager()
+        let d = DisplayManager(weather: weatherManager())
         let progress = 0.5
         let max = 1.0
         
@@ -43,7 +43,7 @@ final class DisplayPlusTests: XCTestCase {
     func testDefaultDisplay() throws {
         //Given
         let time = Date().formatted(date: .omitted, time: .shortened)
-        let displayManager = DisplayManager()
+        let displayManager = DisplayManager(weather: weatherManager())
         var textOutput: [String] = []
         var textOutputManual: [String] = []
         
@@ -53,7 +53,7 @@ final class DisplayPlusTests: XCTestCase {
         //When
         textOutput = displayManager.defaultDisplay()
         
-        textOutputManual.append(displayManager.centerText(text: "\(time) \(displayManager.getTodayWeekDay()) \(batteryLevelFormatted)%"))
+        textOutputManual.append(displayManager.centerText(text: "\(time)  \(displayManager.getTodayWeekDay()) | Phone - \(batteryLevelFormatted)%"))
         
         //Then
         XCTAssertEqual(textOutput, textOutputManual)
@@ -61,7 +61,7 @@ final class DisplayPlusTests: XCTestCase {
     
     func testCalendar() throws {
         //Given
-        let d = DisplayManager()
+        let d = DisplayManager(weather: weatherManager())
         let expectation = XCTestExpectation(description: "Events loaded")
         
         //When
@@ -79,7 +79,7 @@ final class DisplayPlusTests: XCTestCase {
     
     func testMainDisplayLoop() throws {
         //Given
-        let ml = MainLoop()
+        let ml = MainLoop(displayManager: DisplayManager(weather: weatherManager()))
         @AppStorage("currentPage") var currentPage = "Default"
 
         //When

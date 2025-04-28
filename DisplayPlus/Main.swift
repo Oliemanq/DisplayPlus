@@ -11,11 +11,12 @@ import SwiftData
 @main
 struct DisplayPlusApp: App {
     @StateObject private var musicMonitor = MusicMonitor()
+    @StateObject private var weather = weatherManager()
     let container = try! ModelContainer(for: DataItem.self)
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(weather: weather)
                 .environmentObject(musicMonitor)
                 .modelContainer(for: DataItem.self)
 

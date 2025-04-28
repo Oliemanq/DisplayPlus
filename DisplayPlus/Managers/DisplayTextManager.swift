@@ -23,8 +23,9 @@ class DisplayManager: ObservableObject {
     
     private var progressBar: CGFloat = 0.0
     
-    var curTemp: Float?
-    var curWind: Float?
+    public var weather: weatherManager
+    private var curTemp: Int?
+    private var curWind: Int?
     
     private let cal = CalendarManager()
     private var events: [EKEvent] = []
@@ -33,7 +34,14 @@ class DisplayManager: ObservableObject {
     private var errorMessage: String = ""
     private var eventString: String = ""
     
+    public var batteryLevelFormatted = (Int)(UIDevice.current.batteryLevel * 100)
     private var lastEventsUpdateTime: Date = Date.distantPast
+    
+    var currentDisplayLines: [String] = []
+    
+    init(weather: weatherManager){
+        self.weather = weather
+    }
     
     //Updating needed info
     func updateHUDInfo(){
@@ -46,15 +54,13 @@ class DisplayManager: ObservableObject {
     }
 
     func defaultDisplay() -> [String] {
-        var currentDisplayLines: [String] = []
+        currentDisplayLines.removeAll()
+        print(weather.currentTemp)
         
-        var batteryLevel: Float { UIDevice.current.batteryLevel }
-        let batteryLevelFormatted = (Int)(batteryLevel * 100)
-        
-        currentDisplayLines.append(String(centerText(text: "\(time) \(getTodayWeekDay()) \(batteryLevelFormatted)%")))
-
-        if curTemp != nil {
-            currentDisplayLines.append(centerText(text:("\(Int(curTemp ?? 0.0))°F")))
+        if weather.currentTemp != 0 {
+            currentDisplayLines.append(centerText(text:("\(time)  \(getTodayWeekDay()) | Phone - \(batteryLevelFormatted)% | \(weather.currentTemp)°F")))
+        }else{
+            currentDisplayLines.append(String(centerText(text: "\(time)  \(getTodayWeekDay()) | Phone - \(batteryLevelFormatted)%")))
         }
         
         
@@ -63,13 +69,13 @@ class DisplayManager: ObservableObject {
     }
     
     func musicDisplay() -> [String]{
-        var currentDisplayLines: [String] = []
+        currentDisplayLines.removeAll()
 
-        currentDisplayLines.append(String(centerText(text: "\(time) \(getTodayWeekDay()) ")))
-        if curTemp != nil {
-            currentDisplayLines.append(centerText(text:("\(Int(curTemp ?? 0.0))°F")))
+        if weather.currentTemp != 0 {
+            currentDisplayLines.append(centerText(text:("\(time)  \(getTodayWeekDay()) | Phone - \(batteryLevelFormatted)% | \(weather.currentTemp)°F")))
+        }else{
+            currentDisplayLines.append(String(centerText(text: "\(time)  \(getTodayWeekDay()) | Phone - \(batteryLevelFormatted)%")))
         }
-        
         
         if musicMonitor.curSong.title.count > 25{
             currentDisplayLines.append((centerText(text: "\(musicMonitor.curSong.title.prefix(25))... - \(musicMonitor.curSong.artist)")))
@@ -81,10 +87,14 @@ class DisplayManager: ObservableObject {
     }
     
     func calendarDisplay() -> [String]{
-        var currentDisplayLines: [String] = []
+        currentDisplayLines.removeAll()
         
-        currentDisplayLines.append(String(centerText(text: "\(time) \(getTodayWeekDay())")))
-        
+        if weather.currentTemp != 0 {
+            currentDisplayLines.append(centerText(text:("\(time)  \(getTodayWeekDay()) | Phone - \(batteryLevelFormatted)% | \(weather.currentTemp)°F")))
+        }else{
+            currentDisplayLines.append(String(centerText(text: "\(time)  \(getTodayWeekDay()) | Phone - \(batteryLevelFormatted)%")))
+        }
+
         if eventsFormatted.count <= 2 {
             for event in eventsFormatted {
                 currentDisplayLines.append(centerText(text: (event.titleLine)))
@@ -106,53 +116,6 @@ class DisplayManager: ObservableObject {
         dateFormatter.dateFormat = "EEE"
         let weekDay = dateFormatter.string(from: Date())
         return weekDay
-    }
-    
-    
-    func getCurrentWeather() async {
-        do{
-            /// Make sure the URL contains `&format=flatbuffers`
-            let location: [String] = ["46.81", "-92.09"]
-            let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(location[0])&longitude=\(location[1])&current=temperature_2m,wind_speed_10m&forecast_days=1&wind_speed_unit=mph&temperature_unit=fahrenheit&precipitation_unit=inch&format=flatbuffers")!
-            let responses = try await WeatherApiResponse.fetch(url: url)
-            /// Process first location. Add a for-loop for multiple locations or weather models
-            let response = responses[0]
-            
-            /// Attributes for timezone and location
-            let utcOffsetSeconds = response.utcOffsetSeconds
-            
-            let current = response.current!
-            
-            struct WeatherData {
-                let current: Current
-                struct Current {
-                    let time: Date
-                    let temperature2m: Float
-                    let windSpeed10m: Float
-                    let relativeHumidity2m: Float
-                }
-            }
-            
-            /// Note: The order of weather variables in the URL query and the `at` indices below need to match!
-            let data = WeatherData(
-                current: .init(
-                    time: Date(timeIntervalSince1970: TimeInterval(current.time + Int64(utcOffsetSeconds))),
-                    temperature2m: current.variables(at: 0)!.value,
-                    windSpeed10m: current.variables(at: 1)!.value,
-                    relativeHumidity2m: current.variables(at: 2)!.value
-                )
-            )
-            
-            /// Timezone `.gmt` is deliberately used.
-            /// By adding `utcOffsetSeconds` before, local-time is inferred
-            let dateFormatter = DateFormatter()
-            dateFormatter.timeZone = .gmt
-            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
-            curTemp = data.current.temperature2m
-            curWind = data.current.windSpeed10m
-        } catch {
-            print("Failed to fetch weather data: \(error.localizedDescription)")
-        }
     }
     
     func progressBar(value: Double, max: Double) -> String {
@@ -180,7 +143,6 @@ class DisplayManager: ObservableObject {
         timeFormatter.dateFormat = "h:mm a"
         
         // Initial load or 15 minutes have passed
-        print("Loading calendar events...")
         lastEventsUpdateTime = Date() // Update timestamp
         
         cal.fetchEventsForNextDay { result in
