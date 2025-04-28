@@ -2,21 +2,15 @@
  - Time and date
  - Current media + progress bar
  - Even G1 glasses support
- - Upcoming calendar events
-
-## In Progress
+ - Upcoming calendar 
  - Battery stats
  - Siri shortcuts/AppIntents support for a few actions
+ - Current weather, temp, and wind speed
 
-## Postponed till further notice
- - Current weather, temp, and wind speed (API issues)
-   
 ## Possible future features
  - Maybe look into Apple Health stats/ring
  - Notification mirroring
  - glasses brightness and on/off toggle in some way on device
-
-
 
 ## This is a NATIVE Swift/SwiftUI app that will replace the built in Even Realities app for Even Realities G1 glasses
 I mainly wanted to do this to familiarize myself with swift/swiftui and many frameworks, like 
