@@ -58,9 +58,9 @@ class DisplayManager: ObservableObject {
         print(weather.currentTemp)
         
         if weather.currentTemp != 0 {
-            currentDisplayLines.append(centerText(text:("\(time)  \(getTodayWeekDay()) | Phone - \(batteryLevelFormatted)% | \(weather.currentTemp)°F")))
+            currentDisplayLines.append(centerText(text:("\(time) | \(getTodayDate()) | Phone - \(batteryLevelFormatted)% | \(weather.currentTemp)°F")))
         }else{
-            currentDisplayLines.append(String(centerText(text: "\(time)  \(getTodayWeekDay()) | Phone - \(batteryLevelFormatted)%")))
+            currentDisplayLines.append(String(centerText(text: "\(time)  \(getTodayDate()) | Phone - \(batteryLevelFormatted)%")))
         }
         
         
@@ -72,9 +72,9 @@ class DisplayManager: ObservableObject {
         currentDisplayLines.removeAll()
 
         if weather.currentTemp != 0 {
-            currentDisplayLines.append(centerText(text:("\(time)  \(getTodayWeekDay()) | Phone - \(batteryLevelFormatted)% | \(weather.currentTemp)°F")))
+            currentDisplayLines.append(centerText(text:("\(time) | \(getTodayDate()) | Phone - \(batteryLevelFormatted)% | \(weather.currentTemp)°F")))
         }else{
-            currentDisplayLines.append(String(centerText(text: "\(time)  \(getTodayWeekDay()) | Phone - \(batteryLevelFormatted)%")))
+            currentDisplayLines.append(String(centerText(text: "\(time) | \(getTodayDate()) | Phone - \(batteryLevelFormatted)%")))
         }
         
         if musicMonitor.curSong.title.count > 25{
@@ -90,9 +90,9 @@ class DisplayManager: ObservableObject {
         currentDisplayLines.removeAll()
         
         if weather.currentTemp != 0 {
-            currentDisplayLines.append(centerText(text:("\(time)  \(getTodayWeekDay()) | Phone - \(batteryLevelFormatted)% | \(weather.currentTemp)°F")))
+            currentDisplayLines.append(centerText(text:("\(time) | \(getTodayDate()) | Phone - \(batteryLevelFormatted)% | \(weather.currentTemp)°F")))
         }else{
-            currentDisplayLines.append(String(centerText(text: "\(time)  \(getTodayWeekDay()) | Phone - \(batteryLevelFormatted)%")))
+            currentDisplayLines.append(String(centerText(text: "\(time) | \(getTodayDate()) | Phone - \(batteryLevelFormatted)%")))
         }
 
         if eventsFormatted.count <= 2 {
@@ -111,11 +111,19 @@ class DisplayManager: ObservableObject {
         return currentDisplayLines
     }
     
-    func getTodayWeekDay()-> String{
+    func getTodayDate()-> String{
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "EEE"
         let weekDay = dateFormatter.string(from: Date())
-        return weekDay
+        
+        let date = Date()
+        
+        dateFormatter.dateFormat = "MMMM"
+        let month = dateFormatter.string(from: date)
+        dateFormatter.dateFormat = "d"
+        let day = dateFormatter.string(from: date)
+        
+        return "\(weekDay), \(month) \(day)"
     }
     
     func progressBar(value: Double, max: Double) -> String {

@@ -40,12 +40,8 @@ class weatherManager: ObservableObject {
                 windSpeed10m: current.variables(at: 1)!.value
             )
         )
-        print(data.current.temperature2m)
         currentTemp = Int(ceil(data.current.temperature2m))
         currentWind = Int(ceil(data.current.windSpeed10m))
-        
-        
-        print("Temp - \(currentTemp) Wind - \(currentWind)")
     }
 }
 

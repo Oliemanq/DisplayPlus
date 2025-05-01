@@ -18,7 +18,6 @@ class MainLoop: ObservableObject {
     }
     
     func update() {
-        // totalCounter increases by 1 every 0.5 seconds, so 360 counts = 3 minutes
         displayManager.loadEvents()
         displayManager.updateHUDInfo()
         displayManager.batteryLevelFormatted = (Int)(UIDevice.current.batteryLevel * 100)

@@ -80,7 +80,7 @@ struct ContentView: View {
                             
                             HStack {
                                 ForEach(daysOfWeek, id: \.self) { day in
-                                    if day == displayManager.getTodayWeekDay() {
+                                    if day == displayManager.getTodayDate() {
                                         Text(day).bold()
                                             .padding(0)
                                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
@@ -227,32 +227,13 @@ struct ContentView: View {
                     .listRowBackground(
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
-                    HStack{
-                        Spacer()
-                        Button("Get weather") {
-                            Task {
-                                do{
-                                    try await weather.fetchWeatherData()
-                                }catch{
-                                    print("Error fetching weather")
-                                }
-                            }
-                        }
-                        .padding(2)
-                        .frame(width: 150, height: 30)
-                        .background((!darkMode ? primaryColor : secondaryColor))
-                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                        .buttonStyle(.borderless)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                    .listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                    )
                     
                     VStack{
-                        Text(mainLoop.textOutput)
-                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            .font(.system(size: 11))
+                        if displayOn {
+                            Text(mainLoop.textOutput)
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                .font(.system(size: 11))
+                        }
                         
                     }.listRowBackground(
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
@@ -290,12 +271,12 @@ struct ContentView: View {
                 try await weather.fetchWeatherData()
             }
             
-            timer = Timer.scheduledTimer(withTimeInterval: 1/2, repeats: true) { _ in
+            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
                 if UserDefaults.standard.bool(forKey: "autoOff") {
                     if UserDefaults.standard.bool(forKey: "displayOn") {
                         displayOnCounter += 1
                     }
-                    if displayOnCounter >= 5*2 {
+                    if displayOnCounter >= 5 {
                         displayOnCounter = 0
                         UserDefaults.standard.set(false, forKey: "displayOn")
                     }
