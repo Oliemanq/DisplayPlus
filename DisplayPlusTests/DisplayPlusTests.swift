@@ -53,7 +53,7 @@ final class DisplayPlusTests: XCTestCase {
         //When
         textOutput = displayManager.defaultDisplay()
         
-        textOutputManual.append(displayManager.centerText(text: "\(time)  \(displayManager.getTodayWeekDay()) | Phone - \(batteryLevelFormatted)%"))
+        textOutputManual.append(displayManager.centerText(text: "\(time)  \(displayManager.getTodayDate()) | Phone - \(batteryLevelFormatted)%"))
         
         //Then
         XCTAssertEqual(textOutput, textOutputManual)

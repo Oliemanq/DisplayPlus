@@ -82,7 +82,18 @@ class DisplayManager: ObservableObject {
         }else{
             currentDisplayLines.append(centerText(text: ("\(musicMonitor.curSong.title) - \(musicMonitor.curSong.artist)")))
         }
-        currentDisplayLines.append("\(Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))) \(songProgAsBars) \(Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond)))")
+        
+        if !musicMonitor.curSong.isPaused{
+            //let tempProgBar = progressBar(value: 0.99, max: 1.0)
+            //let tempProgBar = progressBar(value: 0.0001, max: 1.0)
+            //let tempProgBar = progressBar(value: 0.5, max: 1.0)
+            let tempProgBar = songProgAsBars
+            currentDisplayLines.append("\(Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))) \(tempProgBar) \(Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond)))")
+        }else{
+            currentDisplayLines.append(centerText(text: "--Paused--"))
+        }
+        
+        
         return currentDisplayLines
     }
     
@@ -127,21 +138,34 @@ class DisplayManager: ObservableObject {
     }
     
     func progressBar(value: Double, max: Double) -> String {
-        let width = 46
-        let percentage: Double = value/max
-        let completedWidth = Int(percentage * Double(width))
-
-        let completed = String(repeating: "-", count: completedWidth)
-        let remaining = String(repeating: "_", count: Int(Double(width - completedWidth) * 1.2631578947))
-        let fullBar = "[" + completed + "|" + remaining + "]"
+        var fullBar: String = ""
+        if value != 0.0 && max != 0.0 {
+            let width = 46.0
+            let percentage: Double = (((value / max)*100).rounded()/100)
+            let completedWidth = percentage * Double(width)
+            
+            let completed = String(repeating: "-", count: Int(floor((completedWidth))))
+            let remaining = String(repeating: "_", count: Int(Double(width - completedWidth) * 1.23))
+            fullBar = "[" + completed + "|" + remaining + "]"
+        }else{
+            fullBar = "Broken"
+        }
+        
         return fullBar
     }
     
-    func centerText(text: String) -> String{
-        let maxSpaces = 90.0
-        let padding = Int(maxSpaces - (Double(text.count) * 1.15))
-        let newText = String(repeating: " ", count: padding/2) + text
-        return newText
+    func centerText(text: String) -> String {
+        let displayWidth = 90.0
+        
+        let removedText = text.replacingOccurrences(of: " ", with: "")
+        let spacesInText = Double(text.count - removedText.count)
+        let textLengthEstimate = Double(removedText.count) * 0.9 // Adjusted for narrower space width
+        let paddedText = (displayWidth - textLengthEstimate)
+        
+        let totalPadding = max(0, Int((paddedText * 0.55) - (spacesInText * 1.2)))
+        
+        let FinalText = String(repeating: " ", count: totalPadding) + text
+        return FinalText
     }
     
     public func loadEvents(completion: (() -> Void)? = nil) {

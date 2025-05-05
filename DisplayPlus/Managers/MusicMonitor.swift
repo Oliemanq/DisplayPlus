@@ -5,7 +5,7 @@ import MediaPlayer
 class MusicMonitor: ObservableObject {
     private let player = MPMusicPlayerController.systemMusicPlayer
     
-    @Published var curSong: Song = Song(title: "", artist: "", album: "", duration: 0, currentTime: 0)
+    @Published var curSong: Song = Song(title: "", artist: "", album: "", duration: 0, currentTime: 0, isPaused: true)
     @Published var currentTime: Double = 0.0  // New separately published property
     
     private var timer: AnyCancellable?
@@ -42,13 +42,15 @@ class MusicMonitor: ObservableObject {
         let album = item.albumTitle ?? "No Album"
         let duration = item.playbackDuration
         let currentTime = player.currentPlaybackTime
+        let isPaused = player.playbackState == .paused
 
         curSong = Song(
             title: title,
             artist: artist,
             album: album,
             duration: duration,
-            currentTime: currentTime
+            currentTime: currentTime,
+            isPaused: isPaused
         )
 
         self.currentTime = currentTime  // Also update separately published property
@@ -67,6 +69,7 @@ struct Song{
     var album: String
     var duration: TimeInterval
     var currentTime: TimeInterval
+    var isPaused: Bool
     
     var percentagePlayed: Double {
         return currentTime / duration
