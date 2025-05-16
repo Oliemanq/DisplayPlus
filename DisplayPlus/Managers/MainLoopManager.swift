@@ -64,7 +64,11 @@ class MainLoop: ObservableObject {
                     textOutput += line + "\n"
                 }
                 
-            } else {
+            }else if page == "Debug" {
+                for line in displayManager.debugDisplay() {
+                    textOutput += line + "\n"
+                }
+            }else {
                 textOutput = "No page selected"
             }
         } else {

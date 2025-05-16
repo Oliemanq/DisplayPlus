@@ -66,6 +66,9 @@ struct ContentView: View {
             }),
             .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "RearView", action: {
                 UserDefaults.standard.set("RearView", forKey: "currentPage")
+            }),
+            .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "Debug", action: {
+                UserDefaults.standard.set("Debug", forKey: "currentPage")
             })
         ]
         

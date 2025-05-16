@@ -18,6 +18,9 @@ class DisplayManager: ObservableObject {
     var time = Date().formatted(date: .omitted, time: .shortened)
     var timer: Timer?
     
+    var rm = RenderingManager()
+    let displayWidth = 640
+    
     var musicMonitor: MusicMonitor = MusicMonitor.init()
     var songProgAsBars: String = ""
     
@@ -49,13 +52,13 @@ class DisplayManager: ObservableObject {
         musicMonitor.updateCurrentSong()
         songProgAsBars = progressBar(
             value: Double(musicMonitor.curSong.currentTime),
-            max: Double(musicMonitor.curSong.duration)
+            max: Double(musicMonitor.curSong.duration),
+            song: true
         )
     }
 
     func defaultDisplay() -> [String] {
         currentDisplayLines.removeAll()
-        print(weather.currentTemp)
         
         if weather.currentTemp != 0 {
             currentDisplayLines.append(centerText(text:("\(time) | \(getTodayDate()) | Phone - \(batteryLevelFormatted)% | \(weather.currentTemp)°F")))
@@ -88,7 +91,8 @@ class DisplayManager: ObservableObject {
             //let tempProgBar = progressBar(value: 0.0001, max: 1.0)
             //let tempProgBar = progressBar(value: 0.5, max: 1.0)
             let tempProgBar = songProgAsBars
-            currentDisplayLines.append("\(Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))) \(tempProgBar) \(Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond)))")
+            //currentDisplayLines.append("\(Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))) \(tempProgBar) \(Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond)))")
+            currentDisplayLines.append(centerText(text:"\(Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))) \(tempProgBar) \(Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond)))"))
         }else{
             currentDisplayLines.append(centerText(text: "--Paused--"))
         }
@@ -121,6 +125,16 @@ class DisplayManager: ObservableObject {
         
         return currentDisplayLines
     }
+    func debugDisplay() -> [String] {
+        currentDisplayLines.removeAll()
+        
+        currentDisplayLines.append("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        currentDisplayLines.append(String("ABCDEFGHIJKLMNOPQRSTUVWXYZ").lowercased())
+        currentDisplayLines.append("1234567890")
+        currentDisplayLines.append("°?!@#$%^&*")
+        
+        return currentDisplayLines
+    }
     
     func getTodayDate()-> String{
         let dateFormatter = DateFormatter()
@@ -137,34 +151,47 @@ class DisplayManager: ObservableObject {
         return "\(weekDay), \(month) \(day)"
     }
     
-    func progressBar(value: Double, max: Double) -> String {
+    func progressBar(value: Double, max: Double, song: Bool) -> String {
         var fullBar: String = ""
-        if value != 0.0 && max != 0.0 {
-            let width = 46.0
-            let percentage: Double = (((value / max)*100).rounded()/100)
-            let completedWidth = percentage * Double(width)
-            
-            let completed = String(repeating: "-", count: Int(floor((completedWidth))))
-            let remaining = String(repeating: "_", count: Int(Double(width - completedWidth) * 1.23))
-            fullBar = "[" + completed + "|" + remaining + "]"
+        if song{
+            if value != 0.0 && max != 0.0 {
+                let width = Double(displayWidth-rm.getWidth(text: "\(Duration.seconds(value).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(max).formatted(.time(pattern: .minuteSecond)))"))
+                let percentage: Double = (((value / max)*100).rounded()/100)
+                
+                let completed = String(repeating:"-",count: Int(ceil((width * percentage)/Double(rm.getWidth(text: "-")))))
+                let remaining = String(repeating:"_", count: Int(ceil((width - Double(rm.getWidth(text: completed)))/Double(rm.getWidth(text: "_")))))
+                fullBar = "[" + completed + "|" + remaining + "]"
+            }else{
+                fullBar = "Broken"
+            }
         }else{
-            fullBar = "Broken"
+            if value != 0.0 && max != 0.0 {
+                let width = Double(displayWidth-rm.getWidth(text: "[|]"))
+                let percentage: Double = (((value / max)*100).rounded()/100)
+                let completed = String(repeating:"-",count: Int(ceil((width * percentage)/Double(rm.getWidth(text: "-")))))
+                let remaining = String(repeating:"_", count: Int(ceil((width - Double(rm.getWidth(text: completed)))/Double(rm.getWidth(text: "_")))))
+                fullBar = "[" + completed + "|" + remaining + "]"
+            }else{
+                fullBar = "Broken"
+            }
+
         }
         
         return fullBar
     }
     
     func centerText(text: String) -> String {
-        let displayWidth = 90.0
+        let widthOfText = rm.getWidth(text: text)
+        print("Width before padding: \(widthOfText)")
+       
+        let numOfSpaces: Int = Int(max(0, Double((displayWidth-widthOfText))))
+        let padding = String(repeating: " ", count: numOfSpaces/2)
         
-        let removedText = text.replacingOccurrences(of: " ", with: "")
-        let spacesInText = Double(text.count - removedText.count)
-        let textLengthEstimate = Double(removedText.count) * 0.9 // Adjusted for narrower space width
-        let paddedText = (displayWidth - textLengthEstimate)
+        print("NumOfSpaces: \(numOfSpaces)")
         
-        let totalPadding = max(0, Int((paddedText * 0.55) - (spacesInText * 1.2)))
+        print("Width after padding: \(rm.getWidth(text:(padding + text + padding)))")
         
-        let FinalText = String(repeating: " ", count: totalPadding) + text
+        let FinalText = padding + text
         return FinalText
     }
     
