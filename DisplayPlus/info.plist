@@ -16,5 +16,9 @@
 		<string>nearby-interaction</string>
 		<string>voip</string>
 	</array>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>We use your location to get local weather data.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>We use your location to get local weather data.</string>
 </dict>
 </plist>

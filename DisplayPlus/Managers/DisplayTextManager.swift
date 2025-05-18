@@ -19,7 +19,7 @@ class DisplayManager: ObservableObject {
     var timer: Timer?
     
     var rm = RenderingManager()
-    let displayWidth = 640
+    let displayWidth = 320
     
     var musicMonitor: MusicMonitor = MusicMonitor.init()
     var songProgAsBars: String = ""
@@ -44,6 +44,14 @@ class DisplayManager: ObservableObject {
     
     init(weather: weatherManager){
         self.weather = weather
+        
+        if let location = self.weather.currentLocation {
+            Task {
+                try? await self.weather.fetchWeatherData()
+            }
+        } else {
+            print("Location not ready, wait for update")
+        }
     }
     
     //Updating needed info
@@ -130,8 +138,9 @@ class DisplayManager: ObservableObject {
         
         currentDisplayLines.append("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
         currentDisplayLines.append(String("ABCDEFGHIJKLMNOPQRSTUVWXYZ").lowercased())
-        currentDisplayLines.append("1234567890")
+        //currentDisplayLines.append("1234567890")
         currentDisplayLines.append("°?!@#$%^&*")
+        currentDisplayLines.append(rm.fitOnScreen(text: "|"))
         
         return currentDisplayLines
     }
@@ -158,8 +167,8 @@ class DisplayManager: ObservableObject {
                 let width = Double(displayWidth-rm.getWidth(text: "\(Duration.seconds(value).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(max).formatted(.time(pattern: .minuteSecond)))"))
                 let percentage: Double = (((value / max)*100).rounded()/100)
                 
-                let completed = String(repeating:"-",count: Int(ceil((width * percentage)/Double(rm.getWidth(text: "-")))))
-                let remaining = String(repeating:"_", count: Int(ceil((width - Double(rm.getWidth(text: completed)))/Double(rm.getWidth(text: "_")))))
+                let completed = String(repeating:"-",count: Int(floor((width * percentage)/Double(rm.getWidth(text: "-")))))
+                let remaining = String(repeating:"_", count: Int(floor((width - Double(rm.getWidth(text: completed)))/Double(rm.getWidth(text: "_")))))
                 fullBar = "[" + completed + "|" + remaining + "]"
             }else{
                 fullBar = "Broken"
@@ -184,11 +193,10 @@ class DisplayManager: ObservableObject {
         let widthOfText = rm.getWidth(text: text)
         print("Width before padding: \(widthOfText)")
        
-        let numOfSpaces: Int = Int(max(0, Double((displayWidth-widthOfText))))
-        let padding = String(repeating: " ", count: numOfSpaces/2)
+        let widthRemaining: Int = Int(max(0, Double((displayWidth-widthOfText))))
+        let padding = String(repeating: " ", count: (widthRemaining/rm.getWidth(text: " "))/2)
         
-        print("NumOfSpaces: \(numOfSpaces)")
-        
+        print("widthRemaining: \(widthRemaining)")
         print("Width after padding: \(rm.getWidth(text:(padding + text + padding)))")
         
         let FinalText = padding + text

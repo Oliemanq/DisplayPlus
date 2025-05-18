@@ -7,6 +7,7 @@
 import SwiftUI
 
 public class RenderingManager {
+    var DisplayWidth = 576
     var key: [String: Int] = [
         "A": 11,
         "B": 9,
@@ -102,12 +103,45 @@ public class RenderingManager {
         "*": 6,
         " ": 7
     ]
+    private var keyWithPadding: [String: Int] {
+        var tempKey = key
+        for (char, value) in key {
+            if char == "_" {
+                tempKey[char] = value + 1
+            }else{
+                tempKey[char] = value + 2
+            }
+        }
+        return tempKey
+    }
+    
+    var howManyFit: [String: Int] = [
+        "|" : 144
+    ]
     
     func getWidth(text: String) -> Int {
         var totalWidth: Int = 0
         for char in text {
-            totalWidth += ((key[String(char)] ?? 5)*2)+2
+            totalWidth += ((keyWithPadding[String(char)] ?? 7))
         }
         return totalWidth
+    }
+    
+    func fitOnScreen(text: String) -> String {
+        var numOfChar = 0
+        let charWidth = getWidth(text: text)
+        while true {
+            if charWidth * numOfChar <= DisplayWidth {
+                numOfChar += 1
+            } else {
+                let modifier = -1
+                print("numOfChar = \(numOfChar)")
+                print("numOfChar modified = \(numOfChar + modifier)")
+                print("char width = \(charWidth)")
+                print("total width = \(charWidth) * \(numOfChar) = \(charWidth * (numOfChar + modifier))")
+                print("\n")
+                return String(repeating: text, count: numOfChar + modifier)
+            }
+        }
     }
 }
