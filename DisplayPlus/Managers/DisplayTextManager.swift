@@ -19,12 +19,14 @@ class DisplayManager: ObservableObject {
     var timer: Timer?
     
     var rm = RenderingManager()
-    let displayWidth = 320
+    let displayWidth: Float = 100.0
     
     var musicMonitor: MusicMonitor = MusicMonitor.init()
     var songProgAsBars: String = ""
     
     private var progressBar: CGFloat = 0.0
+    
+    var currentPage = UserDefaults.standard.string(forKey: "currentPage")
     
     public var weather: weatherManager
     private var curTemp: Int?
@@ -57,12 +59,15 @@ class DisplayManager: ObservableObject {
     //Updating needed info
     func updateHUDInfo(){
         time = Date().formatted(date: .omitted, time: .shortened)
+        
         musicMonitor.updateCurrentSong()
+        
         songProgAsBars = progressBar(
-            value: Double(musicMonitor.curSong.currentTime),
-            max: Double(musicMonitor.curSong.duration),
+            value: Float(musicMonitor.curSong.currentTime),
+            max: Float(musicMonitor.curSong.duration),
             song: true
         )
+        
     }
 
     func defaultDisplay() -> [String] {
@@ -133,14 +138,18 @@ class DisplayManager: ObservableObject {
         
         return currentDisplayLines
     }
-    func debugDisplay() -> [String] {
+    func debugDisplay(index: Int) -> [String] {
         currentDisplayLines.removeAll()
+        print(index)
+        let offsetIndex = index + 31
+        let keys = Array(rm.key?.keys.sorted() ?? rm.oldKey.keys.sorted())
+        currentDisplayLines.append(String(repeating: keys[offsetIndex], count: 80))
+        currentDisplayLines.append(String(repeating: keys[offsetIndex+31], count: 80))
         
-        currentDisplayLines.append("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-        currentDisplayLines.append(String("ABCDEFGHIJKLMNOPQRSTUVWXYZ").lowercased())
-        //currentDisplayLines.append("1234567890")
-        currentDisplayLines.append("°?!@#$%^&*")
-        currentDisplayLines.append(rm.fitOnScreen(text: "|"))
+        print(keys[offsetIndex])
+        print(keys[offsetIndex+31])
+        
+        print("\n")
         
         return currentDisplayLines
     }
@@ -160,30 +169,25 @@ class DisplayManager: ObservableObject {
         return "\(weekDay), \(month) \(day)"
     }
     
-    func progressBar(value: Double, max: Double, song: Bool) -> String {
+    func progressBar(value: Float, max: Float, song: Bool) -> String {
         var fullBar: String = ""
         if song{
             if value != 0.0 && max != 0.0 {
-                let width = Double(displayWidth-rm.getWidth(text: "\(Duration.seconds(value).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(max).formatted(.time(pattern: .minuteSecond)))"))
-                let percentage: Double = (((value / max)*100).rounded()/100)
+                let constantWidth: Float = Float(rm.getWidth(text: "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
                 
-                let completed = String(repeating:"-",count: Int(floor((width * percentage)/Double(rm.getWidth(text: "-")))))
-                let remaining = String(repeating:"_", count: Int(floor((width - Double(rm.getWidth(text: completed)))/Double(rm.getWidth(text: "_")))))
+                let percentage = value/max
+                
+                let percentCompleted = displayWidth * percentage
+                let percentRemaining = displayWidth * (1.0-percentage)
+                
+                
+                let completed = String(repeating: "-", count: Int(percentCompleted / rm.getWidth(text: "-")))
+                let remaining = String(repeating: "_", count: Int(percentRemaining / rm.getWidth(text: "_")))
+                
                 fullBar = "[" + completed + "|" + remaining + "]"
             }else{
                 fullBar = "Broken"
             }
-        }else{
-            if value != 0.0 && max != 0.0 {
-                let width = Double(displayWidth-rm.getWidth(text: "[|]"))
-                let percentage: Double = (((value / max)*100).rounded()/100)
-                let completed = String(repeating:"-",count: Int(ceil((width * percentage)/Double(rm.getWidth(text: "-")))))
-                let remaining = String(repeating:"_", count: Int(ceil((width - Double(rm.getWidth(text: completed)))/Double(rm.getWidth(text: "_")))))
-                fullBar = "[" + completed + "|" + remaining + "]"
-            }else{
-                fullBar = "Broken"
-            }
-
         }
         
         return fullBar
@@ -191,13 +195,9 @@ class DisplayManager: ObservableObject {
     
     func centerText(text: String) -> String {
         let widthOfText = rm.getWidth(text: text)
-        print("Width before padding: \(widthOfText)")
        
-        let widthRemaining: Int = Int(max(0, Double((displayWidth-widthOfText))))
-        let padding = String(repeating: " ", count: (widthRemaining/rm.getWidth(text: " "))/2)
-        
-        print("widthRemaining: \(widthRemaining)")
-        print("Width after padding: \(rm.getWidth(text:(padding + text + padding)))")
+        let widthRemaining: Float = max(0, displayWidth-widthOfText)
+        let padding = String(repeating: " ", count: Int(widthRemaining/rm.getWidth(text: " "))/2)
         
         let FinalText = padding + text
         return FinalText

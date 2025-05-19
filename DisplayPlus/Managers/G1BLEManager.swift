@@ -317,9 +317,6 @@ extension G1BLEManager: CBPeripheralDelegate {
 
     func processIncomingData(_ byteArray: [UInt8], _ data: Data, _ name: String? = nil) {
         // Example: Check if first byte matches a known command
-        print(byteArray)
-        print("\(data as NSData)")
-        
         switch byteArray.first {
         case 245:
             
@@ -336,8 +333,7 @@ extension G1BLEManager: CBPeripheralDelegate {
             }
             
         default:
-            print("Other")
-            
+            let odnaowcnakvj = 1
         }
     }
 

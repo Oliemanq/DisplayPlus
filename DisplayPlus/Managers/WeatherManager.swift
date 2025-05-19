@@ -26,7 +26,6 @@ class weatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        print("didUpdateLocations called with: \(locations)")
         if let location = locations.last {
             currentLocation = location
             Task {

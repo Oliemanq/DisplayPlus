@@ -8,7 +8,8 @@ import SwiftUI
 
 public class RenderingManager {
     var DisplayWidth = 576
-    var key: [String: Int] = [
+    var key = UserDefaults.standard.dictionary(forKey: "calibratedKeys")
+    var oldKey: [String: Int] = [
         "A": 11,
         "B": 9,
         "C": 9,
@@ -103,43 +104,37 @@ public class RenderingManager {
         "*": 6,
         " ": 7
     ]
-    private var keyWithPadding: [String: Int] {
-        var tempKey = key
-        for (char, value) in key {
-            if char == "_" {
-                tempKey[char] = value + 1
-            }else{
-                tempKey[char] = value + 2
+    
+    var charWidth: [String: Float] {
+        var tempDict: [String: Float] = [:]
+        
+        if let keyDict = key {
+            for (k, v) in keyDict {
+                if let intValue = v as? Float {
+                    tempDict[k] = intValue / 100
+                }
             }
         }
-        return tempKey
+        
+        return tempDict
     }
     
-    var howManyFit: [String: Int] = [
-        "|" : 144
-    ]
-    
-    func getWidth(text: String) -> Int {
-        var totalWidth: Int = 0
+    func getWidth(text: String) -> Float {
+        var totalWidth: Float = 0
         for char in text {
-            totalWidth += ((keyWithPadding[String(char)] ?? 7))
+            totalWidth += ((charWidth[String(char)] ?? 48/100))
         }
-        return totalWidth
+        return ceil(totalWidth)
     }
     
     func fitOnScreen(text: String) -> String {
         var numOfChar = 0
         let charWidth = getWidth(text: text)
         while true {
-            if charWidth * numOfChar <= DisplayWidth {
+            if Int(round(charWidth)) * numOfChar <= DisplayWidth {
                 numOfChar += 1
             } else {
                 let modifier = -1
-                print("numOfChar = \(numOfChar)")
-                print("numOfChar modified = \(numOfChar + modifier)")
-                print("char width = \(charWidth)")
-                print("total width = \(charWidth) * \(numOfChar) = \(charWidth * (numOfChar + modifier))")
-                print("\n")
                 return String(repeating: text, count: numOfChar + modifier)
             }
         }
