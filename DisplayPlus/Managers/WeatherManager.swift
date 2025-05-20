@@ -5,19 +5,44 @@
 //  Created by Oliver Heisel on 4/27/25.
 //
 
-
 import OpenMeteoSdk
 import Foundation
 import SwiftUI
+import CoreLocation
 
 /// Make sure the URL contains `&format=flatbuffers`
-class weatherManager: ObservableObject {
-    let location: [Double] = [46.81, -92.09]
-    var currentTemp: Int = 0
-    var currentWind: Int = 0
+class weatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+    private let locationManager = CLLocationManager()
+    public var currentLocation: CLLocation?
+    @Published var currentTemp: Int = 0
+    @Published var currentWind: Int = 0
+    
+    @State var counter: Int = 0
+
+    override init() {
+        super.init()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+        locationManager.requestAlwaysAuthorization()
+        locationManager.startUpdatingLocation()
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = locations.last {
+            currentLocation = location
+        }
+    }
     
     func fetchWeatherData() async throws {
-        let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(location[0])&longitude=\(location[1])&current=temperature_2m,wind_speed_10m&timezone=auto&forecast_days=1&wind_speed_unit=mph&temperature_unit=fahrenheit&precipitation_unit=inch&format=flatbuffers")!
+        guard let location = currentLocation else {
+            print("Location not available yet")
+            return
+        }
+
+        let latitude = location.coordinate.latitude
+        let longitude = location.coordinate.longitude
+
+        let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(latitude)&longitude=\(longitude)&current=temperature_2m,wind_speed_10m&timezone=auto&forecast_days=1&wind_speed_unit=mph&temperature_unit=fahrenheit&precipitation_unit=inch&format=flatbuffers")!
         let responses = try await WeatherApiResponse.fetch(url: url)
         
         /// Process first location. Add a for-loop for multiple locations or weather models
@@ -40,8 +65,11 @@ class weatherManager: ObservableObject {
                 windSpeed10m: current.variables(at: 1)!.value
             )
         )
-        currentTemp = Int(ceil(data.current.temperature2m))
-        currentWind = Int(ceil(data.current.windSpeed10m))
+        
+            DispatchQueue.main.async {
+                self.currentTemp = Int(ceil(data.current.temperature2m))
+                self.currentWind = Int(ceil(data.current.windSpeed10m))
+            }
     }
 }
 

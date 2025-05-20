@@ -19,6 +19,9 @@ struct DisplayPlusApp: App {
             ContentView(weather: weather)
                 .environmentObject(musicMonitor)
                 .modelContainer(for: DataItem.self)
+             
+            //Uncomment to unblock calibration view/settings
+            //CalibrationView()
 
         }
     }

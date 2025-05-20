@@ -4,6 +4,8 @@ import EventKit
 import AppIntents
 
 struct ContentView: View {
+    @State var showingCalibration = false
+    
     @ObservedObject var weather: weatherManager
     
     @StateObject var displayManager: DisplayManager
@@ -63,10 +65,15 @@ struct ContentView: View {
             }),
             .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
                 UserDefaults.standard.set("Calendar", forKey: "currentPage")
-            }),
+            })
+            /* UI for potential future feature
             .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "RearView", action: {
                 UserDefaults.standard.set("RearView", forKey: "currentPage")
+            }), Debug view for text management
+            .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "Debug", action: {
+                UserDefaults.standard.set("Debug", forKey: "currentPage")
             })
+             */
         ]
         
         NavigationStack {
@@ -123,7 +130,6 @@ struct ContentView: View {
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             
                             
-                            
                             Text("\(formattedduration)")
                                 .font(.caption)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
@@ -163,7 +169,7 @@ struct ContentView: View {
                             )
                         }
                     }
-                
+                    
                     
                     Text("end calendar")
                         .font(.headline)
@@ -253,11 +259,25 @@ struct ContentView: View {
                 .edgesIgnoringSafeArea(.bottom)
                 .frame(width: 400)
                 
+                NavigationLink(destination: CalibrationView(ble: bleManager)){
+                    Text("Calibrate screen")
+                }
+                .simultaneousGesture(TapGesture().onEnded {showingCalibration = true})
+                .font(.system(size: 12))
+                .fontWeight(.semibold)
+                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                .padding(10)
+                .contentShape(.rect(cornerRadius: 8))
+                .background(.ultraThinMaterial, in: .rect(cornerRadius: 8))
+                .offset(x: 115, y: 350)
+                
                 FloatingButton(items: floatingButtons)
                     .environmentObject(theme)
             }
         }
         .onAppear {
+            bleManager.startScan()
+            
             if displayDetailsList.isEmpty {
                 let newItem = DataItem()
                 context.insert(newItem)
@@ -270,36 +290,37 @@ struct ContentView: View {
             Task{
                 try await weather.fetchWeatherData()
             }
-            
             timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-                if UserDefaults.standard.bool(forKey: "autoOff") {
+                if !showingCalibration{
+                    if UserDefaults.standard.bool(forKey: "autoOff") {
+                        if UserDefaults.standard.bool(forKey: "displayOn") {
+                            displayOnCounter += 1
+                        }
+                        if displayOnCounter >= 5 {
+                            displayOnCounter = 0
+                            UserDefaults.standard.set(false, forKey: "displayOn")
+                        }
+                    }
+                    
+                    // Update the mainLoop with the current counter value
+                    mainLoop.update()
                     if UserDefaults.standard.bool(forKey: "displayOn") {
-                        displayOnCounter += 1
+                        mainLoop.HandleText()
+                        sendTextCommand(text: mainLoop.textOutput)
                     }
-                    if displayOnCounter >= 5 {
-                        displayOnCounter = 0
-                        UserDefaults.standard.set(false, forKey: "displayOn")
+                    
+                    // Update events
+                    counter += 1
+                    totalCounter += 1
+                    if UInt8(counter) >= 255 {
+                        counter = 0
                     }
-                }
-                
-                // Update the mainLoop with the current counter value
-                mainLoop.update()
-                if UserDefaults.standard.bool(forKey: "displayOn") {
-                    mainLoop.HandleText()
-                    sendTextCommand(text: mainLoop.textOutput)
-                }
-                
-                // Update events
-                counter += 1
-                totalCounter += 1
-                if UInt8(counter) >= 255 {
-                    counter = 0
                 }
             }
         }
         .onDisappear {
             timer?.invalidate()
-            @AppStorage("connectionStatus") var connectionStatus: String = "Disconnected"
+            UserDefaults.standard.set("Disconnected", forKey: "connectionStatus")
             bleManager.disconnect()
             
         }.onChange(of: displayOn) { oldValue, newValue in
