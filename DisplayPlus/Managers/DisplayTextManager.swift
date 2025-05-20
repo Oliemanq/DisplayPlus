@@ -186,13 +186,13 @@ class DisplayManager: ObservableObject {
                 print(rm.getWidth(text: " "))
                 let constantWidth = Float(rm.getWidth(text: "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
                 
-                let workingWidth = (displayWidth-constantWidth) / 100
+                let workingWidth = (displayWidth-constantWidth)
                 print("working width: \(workingWidth)")
                 
                 let percentage = value/max
                 
-                let percentCompleted = displayWidth * percentage
-                let percentRemaining = displayWidth * (1.0-percentage)
+                let percentCompleted = workingWidth * percentage
+                let percentRemaining = workingWidth * (1.0-percentage)
                 print("percent completed: \(percentCompleted)")
                 print("percent remaining: \(percentRemaining)")
                 print("- width: \(rm.getWidth(text: "-"))")
