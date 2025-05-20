@@ -47,7 +47,7 @@ class DisplayManager: ObservableObject {
     init(weather: weatherManager){
         self.weather = weather
         
-        if let location = self.weather.currentLocation {
+        if self.weather.currentLocation != nil {
             Task {
                 try? await self.weather.fetchWeatherData()
             }
@@ -86,18 +86,28 @@ class DisplayManager: ObservableObject {
     
     func musicDisplay() -> [String]{
         currentDisplayLines.removeAll()
-
+        
         if weather.currentTemp != 0 {
             currentDisplayLines.append(centerText(text:("\(time) | \(getTodayDate()) | Phone - \(batteryLevelFormatted)% | \(weather.currentTemp)°F")))
         }else{
             currentDisplayLines.append(String(centerText(text: "\(time) | \(getTodayDate()) | Phone - \(batteryLevelFormatted)%")))
         }
         
-        if musicMonitor.curSong.title.count > 25{
-            currentDisplayLines.append((centerText(text: "\(musicMonitor.curSong.title.prefix(25))... - \(musicMonitor.curSong.artist)")))
+        var artist = ""
+        if musicMonitor.curSong.artist.count > 25 {
+            artist = ("\(musicMonitor.curSong.artist.prefix(25))...")
         }else{
-            currentDisplayLines.append(centerText(text: ("\(musicMonitor.curSong.title) - \(musicMonitor.curSong.artist)")))
+            artist = musicMonitor.curSong.artist
         }
+        
+        var songTitle: String = ""
+        if musicMonitor.curSong.title.count > 25 {
+            songTitle = ("\(musicMonitor.curSong.title.prefix(25))...")
+        }else{
+            songTitle = musicMonitor.curSong.title
+        }
+        
+        currentDisplayLines.append((centerText(text: "\(songTitle) - \(artist)")))
         
         if !musicMonitor.curSong.isPaused{
             //let tempProgBar = progressBar(value: 0.99, max: 1.0)
@@ -173,18 +183,29 @@ class DisplayManager: ObservableObject {
         var fullBar: String = ""
         if song{
             if value != 0.0 && max != 0.0 {
-                let constantWidth: Float = Float(rm.getWidth(text: "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
+                print(rm.getWidth(text: " "))
+                let constantWidth = Float(rm.getWidth(text: "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
+                
+                let workingWidth = (displayWidth-constantWidth) / 100
+                print("working width: \(workingWidth)")
                 
                 let percentage = value/max
                 
                 let percentCompleted = displayWidth * percentage
                 let percentRemaining = displayWidth * (1.0-percentage)
+                print("percent completed: \(percentCompleted)")
+                print("percent remaining: \(percentRemaining)")
+                print("- width: \(rm.getWidth(text: "-"))")
+                print("_ width: \(rm.getWidth(text: "_"))")
+                print("Amount of -: \(percentCompleted / rm.getWidth(text: "-"))")
+                print("Amount of _: \(percentRemaining / rm.getWidth(text: "_"))")
+                print("_________________________\n")
                 
-                
-                let completed = String(repeating: "-", count: Int(percentCompleted / rm.getWidth(text: "-")))
-                let remaining = String(repeating: "_", count: Int(percentRemaining / rm.getWidth(text: "_")))
+                let completed = String(repeating: "-", count: Int((percentCompleted / rm.getWidth(text: "-"))))
+                let remaining = String(repeating: "_", count: Int((percentRemaining / rm.getWidth(text: "_"))))
                 
                 fullBar = "[" + completed + "|" + remaining + "]"
+                print(fullBar)
             }else{
                 fullBar = "Broken"
             }

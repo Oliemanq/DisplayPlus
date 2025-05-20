@@ -9,40 +9,37 @@ import SwiftUI
 
 struct CalibrationView: View {
     let rm = RenderingManager()
-    @StateObject private var bleManager = G1BLEManager()
+    @State var bleManager: G1BLEManager
     
     @State var counter = 0
-
+    
     @State var timer: Timer?
     var currentDisplayLines: [String] = []
-    var characters: [String] {Array(rm.oldKey.keys).sorted()}
+    @State var characters: [String] = []
     @State var calibratedKeys: [String: Int]
     let calibrationChars: [String] = ["@", ".", "X", "+", "B", "t", "j"]
     
-    @State var AmountOfCharsPerValue: [String: Int] = [:]
-
     @Environment(\.colorScheme) private var colorScheme
     var primaryColor: Color = Color(red: 1, green: 0.75, blue: 1)
     var secondaryColor: Color = Color(red: 0, green: 0, blue: 1)
-
     
-    @State var amountOfChars: Int = 80
-    @State var timesChanged: Int = 0
     
-    @State var currentChar: String = ""
-    @State var index: Int = 1
-    var offsetIndex: Int {index + 31}
+    @State var amountOfChars: Int = 80 //Amount of Characters displayed on glasses
+    @State var timesChanged: Int = 0 //Amount of times amountOfChars has changed for current Char
     
-
+    @State var currentChar: String = "" //Currently selected Character
+    @State var index: Int = 1 //Index in array
+    
+    
     @State var savingData = false
     @State var showStart = true
     @State var showCalButtons = false
     @State var mainButtons = false
-
-    init(){
-        self.calibratedKeys = UserDefaults.standard.dictionary(forKey: "calibratedKeys") as? [String: Int] ?? [:]
-        calibratedKeys = rm.oldKey
-        saveCalibrationData()
+    
+    init(ble: G1BLEManager){
+        bleManager = ble
+        
+        calibratedKeys = UserDefaults.standard.dictionary(forKey: "calibratedKeys") as? [String: Int] ?? [:]
     }
     
     var body: some View {
@@ -50,10 +47,11 @@ struct CalibrationView: View {
         VStack{
             if !savingData{
                 if showStart{
-                    Button(action: {
+                    Button(action: { //Button that shows when launching calibration view
                         mainButtons.toggle()
                         showStart.toggle()
-                        bleManager.startScan()
+                        
+                        characters = Array(calibratedKeys.keys).sorted()
                         currentChar = characters[index]
                         amountOfChars = calibratedKeys[currentChar] ?? 80
                     }) {
@@ -69,7 +67,7 @@ struct CalibrationView: View {
                 }
                 
                 if mainButtons {
-                    Button(action: {
+                    Button(action: { //Button in top left corder for saving calibration
                         savingData.toggle()
                     }) {
                         Text("Save")
@@ -87,7 +85,7 @@ struct CalibrationView: View {
                     
                     VStack{
                         HStack{
-                            Button(action: {
+                            Button(action: { //Marking that the amount of chars showing fits the screen, saving that to UserDefaults
                                 charFits()
                             }) {
                                 Text("Fits")
@@ -100,7 +98,7 @@ struct CalibrationView: View {
                             .buttonStyle(.borderless)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                             
-                            Button(action: {
+                            Button(action: { //Starting process for when text doesn't fit, either too many or too little
                                 withAnimation {
                                     showCalButtons.toggle()
                                     mainButtons.toggle()
@@ -118,17 +116,8 @@ struct CalibrationView: View {
                             
                         }
                         
-                        Button(action: {
-                            charFits()
-                            index+=1
-                            if index >= calibrationChars.count{
-                                index = 0
-                            }
-                            currentChar = calibrationChars[index]
-                            timesChanged = 0
-                            if !(calibratedKeys.isEmpty){
-                                amountOfChars = calibratedKeys[currentChar] ?? 80
-                            }
+                        Button(action: { //Moving to the next Char in the dictionary
+                            changingCurrentChar(forward: true)
                         }) {
                             Text("Next Character")
                                 .frame(width: 175, height: 30)
@@ -140,19 +129,8 @@ struct CalibrationView: View {
                         .buttonStyle(.borderless)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         
-                        Button(action: {
-                            charFits()
-                            index-=1
-                            if index < 0{
-                                index = characters.count-2
-                                currentChar = calibrationChars[index]
-                            }else{
-                                currentChar = calibrationChars[index]
-                            }
-                            timesChanged = 0
-                            if !(calibratedKeys.isEmpty){
-                                amountOfChars = calibratedKeys[currentChar] ?? 80
-                            }
+                        Button(action: { //Moving back a character
+                            changingCurrentChar(forward: false)
                         }) {
                             Text("Previous Character")
                                 .frame(width: 185, height: 30)
@@ -164,7 +142,7 @@ struct CalibrationView: View {
                         .buttonStyle(.borderless)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         
-                        Text("Current Character: \(characters[index])")
+                        Text("Current Character: \(currentChar)") //Displays currently active char
                             .padding(2)
                             .frame(width: 175, height: 30)
                             .contentShape(Rectangle())
@@ -172,7 +150,7 @@ struct CalibrationView: View {
                             .foregroundColor(darkMode ? primaryColor : secondaryColor)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                         
-                        Text("Current amount in line: \(amountOfChars)")
+                        Text("Current amount in line: \(amountOfChars)") //Displays amount of chars
                             .padding(2)
                             .frame(width: 250, height: 30)
                             .contentShape(Rectangle())
@@ -180,8 +158,8 @@ struct CalibrationView: View {
                             .foregroundColor(darkMode ? primaryColor : secondaryColor)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                         
-                        Button("Find all repeat values") {
-                            AmountOfCharsPerValue = [:]
+                        Button("Find all repeat values") { //Prints out the whole list of saved characters and how many of them fit
+                            var AmountOfCharsPerValue = [:]
                             let grouped = Dictionary(grouping: calibratedKeys.keys, by: { calibratedKeys[$0] ?? -1 })
                             for (value, keys) in grouped {
                                 let sortedKeys = keys.sorted().joined(separator: ",")
@@ -202,7 +180,7 @@ struct CalibrationView: View {
                     
                     Spacer()
                     
-                    Button(action: {
+                    Button(action: { //Button to delete all saved calibrations
                         calibratedKeys = rm.oldKey
                     }) {
                         Text("Delete ALL calibrations")
@@ -218,7 +196,7 @@ struct CalibrationView: View {
                 if showCalButtons {
                     Spacer()
                     HStack{
-                        Button(action: {
+                        Button(action: { //Indicates that current number of chars doesn't fit on one line
                             withAnimation {
                                 showCalButtons.toggle()
                                 mainButtons.toggle()
@@ -235,7 +213,7 @@ struct CalibrationView: View {
                         .buttonStyle(.borderless)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         
-                        Button(action: {
+                        Button(action: { //Indicates that there are too little characters
                             withAnimation {
                                 showCalButtons.toggle()
                                 mainButtons.toggle()
@@ -254,7 +232,7 @@ struct CalibrationView: View {
                     }
                     .transition(.opacity)
                     
-                    Button(action: {
+                    Button(action: { //Back out of "doesnt fit" menu without making changes to amountOfChars
                         withAnimation{
                             showCalButtons.toggle()
                             mainButtons.toggle()
@@ -273,41 +251,47 @@ struct CalibrationView: View {
                 }
             }else{
                 VStack{
-                    Button(action: {saveCalibrationData(); savingData.toggle()}) {
+                    Button(action: {saveCalibrationData(); savingData.toggle()}) { //Confirming data saving
                         Text("Confirm?")
                             .frame(width: 175, height: 30)
                     }
-                        .padding(2)
-                        .contentShape(Rectangle())
-                        .background(Color.red)
-                        .foregroundColor(darkMode ? Color(red: 0.2, green: 0.1, blue: 0.15) : Color.white)
-                        .buttonStyle(.borderless)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .padding(2)
+                    .contentShape(Rectangle())
+                    .background(Color.red)
+                    .foregroundColor(darkMode ? Color(red: 0.2, green: 0.1, blue: 0.15) : Color.white)
+                    .buttonStyle(.borderless)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                     
-                    Button(action: {savingData.toggle()}) {
+                    Button(action: {savingData.toggle()}) { //canceling data saving
                         Text("Cancel")
                             .frame(width: 150, height: 30)
                     }
-                        .padding(2)
-                        .contentShape(Rectangle())
-                        .background((darkMode ? primaryColor : secondaryColor))
-                        .foregroundColor(!darkMode ? primaryColor : secondaryColor)
-                        .buttonStyle(.borderless)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .padding(2)
+                    .contentShape(Rectangle())
+                    .background((darkMode ? primaryColor : secondaryColor))
+                    .foregroundColor(!darkMode ? primaryColor : secondaryColor)
+                    .buttonStyle(.borderless)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
             }
         }
         .onAppear(){
             timer = Timer.scheduledTimer(withTimeInterval: 1/2, repeats: true) { _ in
-                if bleManager.connectionStatus == "Connected to G1 Glasses (both arms)."{
-                    sendTextCommand(text: String(repeating: currentChar, count: amountOfChars))
+                if bleManager.connectionStatus == "Connected to G1 Glasses (both arms)."{ //Checking if glasses are connected to app
+                    sendTextCommand(text: String(repeating: currentChar, count: amountOfChars)) //sending looping command to glasses to display currentChar x amount of times
+                    
                 }
             }
+        }
+        .onDisappear(){
+            timer?.invalidate()
         }
     }
     
     func charFits(){
-        let char = String(characters[index])
+        let char = currentChar
+        
+        /*
         if "&@MWmw~".contains(char){
             calibratedKeys.updateValue(amountOfChars, forKey: "&")
             calibratedKeys.updateValue(amountOfChars, forKey: "@")
@@ -388,7 +372,7 @@ struct CalibrationView: View {
             calibratedKeys.updateValue(amountOfChars, forKey: "v")
             calibratedKeys.updateValue(amountOfChars, forKey: "x")
             calibratedKeys.updateValue(amountOfChars, forKey: "y")
-        } else if "*/1J_rt{}".contains(char){
+        } else if (/1*J_rt{}".contains(char){
             calibratedKeys.updateValue(amountOfChars, forKey: "*")
             calibratedKeys.updateValue(amountOfChars, forKey: "/")
             calibratedKeys.updateValue(amountOfChars, forKey: "1")
@@ -409,6 +393,8 @@ struct CalibrationView: View {
         }else if " ".contains(char) {
             calibratedKeys.updateValue(amountOfChars, forKey: " ")
         }
+    */
+        calibratedKeys.updateValue(amountOfChars, forKey: char)
         print("Added \(char) with value \(amountOfChars) to calibration data")
     }
     
@@ -453,17 +439,42 @@ struct CalibrationView: View {
             calibratedKeys = loadedCalibratedKeys
         }
     }
-    
     func sendTextCommand(text: String = ""){
-        bleManager.sendTextCommand(seq: UInt8(self.counter), text: text)
+        var currentDisplay = "There should be exactly enough characters to fit in a single line ||\n"
+        if text == " "{
+            currentDisplay.append(String("\(text)|")) //Adding an indicator to the space character to show how far it is
+        }else{
+            currentDisplay.append(contentsOf: text)
+        }
+        bleManager.sendTextCommand(seq: UInt8(self.counter), text: currentDisplay)
         counter += 1
         if counter >= 255 {
             counter = 0
         }
     }
+    
+    func changingCurrentChar(forward: Bool){
+        charFits()
+        timesChanged = 0
+        
+        if forward {
+            index += 1
+            if index > characters.count - 1 { //Looping protection
+                index = 0
+            }
+        }else{
+            index -= 1
+            if index < 0 { //Looping protection
+                index = characters.count - 1
+            }
+        }
+        
+        currentChar = characters[index]
+        amountOfChars = calibratedKeys[currentChar] ?? 80
+    }
 }
 
 #Preview {
-    CalibrationView()
+    CalibrationView(ble: G1BLEManager())
 }
 

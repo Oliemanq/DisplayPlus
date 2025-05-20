@@ -111,7 +111,7 @@ public class RenderingManager {
         if let keyDict = key {
             for (k, v) in keyDict {
                 if let intValue = v as? Float {
-                    tempDict[k] = intValue / 100
+                    tempDict[k] = 100 / intValue 
                 }
             }
         }
@@ -124,7 +124,7 @@ public class RenderingManager {
         for char in text {
             totalWidth += ((charWidth[String(char)] ?? 48/100))
         }
-        return ceil(totalWidth)
+        return totalWidth
     }
     
     func fitOnScreen(text: String) -> String {
