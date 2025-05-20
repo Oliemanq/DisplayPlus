@@ -8,7 +8,7 @@
  - Current weather, temp, and wind speed
 
 ## Possible future features
- - Maybe look into Apple Health stats/ring
+ - Apple HealthKit stats/ring
  - Notification mirroring
  - glasses brightness
 
