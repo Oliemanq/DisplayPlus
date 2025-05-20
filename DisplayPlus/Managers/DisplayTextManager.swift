@@ -46,14 +46,6 @@ class DisplayManager: ObservableObject {
     
     init(weather: weatherManager){
         self.weather = weather
-        
-        if self.weather.currentLocation != nil {
-            Task {
-                try? await self.weather.fetchWeatherData()
-            }
-        } else {
-            print("Location not ready, wait for update")
-        }
     }
     
     //Updating needed info
@@ -91,14 +83,14 @@ class DisplayManager: ObservableObject {
             currentDisplayLines.append(centerText(text:("\(time) | \(getTodayDate()) | Phone - \(batteryLevelFormatted)% | \(weather.currentTemp)°F")))
         }else{
             currentDisplayLines.append(String(centerText(text: "\(time) | \(getTodayDate()) | Phone - \(batteryLevelFormatted)%")))
-        }
+        } //Hiding weather display if API issues or unknown location
         
         var artist = ""
         if musicMonitor.curSong.artist.count > 25 {
             artist = ("\(musicMonitor.curSong.artist.prefix(25))...")
         }else{
             artist = musicMonitor.curSong.artist
-        }
+        } //Setting maximum character count for artist and song name to avoid spilling over onto next line
         
         var songTitle: String = ""
         if musicMonitor.curSong.title.count > 25 {
@@ -107,7 +99,7 @@ class DisplayManager: ObservableObject {
             songTitle = musicMonitor.curSong.title
         }
         
-        currentDisplayLines.append((centerText(text: "\(songTitle) - \(artist)")))
+        currentDisplayLines.append((centerText(text: "\(songTitle) - \(artist)"))) //Appening song info
         
         if !musicMonitor.curSong.isPaused{
             //let tempProgBar = progressBar(value: 0.99, max: 1.0)
@@ -118,8 +110,7 @@ class DisplayManager: ObservableObject {
             currentDisplayLines.append(centerText(text:"\(Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))) \(tempProgBar) \(Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond)))"))
         }else{
             currentDisplayLines.append(centerText(text: "--Paused--"))
-        }
-        
+        } //Hiding progress bar if song is paused, showing paused text
         
         return currentDisplayLines
     }
@@ -131,7 +122,7 @@ class DisplayManager: ObservableObject {
             currentDisplayLines.append(centerText(text:("\(time) | \(getTodayDate()) | Phone - \(batteryLevelFormatted)% | \(weather.currentTemp)°F")))
         }else{
             currentDisplayLines.append(String(centerText(text: "\(time) | \(getTodayDate()) | Phone - \(batteryLevelFormatted)%")))
-        }
+        } //Hiding weather display if API issues or unknown location
 
         if eventsFormatted.count <= 2 {
             for event in eventsFormatted {
@@ -144,25 +135,30 @@ class DisplayManager: ObservableObject {
                 currentDisplayLines.append(centerText(text: eventsFormatted[i].subtitleLine))
             }
             //EVENTUAL HANDLING FOR MORE THAN 5 LINES
-        }
+        } //Limiting number of shown events to 2, possibly scroll through them with touch bar in the future
         
         return currentDisplayLines
     }
+    
+    /*
     func debugDisplay(index: Int) -> [String] {
         currentDisplayLines.removeAll()
-        print(index)
         let offsetIndex = index + 31
-        let keys = Array(rm.key?.keys.sorted() ?? rm.oldKey.keys.sorted())
-        currentDisplayLines.append(String(repeating: keys[offsetIndex], count: 80))
-        currentDisplayLines.append(String(repeating: keys[offsetIndex+31], count: 80))
         
-        print(keys[offsetIndex])
-        print(keys[offsetIndex+31])
         
-        print("\n")
+        if rm.key != nil {
+            
+            currentDisplayLines.append(String(repeating: selectedChar, count: keys[keys[offsetIndex]] ))
+            currentDisplayLines.append(String(repeating: keys[offsetIndex+31], count: 80))
+            
+        }else{
+            currentDisplayLines.append("No key found")
+            print("rm.key is nil, UserDefaults empty")
+        } //Printing out full row of character,
         
         return currentDisplayLines
     }
+     */
     
     func getTodayDate()-> String{
         let dateFormatter = DateFormatter()
@@ -183,29 +179,19 @@ class DisplayManager: ObservableObject {
         var fullBar: String = ""
         if song{
             if value != 0.0 && max != 0.0 {
-                print(rm.getWidth(text: " "))
                 let constantWidth = Float(rm.getWidth(text: "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
                 
                 let workingWidth = (displayWidth-constantWidth)
-                print("working width: \(workingWidth)")
                 
                 let percentage = value/max
                 
                 let percentCompleted = workingWidth * percentage
                 let percentRemaining = workingWidth * (1.0-percentage)
-                print("percent completed: \(percentCompleted)")
-                print("percent remaining: \(percentRemaining)")
-                print("- width: \(rm.getWidth(text: "-"))")
-                print("_ width: \(rm.getWidth(text: "_"))")
-                print("Amount of -: \(percentCompleted / rm.getWidth(text: "-"))")
-                print("Amount of _: \(percentRemaining / rm.getWidth(text: "_"))")
-                print("_________________________\n")
                 
                 let completed = String(repeating: "-", count: Int((percentCompleted / rm.getWidth(text: "-"))))
                 let remaining = String(repeating: "_", count: Int((percentRemaining / rm.getWidth(text: "_"))))
                 
                 fullBar = "[" + completed + "|" + remaining + "]"
-                print(fullBar)
             }else{
                 fullBar = "Broken"
             }

@@ -181,7 +181,7 @@ struct CalibrationView: View {
                     Spacer()
                     
                     Button(action: { //Button to delete all saved calibrations
-                        calibratedKeys = rm.oldKey
+                        calibratedKeys = [:]
                     }) {
                         Text("Delete ALL calibrations")
                             .frame(width: 200, height: 30)

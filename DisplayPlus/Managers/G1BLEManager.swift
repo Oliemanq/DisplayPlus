@@ -333,7 +333,7 @@ extension G1BLEManager: CBPeripheralDelegate {
             }
             
         default:
-            let odnaowcnakvj = 1
+            break
         }
     }
 

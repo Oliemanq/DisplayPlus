@@ -22,7 +22,7 @@ class MainLoop: ObservableObject {
         displayManager.updateHUDInfo()
         displayManager.batteryLevelFormatted = (Int)(UIDevice.current.batteryLevel * 100)
         Task{
-            if counter % 60 == 0{
+            if counter % 600 == 0{
                 await updateWeather()
             }
         }
@@ -67,10 +67,12 @@ class MainLoop: ObservableObject {
                     textOutput += line + "\n"
                 }
                 
+            /*
             }else if page == "Debug" {
                 for line in displayManager.debugDisplay(index: counter%26) {
                     textOutput += line + "\n"
                 }
+             */
             }else {
                 textOutput = "No page selected"
             }

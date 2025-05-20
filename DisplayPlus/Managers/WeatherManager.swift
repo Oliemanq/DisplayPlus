@@ -16,6 +16,8 @@ class weatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     public var currentLocation: CLLocation?
     @Published var currentTemp: Int = 0
     @Published var currentWind: Int = 0
+    
+    @State var counter: Int = 0
 
     override init() {
         super.init()
@@ -28,9 +30,6 @@ class weatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.last {
             currentLocation = location
-            Task {
-                try? await fetchWeatherData()
-            }
         }
     }
     
