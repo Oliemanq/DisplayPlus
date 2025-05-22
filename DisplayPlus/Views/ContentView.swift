@@ -106,77 +106,94 @@ struct ContentView: View {
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
                     
-                    // Current playing music plus progress bar
-                    VStack(alignment: .leading) {
-                        Text(musicMonitor.curSong.title)
+                    if musicMonitor.curSong.title == "" {
+                        Text("No music playing")
                             .font(.headline)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                        HStack {
-                            Text(musicMonitor.curSong.album)
-                                .font(.subheadline)
+                            .listRowBackground(
+                                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                            )
+                    }else{
+                        // Current playing music plus progress bar
+                        VStack(alignment: .leading) {
+                            Text(musicMonitor.curSong.title)
+                                .font(.headline)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            
-                            Text(musicMonitor.curSong.artist)
-                                .font(.subheadline)
-                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            
-                        }
-                        HStack {
-                            let formattedCurrentTime = Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))
-                            let formattedduration = Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond))
-                            
-                            Text("\(formattedCurrentTime)")
-                                .font(.caption)
-                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            
-                            
-                            Text("\(formattedduration)")
-                                .font(.caption)
-                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            
-                        }
-                    }
-                    .listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                    )
-                    
-                    
-                    Text("Calendar events")
-                        .font(.headline)
-                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                        .listRowBackground(
-                            VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                        )
-                    
-                    if isLoading {
-                        ProgressView("Loading events...")
-                    } else {
-                        ForEach(displayManager.eventsFormatted) { event in
-                            
-                            VStack(alignment: .leading) {
-                                Text(event.titleLine)
+                            HStack {
+                                Text(musicMonitor.curSong.album)
+                                    .font(.subheadline)
+                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                
+                                Text(musicMonitor.curSong.artist)
+                                    .font(.subheadline)
+                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                
+                            }
+                            HStack {
+                                let formattedCurrentTime = Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))
+                                let formattedduration = Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond))
+                                
+                                Text("\(formattedCurrentTime)")
                                     .font(.caption)
                                     .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                 
                                 
-                                Text(event.subtitleLine)
-                                    .font(.footnote)
+                                Text("\(formattedduration)")
+                                    .font(.caption)
                                     .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                 
                             }
-                            .listRowBackground(
-                                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                            )
                         }
-                    }
-                    
-                    
-                    Text("end calendar")
-                        .font(.headline)
-                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                         .listRowBackground(
                             VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                         )
+                    }
+                    
+                    if displayManager.eventsFormatted.isEmpty {
+                        Text("No events today")
+                            .font(.headline)
+                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            .listRowBackground(
+                                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                            )
+                    }else{
+                        Text("Calendar events")
+                            .font(.headline)
+                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            .listRowBackground(
+                                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                            )
+                        
+                        if isLoading {
+                            ProgressView("Loading events...")
+                        } else {
+                            ForEach(displayManager.eventsFormatted) { event in
+                                
+                                VStack(alignment: .leading) {
+                                    Text(event.titleLine)
+                                        .font(.caption)
+                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                    
+                                    
+                                    Text(event.subtitleLine)
+                                        .font(.footnote)
+                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                    
+                                }
+                                .listRowBackground(
+                                    VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                                )
+                            }
+                        }
+                        
+                        
+                        Text("end calendar")
+                            .font(.headline)
+                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            .listRowBackground(
+                                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                            )
+                    }
                     
                     
                     Spacer()
@@ -257,19 +274,26 @@ struct ContentView: View {
                 .scrollContentBackground(.hidden)
                 .background(darkMode ? primaryColor : secondaryColor)
                 .edgesIgnoringSafeArea(.bottom)
-                .frame(width: 400)
                 
-                NavigationLink(destination: CalibrationView(ble: bleManager)){
-                    Text("Calibrate screen")
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        NavigationLink(destination: CalibrationView(ble: bleManager)){
+                            Text("Calibrate screen")
+                        }
+                        .simultaneousGesture(TapGesture().onEnded {showingCalibration = true})
+                        .font(.system(size: 12))
+                        .fontWeight(.semibold)
+                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                        .padding(10) // Inner padding for the button's text
+                        .contentShape(.rect(cornerRadius: 8))
+                        .background(.ultraThinMaterial, in: .rect(cornerRadius: 8))
+                        .padding(.trailing, 30) // Padding from the right edge
+                        .padding(.bottom, 10) // Padding from the bottom edge
+                    }
                 }
-                .simultaneousGesture(TapGesture().onEnded {showingCalibration = true})
-                .font(.system(size: 12))
-                .fontWeight(.semibold)
-                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                .padding(10)
-                .contentShape(.rect(cornerRadius: 8))
-                .background(.ultraThinMaterial, in: .rect(cornerRadius: 8))
-                .offset(x: 115, y: 350)
+                .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure VStack fills the space
                 
                 FloatingButton(items: floatingButtons)
                     .environmentObject(theme)
@@ -344,4 +368,5 @@ class ThemeColors: ObservableObject {
 
 #Preview {
     ContentView(weather: weatherManager())
+        .environmentObject(MusicMonitor()) // Add MusicMonitor to the environment
 }
