@@ -78,6 +78,31 @@ struct ContentView: View {
         
         NavigationStack {
             ZStack{
+                Group {
+                    if darkMode {
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: secondaryColor, location: 0.0), // Lighter color at top-left
+                                .init(color: primaryColor, location: 0.25),  // Transition to darker
+                                .init(color: primaryColor, location: 1.0)   // Darker color for the rest
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    } else {
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: primaryColor, location: 0.0), // Darker color at top-left
+                                .init(color: secondaryColor, location: 0.35),  // Transition to lighter
+                                .init(color: secondaryColor, location: 1.0)   // Lighter color for the rest
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    }
+                }
+                .edgesIgnoringSafeArea(.all)
+
                 List {
                     HStack {
                         Spacer()
@@ -157,7 +182,7 @@ struct ContentView: View {
                                 VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                             )
                     }else{
-                        Text("Calendar events")
+                        Text("Calendar events:")
                             .font(.headline)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             .listRowBackground(
@@ -168,103 +193,106 @@ struct ContentView: View {
                             ProgressView("Loading events...")
                         } else {
                             ForEach(displayManager.eventsFormatted) { event in
-                                
-                                VStack(alignment: .leading) {
-                                    Text(event.titleLine)
-                                        .font(.caption)
-                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                    
-                                    
-                                    Text(event.subtitleLine)
-                                        .font(.footnote)
-                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                    
+                                HStack{
+                                    Spacer()
+                                    VStack(alignment: .leading) {
+                                        Text(event.titleLine)
+                                            .font(.caption)
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                        
+                                        
+                                        Text(event.subtitleLine)
+                                            .font(.footnote)
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                    }
+                                    Spacer()
+                                    Spacer()
+                                    Spacer()
+                                    Spacer()
                                 }
                                 .listRowBackground(
                                     VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                                 )
                             }
                         }
-                        
-                        
-                        Text("end calendar")
-                            .font(.headline)
-                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            .listRowBackground(
-                                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                            )
                     }
                     
-                    
-                    Spacer()
-                        .listRowBackground(
+                    VStack{
+                        HStack{
+                            Spacer()
+                            
+                            
+                            
+                        }.listRowBackground(
                             VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                         )
-                    
-                    
-                    HStack{
-                        Spacer()
-                        Button("Start scan"){
-                            bleManager.startScan()
-                        }
-                        .padding(2)
-                        .frame(width: 100, height: 30)
-                        .background((!darkMode ? primaryColor : secondaryColor))
-                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                        .buttonStyle(.borderless)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
                         
-                    }.listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                    )
-                    
-                    HStack{
-                        Spacer()
-                        Button(UserDefaults.standard.bool(forKey: "displayOn") == true ? "Turn display off" : "Turn display on"){
-                            
-                            UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "displayOn"), forKey: "displayOn")
-                            sendTextCommand()
+                        ScrollView(.horizontal) {
+                            HStack{
+                                if !bleManager.connectionStatus.contains("Connected"){
+                                    Button("Start scan"){
+                                        bleManager.startScan()
+                                    }
+                                    .padding(2)
+                                    .frame(width: 100, height: 50)
+                                    .background((!darkMode ? primaryColor : secondaryColor))
+                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                    .buttonStyle(.borderless)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }else{
+                                    Button("Disconnect"){
+                                        bleManager.disconnect()
+                                    }
+                                    .padding(2)
+                                    .frame(width: 150, height: 50)
+                                    .background((!darkMode ? primaryColor : secondaryColor))
+                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                    .buttonStyle(.borderless)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
+                                
+                                Button(UserDefaults.standard.bool(forKey: "displayOn") == true ? "Turn display off" : "Turn display on"){
+                                    
+                                    UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "displayOn"), forKey: "displayOn")
+                                    sendTextCommand()
+                                }
+                                .padding(2)
+                                .frame(width: 150, height: 50)
+                                .background((!darkMode ? primaryColor : secondaryColor))
+                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                .buttonStyle(.borderless)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                
+                                Button ("Auto shut off: \(UserDefaults.standard.bool(forKey: "autoOff") ? "on" : "off")"){
+                                    UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "autoOff"), forKey: "autoOff")
+                                }
+                                .padding(2)
+                                .frame(width: 150, height: 50)
+                                .background((!darkMode ? primaryColor : secondaryColor))
+                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                .buttonStyle(.borderless)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
                         }
-                        .padding(2)
-                        .frame(width: 150, height: 30)
-                        .background((!darkMode ? primaryColor : secondaryColor))
-                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                        .buttonStyle(.borderless)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        
-                    }.listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                    )
-                    HStack{
-                        Spacer()
-                        Button ("Auto shut off: \(UserDefaults.standard.bool(forKey: "autoOff") ? "on" : "off")"){
-                            UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "autoOff"), forKey: "autoOff")
-                        }
-                        .padding(2)
-                        .frame(width: 150, height: 30)
-                        .background((!darkMode ? primaryColor : secondaryColor))
-                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                        .buttonStyle(.borderless)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                     .listRowBackground(
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
-                    
-                    VStack{
-                        if displayOn {
+                    if displayOn {
+                        VStack{
                             Text(mainLoop.textOutput)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                 .font(.system(size: 11))
                         }
+                        .listRowBackground(
+                            VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                        )
                         
-                    }.listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                    )
+                    }
                     HStack{
-                        Spacer()
                         Text("Connection status: \(bleManager.connectionStatus)")
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            .font(.headline)
                     }.listRowBackground(
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
@@ -272,8 +300,7 @@ struct ContentView: View {
                 }
                 
                 .scrollContentBackground(.hidden)
-                .background(darkMode ? primaryColor : secondaryColor)
-                .edgesIgnoringSafeArea(.bottom)
+                .background(Color.clear) // List background is now clear
                 
                 VStack {
                     Spacer()
@@ -298,6 +325,7 @@ struct ContentView: View {
                 FloatingButton(items: floatingButtons)
                     .environmentObject(theme)
             }
+            .font(Font.custom("Geeza Pro", size: 18, relativeTo: .body))
         }
         .onAppear {
             bleManager.startScan()
