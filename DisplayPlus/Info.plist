@@ -9,7 +9,6 @@
 		<string>bluetooth-central</string>
 		<string>nearby-interaction</string>
 		<string>location</string>
-		<string>external-accessory</string>
 	</array>
 </dict>
 </plist>

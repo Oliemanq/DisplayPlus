@@ -34,7 +34,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		4E7010B22DBD714000F868F4 /* Exceptions for "DisplayPlus" folder in "DisplayPlus" target */ = {
+		4EC790A92DDFC63700DE5DB2 /* Exceptions for "DisplayPlus" folder in "DisplayPlus" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -47,7 +47,7 @@
 		4E7010502DBD6F4800F868F4 /* DisplayPlus */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				4E7010B22DBD714000F868F4 /* Exceptions for "DisplayPlus" folder in "DisplayPlus" target */,
+				4EC790A92DDFC63700DE5DB2 /* Exceptions for "DisplayPlus" folder in "DisplayPlus" target */,
 			);
 			path = DisplayPlus;
 			sourceTree = "<group>";
@@ -425,7 +425,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 339H2WC2Z9;
@@ -437,8 +436,7 @@
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Needed to get current playing song data";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Needed to comunicate with glasses";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Needed to access upcoming events for displaying on glasses";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We use your location to get local weather data.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to get local weather data.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Needed to update weather according to location";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -449,10 +447,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -464,7 +461,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 339H2WC2Z9;
@@ -476,8 +472,7 @@
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Needed to get current playing song data";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Needed to comunicate with glasses";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Needed to access upcoming events for displaying on glasses";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We use your location to get local weather data.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to get local weather data.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Needed to update weather according to location";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -488,10 +483,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
