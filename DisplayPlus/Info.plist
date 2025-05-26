@@ -9,6 +9,11 @@
 		<string>bluetooth-central</string>
 		<string>nearby-interaction</string>
 		<string>location</string>
+		<string>processing</string>
 	</array>
+    <key>BGTaskSchedulerPermittedIdentifiers</key>
+    <array>
+        <string>Oliemanq.DisplayPlus</string>
+    </array>
 </dict>
 </plist>

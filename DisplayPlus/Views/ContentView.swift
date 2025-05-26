@@ -15,14 +15,20 @@ struct ContentView: View {
     @StateObject private var bleManager = G1BLEManager()
     @State private var counter: CGFloat = 0
     @State private var totalCounter: CGFloat = 0
-    
+    @State private var displayOnCounter: Int = 0 // Moved from .onAppear to @State
+
+    // UserDefaults keys (must match BackgroundTaskManager)
+    private let userDefaultsCounterKey = "backgroundTaskCounter"
+    private let userDefaultsDisplayOnCounterKey = "backgroundTaskDisplayOnCounter"
+
     @EnvironmentObject var musicMonitor: MusicMonitor
     
+    @State private var timer: Timer? // Already a @State, which is good
 
     @State private var time = Date().formatted(date: .omitted, time: .shortened)
-    @State private var timer: Timer?
     
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.scenePhase) private var scenePhase // Added for lifecycle management
     @Environment(\.modelContext) private var context
     @Query() private var displayDetailsList: [DataItem]
     
@@ -66,14 +72,6 @@ struct ContentView: View {
             .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
                 UserDefaults.standard.set("Calendar", forKey: "currentPage")
             })
-            /* UI for potential future feature
-            .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "RearView", action: {
-                UserDefaults.standard.set("RearView", forKey: "currentPage")
-            }), Debug view for text management
-            .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "Debug", action: {
-                UserDefaults.standard.set("Debug", forKey: "currentPage")
-            })
-             */
         ]
         
         NavigationStack {
@@ -328,54 +326,42 @@ struct ContentView: View {
             .font(Font.custom("Geeza Pro", size: 18, relativeTo: .body))
         }
         .onAppear {
+            // Initial setup
             bleManager.startScan()
             
-            if displayDetailsList.isEmpty {
-                let newItem = DataItem()
-                context.insert(newItem)
-                try? context.save()
-            }
-            
-            var displayOnCounter: Int = 0
             UIDevice.current.isBatteryMonitoringEnabled = true
-            mainLoop.update()
-            Task{
+            mainLoop.update() // Initial update
+            Task {
                 try await weather.fetchWeatherData()
             }
-            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-                if !showingCalibration{
-                    if UserDefaults.standard.bool(forKey: "autoOff") {
-                        if UserDefaults.standard.bool(forKey: "displayOn") {
-                            displayOnCounter += 1
-                        }
-                        if displayOnCounter >= 5 {
-                            displayOnCounter = 0
-                            UserDefaults.standard.set(false, forKey: "displayOn")
-                        }
-                    }
-                    
-                    // Update the mainLoop with the current counter value
-                    mainLoop.update()
-                    if UserDefaults.standard.bool(forKey: "displayOn") {
-                        mainLoop.HandleText()
-                        sendTextCommand(text: mainLoop.textOutput)
-                    }
-                    
-                    // Update events
-                    counter += 1
-                    totalCounter += 1
-                    if UInt8(counter) >= 255 {
-                        counter = 0
-                    }
-                }
+
+            // Start timer only if scene is already active.
+            // Otherwise, .onChange(of: scenePhase) will handle it.
+            if scenePhase == .active {
+                loadStateFromUserDefaults()
+                startTimer()
             }
         }
         .onDisappear {
-            timer?.invalidate()
+            stopTimer()
+            // No need to save state here as scenePhase change will handle it before this.
             UserDefaults.standard.set("Disconnected", forKey: "connectionStatus")
             bleManager.disconnect()
-            
-        }.onChange(of: displayOn) { oldValue, newValue in
+        }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            switch newPhase {
+            case .active:
+                loadStateFromUserDefaults() // Load state when becoming active
+                startTimer()
+            case .inactive, .background:
+                saveStateToUserDefaults() // Save state when going to background/inactive
+                stopTimer()
+            @unknown default:
+                saveStateToUserDefaults() // Be safe
+                stopTimer()
+            }
+        }
+        .onChange(of: displayOn) { oldValue, newValue in
             if !newValue{
                 sendTextCommand()
             }
@@ -384,8 +370,59 @@ struct ContentView: View {
     }
     
     func sendTextCommand(text: String = ""){
-        bleManager.sendTextCommand(seq: UInt8(self.counter), text: text)
+        // Ensure counter is treated as an integer for sequence number
+        bleManager.sendTextCommand(seq: UInt8(Int(self.counter) % 256), text: text)
         
+    }
+
+    // Helper functions for timer management
+    func startTimer() {
+        timer?.invalidate()
+        // Ensure displayOnCounter is reset appropriately if display is turned on manually
+        if UserDefaults.standard.bool(forKey: "displayOn") && !UserDefaults.standard.bool(forKey: "autoOff") {
+            displayOnCounter = 0
+        }
+
+        timer = Timer.scheduledTimer(withTimeInterval: 1/2, repeats: true) { _ in
+            if !showingCalibration {
+                if UserDefaults.standard.bool(forKey: "autoOff") {
+                    if UserDefaults.standard.bool(forKey: "displayOn") {
+                        displayOnCounter += 1
+                    }
+                    if displayOnCounter >= 10 { // Adjusted to 10 ticks of 0.5s = 5 seconds
+                        displayOnCounter = 0
+                        UserDefaults.standard.set(false, forKey: "displayOn")
+                    }
+                }
+                
+                mainLoop.update()
+                if UserDefaults.standard.bool(forKey: "displayOn") {
+                    mainLoop.HandleText()
+                    sendTextCommand(text: mainLoop.textOutput)
+                }
+                
+                counter = CGFloat((Int(counter) + 1) % 256) // Ensure counter wraps and stays integer-like for seq
+                totalCounter += 1
+            }
+        }
+    }
+
+    func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    // Helper functions for state persistence
+    func loadStateFromUserDefaults() {
+        self.counter = CGFloat(UserDefaults.standard.integer(forKey: userDefaultsCounterKey))
+        self.displayOnCounter = UserDefaults.standard.integer(forKey: userDefaultsDisplayOnCounterKey)
+        print("ContentView: Loaded state - counter: \(self.counter), displayOnCounter: \(self.displayOnCounter)")
+    }
+
+    func saveStateToUserDefaults() {
+        UserDefaults.standard.set(Int(self.counter), forKey: userDefaultsCounterKey)
+        UserDefaults.standard.set(self.displayOnCounter, forKey: userDefaultsDisplayOnCounterKey)
+        print("ContentView: Saved state - counter: \(self.counter), displayOnCounter: \(self.displayOnCounter)")
     }
 }
 
