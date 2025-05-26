@@ -7,6 +7,10 @@
  - Siri shortcuts/AppIntents support for a few actions
  - Current weather, temp, and wind speed
 
+## In progress
+ - Background updating (Permission not handled right for Testflight build)
+ - Optimizing main loop
+
 ## Possible future features
  - Apple HealthKit stats/ring
  - Notification mirroring
