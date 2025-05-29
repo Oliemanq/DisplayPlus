@@ -11,7 +11,7 @@ import SwiftUI
 import CoreLocation
 
 /// Make sure the URL contains `&format=flatbuffers`
-class weatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     public var currentLocation: CLLocation?
     @Published var currentTemp: Int = 0

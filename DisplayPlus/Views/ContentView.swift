@@ -6,31 +6,32 @@ import AppIntents
 struct ContentView: View {
     @State var showingCalibration = false
     
-    @ObservedObject var weather: weatherManager
-    
-    @StateObject var displayManager: DisplayManager
-    @StateObject var mainLoop: MainLoop
-
-    
-    @StateObject private var bleManager = G1BLEManager()
     @State private var counter: CGFloat = 0
     @State private var totalCounter: CGFloat = 0
     @State private var displayOnCounter: Int = 0 // Moved from .onAppear to @State
-
+    
     // UserDefaults keys (must match BackgroundTaskManager)
     private let userDefaultsCounterKey = "backgroundTaskCounter"
     private let userDefaultsDisplayOnCounterKey = "backgroundTaskDisplayOnCounter"
-
-    @EnvironmentObject var musicMonitor: MusicMonitor
     
-    @State private var timer: Timer? // Already a @State, which is good
-
+    @State var events: [event] = []
+    @State var curSong: Song = Song(title: "", artist: "", album: "", duration: 0, currentTime: 0, isPaused: true)
+    
+    
+    //Initializing all info managers here
+    var bleManager = G1BLEManager()
+    // formattingManager and bgManager will be initialized in init() using the info instance.
+    var info: InfoManager
+    var formattingManager: FormattingManager
+    var bgManager: BackgroundTaskManager
+    
+    @State private var timer: Timer?
+    
     @State private var time = Date().formatted(date: .omitted, time: .shortened)
     
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.scenePhase) private var scenePhase // Added for lifecycle management
     @Environment(\.modelContext) private var context
-    @Query() private var displayDetailsList: [DataItem]
     
     @AppStorage("currentPage") private var currentPage = "Default"
     @AppStorage("displayOn") private var displayOn = true
@@ -48,18 +49,18 @@ struct ContentView: View {
     
     @StateObject var theme = ThemeColors()
     
-    init(weather: weatherManager){
-        _weather = ObservedObject(wrappedValue: weather)
-        
-        let initialDisplayManager = DisplayManager(weather: weather)
-        _displayManager = StateObject(wrappedValue: initialDisplayManager)
-        _mainLoop = StateObject(wrappedValue: MainLoop(displayManager: initialDisplayManager))
+    init() {
+        // Initialize formattingManager and bgManager using the info instance.
+        // @StateObject info is already initialized by this point.
+        info = InfoManager(cal: CalendarManager(), music: MusicMonitor(), weather: WeatherManager())
+        formattingManager = FormattingManager(info: info)
+        self.bgManager = BackgroundTaskManager(ble: self.bleManager, info: self.info, formatting: self.formattingManager)
     }
-
+    
     var body: some View {
-        let darkMode: Bool = (colorScheme == .dark)
+        let darkMode: Bool = (colorScheme == .dark) //Dark mode variable
         
-        let primaryColor = theme.primaryColor
+        let primaryColor = theme.primaryColor //Color themes being split for easier access
         let secondaryColor  = theme.secondaryColor
         
         let floatingButtons: [FloatingButtonItem] = [
@@ -72,10 +73,11 @@ struct ContentView: View {
             .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
                 UserDefaults.standard.set("Calendar", forKey: "currentPage")
             })
-        ]
+        ] //Floating button init
         
         NavigationStack {
             ZStack{
+                // Background gradient
                 Group {
                     if darkMode {
                         LinearGradient(
@@ -100,7 +102,7 @@ struct ContentView: View {
                     }
                 }
                 .edgesIgnoringSafeArea(.all)
-
+                
                 List {
                     HStack {
                         Spacer()
@@ -110,7 +112,8 @@ struct ContentView: View {
                             
                             HStack {
                                 ForEach(daysOfWeek, id: \.self) { day in
-                                    if day == displayManager.getTodayDate() {
+                                    // Use info.getTodayDate() which now comes from an @ObservedObject
+                                    if day == info.getTodayDate() {
                                         Text(day).bold()
                                             .padding(0)
                                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
@@ -129,7 +132,7 @@ struct ContentView: View {
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
                     
-                    if musicMonitor.curSong.title == "" {
+                    if curSong.title == "" {
                         Text("No music playing")
                             .font(.headline)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
@@ -139,40 +142,27 @@ struct ContentView: View {
                     }else{
                         // Current playing music plus progress bar
                         VStack(alignment: .leading) {
-                            Text(musicMonitor.curSong.title)
+                            Text(curSong.title)
                                 .font(.headline)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            HStack {
-                                Text(musicMonitor.curSong.album)
-                                    .font(.subheadline)
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                
-                                Text(musicMonitor.curSong.artist)
-                                    .font(.subheadline)
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                
-                            }
-                            HStack {
-                                let formattedCurrentTime = Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))
-                                let formattedduration = Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond))
-                                
-                                Text("\(formattedCurrentTime)")
-                                    .font(.caption)
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                
-                                
-                                Text("\(formattedduration)")
-                                    .font(.caption)
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                
-                            }
+                            Text("\(curSong.album) - \(curSong.artist)")
+                                .font(.subheadline)
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            
+                            let formattedCurrentTime = Duration.seconds(curSong.currentTime).formatted(.time(pattern: .minuteSecond))
+                            let formattedduration = Duration.seconds(curSong.duration).formatted(.time(pattern: .minuteSecond))
+                            
+                            Text("\(formattedCurrentTime) \(formattedduration)")
+                                .font(.caption)
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                         }
                         .listRowBackground(
                             VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                         )
                     }
                     
-                    if displayManager.eventsFormatted.isEmpty {
+                    // Use info.getEvents() which now comes from an @ObservedObject
+                    if events.isEmpty {
                         Text("No events today")
                             .font(.headline)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
@@ -180,79 +170,67 @@ struct ContentView: View {
                                 VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                             )
                     }else{
-                        Text("Calendar events:")
+                        Text("Calendar events: ")
                             .font(.headline)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             .listRowBackground(
                                 VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                             )
-                        
-                        if isLoading {
-                            ProgressView("Loading events...")
-                        } else {
-                            ForEach(displayManager.eventsFormatted) { event in
-                                HStack{
-                                    Spacer()
-                                    VStack(alignment: .leading) {
-                                        Text(event.titleLine)
-                                            .font(.caption)
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                        
-                                        
-                                        Text(event.subtitleLine)
-                                            .font(.footnote)
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                    }
-                                    Spacer()
-                                    Spacer()
-                                    Spacer()
-                                    Spacer()
+                        // Use info.getEvents() for ForEach
+                        ForEach(events) { event in
+                            HStack{
+                                Spacer()
+                                VStack(alignment: .leading) {
+                                    Text(event.titleLine)
+                                        .font(.caption)
+                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                    
+                                    
+                                    Text(event.subtitleLine)
+                                        .font(.footnote)
+                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                 }
-                                .listRowBackground(
-                                    VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                                )
+                                Spacer()
+                                Spacer()
+                                Spacer()
+                                Spacer()
                             }
+                            .listRowBackground(
+                                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                            )
                         }
                     }
                     
                     VStack{
-                        HStack{
-                            Spacer()
-                            
-                            
-                            
-                        }.listRowBackground(
-                            VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                        )
-                        
                         ScrollView(.horizontal) {
                             HStack{
-                                if !bleManager.connectionStatus.contains("Connected"){
-                                    Button("Start scan"){
-                                        bleManager.startScan()
-                                    }
-                                    .padding(2)
-                                    .frame(width: 100, height: 50)
-                                    .background((!darkMode ? primaryColor : secondaryColor))
-                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                    .buttonStyle(.borderless)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                }else{
-                                    Button("Disconnect"){
-                                        bleManager.disconnect()
-                                    }
-                                    .padding(2)
-                                    .frame(width: 150, height: 50)
-                                    .background((!darkMode ? primaryColor : secondaryColor))
-                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                    .buttonStyle(.borderless)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                
+                                Button("Start scan"){
+                                    bleManager.startScan()
                                 }
+                                .padding(2)
+                                .frame(width: 100, height: 50)
+                                .background((!darkMode ? primaryColor : secondaryColor))
+                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                .buttonStyle(.borderless)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                
+                                /*else{
+                                 Button("Disconnect"){
+                                 bleManager.disconnect()
+                                 }
+                                 .padding(2)
+                                 .frame(width: 150, height: 50)
+                                 .background((!darkMode ? primaryColor : secondaryColor))
+                                 .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                 .buttonStyle(.borderless)
+                                 .clipShape(RoundedRectangle(cornerRadius: 12))
+                                 }*/
                                 
                                 Button(UserDefaults.standard.bool(forKey: "displayOn") == true ? "Turn display off" : "Turn display on"){
                                     
                                     UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "displayOn"), forKey: "displayOn")
-                                    sendTextCommand()
+                                    bleManager.sendBlank()
                                 }
                                 .padding(2)
                                 .frame(width: 150, height: 50)
@@ -276,9 +254,12 @@ struct ContentView: View {
                     .listRowBackground(
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
+                    
                     if displayOn {
                         VStack{
-                            Text(mainLoop.textOutput)
+                            // bgManager.pageHandler() indirectly uses infoManager via formattingManager
+                            // Ensure formattingManager is correctly using the @ObservedObject info
+                            Text(bgManager.pageHandler())
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                 .font(.system(size: 11))
                         }
@@ -297,8 +278,6 @@ struct ContentView: View {
                     
                 }
                 
-                .scrollContentBackground(.hidden)
-                .background(Color.clear) // List background is now clear
                 
                 VStack {
                     Spacer()
@@ -323,106 +302,30 @@ struct ContentView: View {
                 FloatingButton(items: floatingButtons)
                     .environmentObject(theme)
             }
-            .font(Font.custom("Geeza Pro", size: 18, relativeTo: .body))
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.clear) // List background is now clear
+        .font(Font.custom("Geeza Pro", size: 18, relativeTo: .body))
         .onAppear {
-            // Initial setup
-            bleManager.startScan()
-            
-            UIDevice.current.isBatteryMonitoringEnabled = true
-            mainLoop.update() // Initial update
-            Task {
-                try await weather.fetchWeatherData()
-            }
+            info.update(updateWeatherBool: true)
+            bgManager.startTimer() // Start the background task timer
 
-            // Start timer only if scene is already active.
-            // Otherwise, .onChange(of: scenePhase) will handle it.
-            if scenePhase == .active {
-                loadStateFromUserDefaults()
-                startTimer()
+            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+                self.time = info.getTime()
+                events = info.getEvents()
+                curSong = info.getCurSong()
             }
+                
+            // info.update is called, and since info is @StateObject, UI should react to its @Published changes
         }
         .onDisappear {
-            stopTimer()
-            // No need to save state here as scenePhase change will handle it before this.
-            UserDefaults.standard.set("Disconnected", forKey: "connectionStatus")
-            bleManager.disconnect()
-        }
-        .onChange(of: scenePhase) { oldPhase, newPhase in
-            switch newPhase {
-            case .active:
-                loadStateFromUserDefaults() // Load state when becoming active
-                startTimer()
-            case .inactive, .background:
-                saveStateToUserDefaults() // Save state when going to background/inactive
-                stopTimer()
-            @unknown default:
-                saveStateToUserDefaults() // Be safe
-                stopTimer()
-            }
+            bgManager.stopTimer() // Stop the timer when view disappears
         }
         .onChange(of: displayOn) { oldValue, newValue in
             if !newValue{
-                sendTextCommand()
+                bleManager.sendBlank()
             }
         }
-        
-    }
-    
-    func sendTextCommand(text: String = ""){
-        // Ensure counter is treated as an integer for sequence number
-        bleManager.sendTextCommand(seq: UInt8(Int(self.counter) % 256), text: text)
-        
-    }
-
-    // Helper functions for timer management
-    func startTimer() {
-        timer?.invalidate()
-        // Ensure displayOnCounter is reset appropriately if display is turned on manually
-        if UserDefaults.standard.bool(forKey: "displayOn") && !UserDefaults.standard.bool(forKey: "autoOff") {
-            displayOnCounter = 0
-        }
-
-        timer = Timer.scheduledTimer(withTimeInterval: 1/2, repeats: true) { _ in
-            if !showingCalibration {
-                if UserDefaults.standard.bool(forKey: "autoOff") {
-                    if UserDefaults.standard.bool(forKey: "displayOn") {
-                        displayOnCounter += 1
-                    }
-                    if displayOnCounter >= 10 { // Adjusted to 10 ticks of 0.5s = 5 seconds
-                        displayOnCounter = 0
-                        UserDefaults.standard.set(false, forKey: "displayOn")
-                    }
-                }
-                
-                mainLoop.update()
-                if UserDefaults.standard.bool(forKey: "displayOn") {
-                    mainLoop.HandleText()
-                    sendTextCommand(text: mainLoop.textOutput)
-                }
-                
-                counter = CGFloat((Int(counter) + 1) % 256) // Ensure counter wraps and stays integer-like for seq
-                totalCounter += 1
-            }
-        }
-    }
-
-    func stopTimer() {
-        timer?.invalidate()
-        timer = nil
-    }
-
-    // Helper functions for state persistence
-    func loadStateFromUserDefaults() {
-        self.counter = CGFloat(UserDefaults.standard.integer(forKey: userDefaultsCounterKey))
-        self.displayOnCounter = UserDefaults.standard.integer(forKey: userDefaultsDisplayOnCounterKey)
-        print("ContentView: Loaded state - counter: \(self.counter), displayOnCounter: \(self.displayOnCounter)")
-    }
-
-    func saveStateToUserDefaults() {
-        UserDefaults.standard.set(Int(self.counter), forKey: userDefaultsCounterKey)
-        UserDefaults.standard.set(self.displayOnCounter, forKey: userDefaultsDisplayOnCounterKey)
-        print("ContentView: Saved state - counter: \(self.counter), displayOnCounter: \(self.displayOnCounter)")
     }
 }
 
@@ -432,6 +335,5 @@ class ThemeColors: ObservableObject {
 }
 
 #Preview {
-    ContentView(weather: weatherManager())
-        .environmentObject(MusicMonitor()) // Add MusicMonitor to the environment
+    ContentView()
 }

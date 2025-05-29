@@ -152,6 +152,15 @@ class G1BLEManager: NSObject, ObservableObject{
         writeData(data, to: arm)
     }
     
+    func sendText(text: String = "", counter: Int) {
+        // Ensure counter is treated as an integer for sequence number
+        sendTextCommand(seq: UInt8(Int(counter) % 256), text: text)
+    }
+    
+    func sendBlank() {
+        sendTextCommand(seq: 0, text: "")
+    }
+    
     private func handleDiscoveredPeripheral(_ peripheral: CBPeripheral) {
         guard let name = peripheral.name else { return }
 
