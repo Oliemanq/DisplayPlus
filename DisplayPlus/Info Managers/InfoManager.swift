@@ -46,6 +46,8 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         loadEvents() // This already updates self.eventsFormatted which will publish changes
         
         // Check if battery monitoring is enabled and level is valid
+        time = Date().formatted(date: .omitted, time: .shortened) // Update time
+        
         if UIDevice.current.isBatteryMonitoringEnabled && UIDevice.current.batteryLevel >= 0.0 {
             self.batteryLevelFormatted = (Int)(UIDevice.current.batteryLevel * 100)
         } else {
@@ -118,7 +120,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     }
     
     public func getTime() -> String {
-        return self.time // Return the @Published property
+        return self.time
     }
     
     

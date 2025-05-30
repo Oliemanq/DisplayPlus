@@ -15,7 +15,6 @@ import OpenMeteoSdk
 
 
 class FormattingManager: ObservableObject {
-    var time: String
     var timer: Timer?
     
     var rm = RenderingManager() //Has all measurements from calibration
@@ -32,16 +31,15 @@ class FormattingManager: ObservableObject {
     
     init(info: InfoManager){
         self.info = info
-        time = self.info.getTime()
     }
     
     func defaultDisplay() -> [String] {
         currentDisplayLines.removeAll()
         
         if info.getCurrentTemp() != 0 {
-            currentDisplayLines.append(centerText(text:("\(time) | \(info.getTodayDate()) | Phone - \(info.getBattery())% | \(info.getCurrentTemp())°F")))
+            currentDisplayLines.append(centerText(text:("\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())% | \(info.getCurrentTemp())°F")))
         }else{
-            currentDisplayLines.append(String(centerText(text: "\(time)  \(info.getTodayDate()) | Phone - \(info.getBattery())%")))
+            currentDisplayLines.append(String(centerText(text: "\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())%")))
         }
         
         
@@ -53,9 +51,9 @@ class FormattingManager: ObservableObject {
         currentDisplayLines.removeAll()
         
         if info.getCurrentTemp() != 0 {
-            currentDisplayLines.append(centerText(text:("\(time) | \(info.getTodayDate()) | Phone - \(info.getBattery())% | \(info.getCurrentTemp())°F")))
+            currentDisplayLines.append(centerText(text:("\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())% | \(info.getCurrentTemp())°F")))
         }else{
-            currentDisplayLines.append(String(centerText(text: "\(time) | \(info.getTodayDate()) | Phone - \(info.getBattery())%")))
+            currentDisplayLines.append(String(centerText(text: "\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())%")))
         } //Hiding weather display if API issues or unknown location
         
         var artist = ""
@@ -78,7 +76,6 @@ class FormattingManager: ObservableObject {
             //let tempProgBar = progressBar(value: 0.99, max: 1.0)
             //let tempProgBar = progressBar(value: 0.0001, max: 1.0)
             //let tempProgBar = progressBar(value: 0.5, max: 1.0)
-            let tempProgBar = songProgAsBars
             //currentDisplayLines.append("\(Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))) \(tempProgBar) \(Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond)))")
             currentDisplayLines.append(centerText(text:"\(Duration.seconds(info.getCurSong().currentTime).formatted(.time(pattern: .minuteSecond))) \(progressBar(value: Float(info.getCurSong().currentTime), max: Float(info.getCurSong().duration), song: true)) \(Duration.seconds(info.getCurSong().duration).formatted(.time(pattern: .minuteSecond)))"))
         }else{
@@ -92,9 +89,9 @@ class FormattingManager: ObservableObject {
         currentDisplayLines.removeAll()
         
         if info.getCurrentTemp() != 0 {
-            currentDisplayLines.append(centerText(text:("\(time) | \(info.getTodayDate()) | Phone - \(info.getBattery())% | \(info.getCurrentTemp())°F")))
+            currentDisplayLines.append(centerText(text:("\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())% | \(info.getCurrentTemp())°F")))
         }else{
-            currentDisplayLines.append(String(centerText(text: "\(time) | \(info.getTodayDate()) | Phone - \(info.getBattery())%")))
+            currentDisplayLines.append(String(centerText(text: "\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())%")))
         } //Hiding weather display if API issues or unknown location
 
         if info.getEvents().count <= 2 {

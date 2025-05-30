@@ -58,8 +58,6 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
             let isAutoOff = UserDefaults.standard.bool(forKey: "autoOff")
             let isDisplayOnInitially = UserDefaults.standard.bool(forKey: "displayOn") // displayOn state at the start of this tick
             
-            print("BackgroundTaskManager timer tick: Counter=\(self.counter), DisplayOnCounter=\(self.displayOnCounter), UserDefaults[autoOff]=\(isAutoOff), UserDefaults[displayOn]=\(isDisplayOnInitially)")
-
             if isAutoOff {
                 if isDisplayOnInitially {
                     self.displayOnCounter += 1
@@ -75,6 +73,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
 
             // Re-fetch displayOn as it might have been changed by the autoOff logic above in the same tick
             let currentDisplayOn = UserDefaults.standard.bool(forKey: "displayOn")
+            
             if currentDisplayOn {
                 let pageText = self.pageHandler()
                 print("BackgroundTaskManager timer: Calling ble.sendText. UserDefaults[displayOn] is true. Text: \(pageText)")
