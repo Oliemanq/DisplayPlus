@@ -25,10 +25,6 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     
     //Battery var
     @Published var batteryLevelFormatted: Int = 0 // Mark with @Published
-    
-    // Weather vars
-    @Published var currentTemperature: Int = 0 // New @Published property for temperature
-    @Published var currentWindSpeed: Int = 0   // New @Published property for wind
 
     // Music var
     @Published var currentSong: Song = Song(title: "", artist: "", album: "", duration: 0.0, currentTime: 0.0, isPaused: true) // Mark with @Published, provide default
@@ -123,27 +119,24 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         return self.time
     }
     
-    
     func updateWeather() async{
         do{
             try await weather.fetchWeatherData()
             // Update @Published properties after fetching
-            self.currentTemperature = weather.currentTemp
-            self.currentWindSpeed = weather.currentWind
-            print("Weather fetch successful, InfoManager updated: Temp=\(self.currentTemperature)")
+            print("Weather fetch successful, InfoManager updated: Temp=\(weather.currentTemp)")
         }catch {
             print("failed weather fetch \(error)")
         }
     }
     func getCurrentTemp() -> Int {
-        return self.currentTemperature // Return the @Published property
+        return weather.currentTemp
     }
     func getCurrentWind() -> Int {
-        return self.currentWindSpeed // Return the @Published property
+        return weather.currentWind
     }
     
     func getEvents() -> [event] {
-        return self.eventsFormatted // Return the @Published property
+        return self.eventsFormatted
     }
     
     func getTodayDate()-> String{

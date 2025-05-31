@@ -43,7 +43,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
             }
 
             // Determine if it's time to update weather
-            let shouldUpdateWeather = (self.weatherUpdateTicker >= 60) // 60 ticks * 0.5s/tick = 30 seconds
+            let shouldUpdateWeather = (self.weatherUpdateTicker >= 600) // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
             
             // Update InfoManager's data
             self.infoManager.update(updateWeatherBool: shouldUpdateWeather)
@@ -76,10 +76,8 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
             
             if currentDisplayOn {
                 let pageText = self.pageHandler()
-                print("BackgroundTaskManager timer: Calling ble.sendText. UserDefaults[displayOn] is true. Text: \(pageText)")
                 self.ble.sendText(text: pageText, counter: self.counter)
             } else {
-                print("BackgroundTaskManager timer: Skipping ble.sendText because UserDefaults[displayOn] is false.")
             }
 
             self.counter += 1
@@ -91,10 +89,8 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     }
         
     func stopTimer() {
-        print("BackgroundTaskManager: stopTimer() called. Invalidating timer.") // Log when stopTimer is called
         timer?.invalidate()
         timer = nil
-        print("BackgroundTaskManager timer stopped.")
     }
     
     func pageHandler() -> String {

@@ -14,20 +14,11 @@ struct ContentView: View {
     private let userDefaultsCounterKey = "backgroundTaskCounter"
     private let userDefaultsDisplayOnCounterKey = "backgroundTaskDisplayOnCounter"
     
-    @State var events: [event] = []
-    @State var curSong: Song = Song(title: "", artist: "", album: "", duration: 0, currentTime: 0, isPaused: true)
-    
-    
     //Initializing all info managers here
-    var bleManager = G1BLEManager()
-    // formattingManager and bgManager will be initialized in init() using the info instance.
-    var info: InfoManager
-    var formattingManager: FormattingManager
-    var bgManager: BackgroundTaskManager
-    
-    @State private var timer: Timer?
-    
-    @State private var time = Date().formatted(date: .omitted, time: .shortened)
+    @StateObject var info: InfoManager // Removed inline initialization
+    @StateObject var bleManager: G1BLEManager // Removed inline initialization
+    @StateObject var formattingManager: FormattingManager // Removed inline initialization
+    @StateObject var bgManager: BackgroundTaskManager // Removed inline initialization
     
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.scenePhase) private var scenePhase // Added for lifecycle management
@@ -50,11 +41,21 @@ struct ContentView: View {
     @StateObject var theme = ThemeColors()
     
     init() {
-        // Initialize formattingManager and bgManager using the info instance.
-        // @StateObject info is already initialized by this point.
-        info = InfoManager(cal: CalendarManager(), music: MusicMonitor(), weather: WeatherManager())
-        formattingManager = FormattingManager(info: info)
-        self.bgManager = BackgroundTaskManager(ble: self.bleManager, info: self.info, formatting: self.formattingManager)
+        // Create local instances of all managers first.
+        // These instances will be used to initialize the @StateObject properties.
+        let infoInstance = InfoManager(cal: CalendarManager(), music: MusicMonitor(), weather: WeatherManager())
+        let bleInstance = G1BLEManager()
+        // FormattingManager depends on the InfoManager instance.
+        let fmInstance = FormattingManager(info: infoInstance)
+        // BackgroundTaskManager depends on the instances of G1BLEManager, InfoManager, and FormattingManager.
+        let bgmInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, formatting: fmInstance)
+
+        // Now, initialize all @StateObject properties using these local instances.
+        // This order ensures that dependencies are available.
+        _info = StateObject(wrappedValue: infoInstance)
+        _bleManager = StateObject(wrappedValue: bleInstance)
+        _formattingManager = StateObject(wrappedValue: fmInstance)
+        _bgManager = StateObject(wrappedValue: bgmInstance)
     }
     
     var body: some View {
@@ -107,12 +108,12 @@ struct ContentView: View {
                     HStack {
                         Spacer()
                         VStack {
-                            Text(time)
+                            // Use info.time directly, which should be @Published in InfoManager
+                            Text(info.time)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             
                             HStack {
                                 ForEach(daysOfWeek, id: \.self) { day in
-                                    // Use info.getTodayDate() which now comes from an @ObservedObject
                                     if day == info.getTodayDate() {
                                         Text(day).bold()
                                             .padding(0)
@@ -132,7 +133,8 @@ struct ContentView: View {
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
                     
-                    if curSong.title == "" {
+                    // Use info.currentSong directly
+                    if info.currentSong.title == "" {
                         Text("No music playing")
                             .font(.headline)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
@@ -142,15 +144,16 @@ struct ContentView: View {
                     }else{
                         // Current playing music plus progress bar
                         VStack(alignment: .leading) {
-                            Text(curSong.title)
+                            // Use info.currentSong properties
+                            Text(info.currentSong.title)
                                 .font(.headline)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            Text("\(curSong.album) - \(curSong.artist)")
+                            Text("\(info.currentSong.album) - \(info.currentSong.artist)")
                                 .font(.subheadline)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             
-                            let formattedCurrentTime = Duration.seconds(curSong.currentTime).formatted(.time(pattern: .minuteSecond))
-                            let formattedduration = Duration.seconds(curSong.duration).formatted(.time(pattern: .minuteSecond))
+                            let formattedCurrentTime = Duration.seconds(info.currentSong.currentTime).formatted(.time(pattern: .minuteSecond))
+                            let formattedduration = Duration.seconds(info.currentSong.duration).formatted(.time(pattern: .minuteSecond))
                             
                             Text("\(formattedCurrentTime) \(formattedduration)")
                                 .font(.caption)
@@ -161,8 +164,8 @@ struct ContentView: View {
                         )
                     }
                     
-                    // Use info.getEvents() which now comes from an @ObservedObject
-                    if events.isEmpty {
+                    // Use info.eventsFormatted directly
+                    if info.eventsFormatted.isEmpty {
                         Text("No events today")
                             .font(.headline)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
@@ -176,8 +179,8 @@ struct ContentView: View {
                             .listRowBackground(
                                 VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                             )
-                        // Use info.getEvents() for ForEach
-                        ForEach(events) { event in
+                        // Use info.eventsFormatted for ForEach
+                        ForEach(info.eventsFormatted) { event in
                             HStack{
                                 Spacer()
                                 VStack(alignment: .leading) {
@@ -307,23 +310,17 @@ struct ContentView: View {
         .background(Color.clear) // List background is now clear
         .font(Font.custom("Geeza Pro", size: 18, relativeTo: .body))
         .onAppear {
-            info.update(updateWeatherBool: true)
+            info.update(updateWeatherBool: true) // Initial update
             bgManager.startTimer() // Start the background task timer
-
-            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-                self.time = info.getTime()
-                events = info.getEvents()
-                curSong = info.getCurSong()
-            }
-                
-            // info.update is called, and since info is @StateObject, UI should react to its @Published changes
         }
         .onDisappear {
             bgManager.stopTimer() // Stop the timer when view disappears
         }
-        .onChange(of: displayOn) { oldValue, newValue in
+        .onChange(of: displayOn) { oldValue, newValue in //Checking if displayOn changes and acting accordingly, mainly to bypass lag in timer
             if !newValue{
                 bleManager.sendBlank()
+            }else{
+                bleManager.startScan()
             }
         }
     }

@@ -25,18 +25,56 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
         locationManager.requestAlwaysAuthorization()
         locationManager.startUpdatingLocation()
+        locationManager.requestLocation()
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.last {
-            currentLocation = location
+            if currentLocation?.coordinate.latitude == location.coordinate.latitude || currentLocation?.coordinate.longitude == location.coordinate.longitude {
+            }else{
+                currentLocation = location
+                // Call fetchWeatherData asynchronously
+                Task {
+                    do {
+                        try await self.fetchWeatherData()
+                    } catch {
+                        print("WeatherManager: Failed to fetch weather data after location update: \(error.localizedDescription)")
+                    }
+                }
+            }
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("WeatherManager: Location manager failed with error: \(error.localizedDescription)")
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            print("WeatherManager: Location authorization granted.")
+            manager.requestLocation()
+        case .denied, .restricted:
+            print("WeatherManager: Location authorization denied or restricted.")
+        case .notDetermined:
+            print("WeatherManager: Location authorization not determined.")
+        @unknown default:
+            print("WeatherManager: Unknown location authorization status.")
         }
     }
     
     func fetchWeatherData() async throws {
-        guard let location = currentLocation else {
-            print("Location not available yet")
+        guard [.authorizedAlways, .authorizedWhenInUse].contains(locationManager.authorizationStatus) else {
+            print("WeatherManager: Location not authorized. Cannot fetch weather.")
+            // Optionally, you could re-trigger authorization request here if appropriate for your UX
+            // locationManager.requestAlwaysAuthorization()
             return
+        }
+
+        guard let location = currentLocation else {
+            print("WeatherManager: Location not available yet. Requesting location.")
+            locationManager.requestLocation() // Actively request location if not available
+            return // Exit; weather will be fetched when didUpdateLocations is called
         }
 
         let latitude = location.coordinate.latitude
@@ -66,9 +104,9 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             )
         )
         
-            DispatchQueue.main.async {
-                self.currentTemp = Int(ceil(data.current.temperature2m))
-                self.currentWind = Int(ceil(data.current.windSpeed10m))
+        DispatchQueue.main.async { [self] in
+                currentTemp = Int(ceil(data.current.temperature2m))
+                currentWind = Int(ceil(data.current.windSpeed10m))
             }
     }
 }
