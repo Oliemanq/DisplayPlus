@@ -8,11 +8,9 @@
  - Current weather, temp, and wind speed
 
 ## In progress
- - Background updating (Permission not handled right for Testflight build)
- - Optimizing main loop
+ - Apple HealthKit stats/rings
 
 ## Possible future features
- - Apple HealthKit stats/ring
  - Notification mirroring
  - glasses brightness
 
