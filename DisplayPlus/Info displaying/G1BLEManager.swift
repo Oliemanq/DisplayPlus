@@ -58,8 +58,6 @@ class G1BLEManager: NSObject, ObservableObject{
         
         let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceUUID])
         for peripheral in connectedPeripherals {
-            print("Found previously connected peripheral: \(peripheral.name ?? "Unknown")")
-            
             handleDiscoveredPeripheral(peripheral)
         }
         
@@ -67,7 +65,6 @@ class G1BLEManager: NSObject, ObservableObject{
         // You can filter by the UART service, but if you need the name to parse left vs right,
         // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
         centralManager.scanForPeripherals(withServices: nil, options: nil)
-        print("Scanning for G1 glasses...")
     }
     
     /// Stop scanning if desired.
@@ -152,6 +149,15 @@ class G1BLEManager: NSObject, ObservableObject{
         writeData(data, to: arm)
     }
     
+    func sendText(text: String = "", counter: Int) {
+        // Ensure counter is treated as an integer for sequence number
+        sendTextCommand(seq: UInt8(Int(counter) % 256), text: text)
+    }
+    
+    func sendBlank() {
+        sendTextCommand(seq: 0, text: "")
+    }
+    
     private func handleDiscoveredPeripheral(_ peripheral: CBPeripheral) {
         guard let name = peripheral.name else { return }
 
@@ -164,10 +170,8 @@ class G1BLEManager: NSObject, ObservableObject{
 
         if sideIndicator == "L" {
             discoveredLeft[pairKey] = peripheral
-            print("Potential left peripheral for channel \(channelNumber).")
         } else if sideIndicator == "R" {
             discoveredRight[pairKey] = peripheral
-            print("Potential right peripheral for channel \(channelNumber).")
         } else {
             return
         }
@@ -185,7 +189,6 @@ class G1BLEManager: NSObject, ObservableObject{
             centralManager.connect(leftP, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
             centralManager.connect(rightP, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
 
-            print("Connecting left & right arms for channel \(channelNumber)...")
         }
     }
 }
@@ -195,7 +198,7 @@ extension G1BLEManager: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         switch central.state {
         case .poweredOn:
-            print("Bluetooth is powered on.")
+            let _ = 2 // Placeholder for any initialization logic
         case .poweredOff:
             print("Bluetooth is powered off.")
         default:
@@ -216,10 +219,8 @@ extension G1BLEManager: CBCentralManagerDelegate {
     /// Called when a peripheral is connected (left or right).
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         if peripheral == leftPeripheral {
-            print("Left arm connected!")
             leftPeripheral?.discoverServices([uartServiceUUID])
         } else if peripheral == rightPeripheral {
-            print("Right arm connected!")
             rightPeripheral?.discoverServices([uartServiceUUID])
         }
         
@@ -282,11 +283,9 @@ extension G1BLEManager: CBPeripheralDelegate {
         
         // Example: auto-send an init command once we have both R/W chars
         if peripheral == leftPeripheral, leftRChar != nil, leftWChar != nil {
-            print("Left arm R/W characteristics discovered. Sending init command.")
             sendInitCommand(arm: "L")
         }
         else if peripheral == rightPeripheral, rightRChar != nil, rightWChar != nil {
-            print("Right arm R/W characteristics discovered. Sending init command.")
             sendInitCommand(arm: "R")
         }
     }
@@ -297,11 +296,6 @@ extension G1BLEManager: CBPeripheralDelegate {
         if let err = error {
             print("Failed to subscribe for notifications: \(err)")
             return
-        }
-        if characteristic.isNotifying {
-            print("Notification enabled for \(characteristic.uuid)")
-        } else {
-            print("Notification disabled for \(characteristic.uuid)")
         }
     }
     
@@ -339,7 +333,6 @@ extension G1BLEManager: CBPeripheralDelegate {
 
     func handleStartAction(_ data: [UInt8]) {
         // Handle start command
-        print("Handling start command with data: \(data)")
     }
 
     func handleStopAction(_ data: [UInt8]) {

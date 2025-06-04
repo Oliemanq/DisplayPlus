@@ -6,25 +6,23 @@ import AppIntents
 struct ContentView: View {
     @State var showingCalibration = false
     
-    @ObservedObject var weather: weatherManager
-    
-    @StateObject var displayManager: DisplayManager
-    @StateObject var mainLoop: MainLoop
-
-    
-    @StateObject private var bleManager = G1BLEManager()
     @State private var counter: CGFloat = 0
     @State private var totalCounter: CGFloat = 0
+    @State private var displayOnCounter: Int = 0 // Moved from .onAppear to @State
     
-    @EnvironmentObject var musicMonitor: MusicMonitor
+    // UserDefaults keys (must match BackgroundTaskManager)
+    private let userDefaultsCounterKey = "backgroundTaskCounter"
+    private let userDefaultsDisplayOnCounterKey = "backgroundTaskDisplayOnCounter"
     
-
-    @State private var time = Date().formatted(date: .omitted, time: .shortened)
-    @State private var timer: Timer?
+    //Initializing all info managers here
+    @StateObject var info: InfoManager // Removed inline initialization
+    @StateObject var bleManager: G1BLEManager // Removed inline initialization
+    @StateObject var formattingManager: FormattingManager // Removed inline initialization
+    @StateObject var bgManager: BackgroundTaskManager // Removed inline initialization
     
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.scenePhase) private var scenePhase // Added for lifecycle management
     @Environment(\.modelContext) private var context
-    @Query() private var displayDetailsList: [DataItem]
     
     @AppStorage("currentPage") private var currentPage = "Default"
     @AppStorage("displayOn") private var displayOn = true
@@ -42,18 +40,28 @@ struct ContentView: View {
     
     @StateObject var theme = ThemeColors()
     
-    init(weather: weatherManager){
-        _weather = ObservedObject(wrappedValue: weather)
-        
-        let initialDisplayManager = DisplayManager(weather: weather)
-        _displayManager = StateObject(wrappedValue: initialDisplayManager)
-        _mainLoop = StateObject(wrappedValue: MainLoop(displayManager: initialDisplayManager))
-    }
+    init() {
+        // Create local instances of all managers first.
+        // These instances will be used to initialize the @StateObject properties.
+        let infoInstance = InfoManager(cal: CalendarManager(), music: MusicMonitor(), weather: WeatherManager())
+        let bleInstance = G1BLEManager()
+        // FormattingManager depends on the InfoManager instance.
+        let fmInstance = FormattingManager(info: infoInstance)
+        // BackgroundTaskManager depends on the instances of G1BLEManager, InfoManager, and FormattingManager.
+        let bgmInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, formatting: fmInstance)
 
+        // Now, initialize all @StateObject properties using these local instances.
+        // This order ensures that dependencies are available.
+        _info = StateObject(wrappedValue: infoInstance)
+        _bleManager = StateObject(wrappedValue: bleInstance)
+        _formattingManager = StateObject(wrappedValue: fmInstance)
+        _bgManager = StateObject(wrappedValue: bgmInstance)
+    }
+    
     var body: some View {
-        let darkMode: Bool = (colorScheme == .dark)
+        let darkMode: Bool = (colorScheme == .dark) //Dark mode variable
         
-        let primaryColor = theme.primaryColor
+        let primaryColor = theme.primaryColor //Color themes being split for easier access
         let secondaryColor  = theme.secondaryColor
         
         let floatingButtons: [FloatingButtonItem] = [
@@ -66,28 +74,47 @@ struct ContentView: View {
             .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
                 UserDefaults.standard.set("Calendar", forKey: "currentPage")
             })
-            /* UI for potential future feature
-            .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "RearView", action: {
-                UserDefaults.standard.set("RearView", forKey: "currentPage")
-            }), Debug view for text management
-            .init(iconSystemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill", extraText: "Debug", action: {
-                UserDefaults.standard.set("Debug", forKey: "currentPage")
-            })
-             */
-        ]
+        ] //Floating button init
         
         NavigationStack {
             ZStack{
+                // Background gradient
+                Group {
+                    if darkMode {
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: secondaryColor, location: 0.0), // Lighter color at top-left
+                                .init(color: primaryColor, location: 0.25),  // Transition to darker
+                                .init(color: primaryColor, location: 1.0)   // Darker color for the rest
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    } else {
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: primaryColor, location: 0.0), // Darker color at top-left
+                                .init(color: secondaryColor, location: 0.35),  // Transition to lighter
+                                .init(color: secondaryColor, location: 1.0)   // Lighter color for the rest
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    }
+                }
+                .edgesIgnoringSafeArea(.all)
+                
                 List {
                     HStack {
                         Spacer()
                         VStack {
-                            Text(time)
+                            // Use info.time directly, which should be @Published in InfoManager
+                            Text(info.time)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             
                             HStack {
                                 ForEach(daysOfWeek, id: \.self) { day in
-                                    if day == displayManager.getTodayDate() {
+                                    if day == info.getTodayDate() {
                                         Text(day).bold()
                                             .padding(0)
                                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
@@ -106,7 +133,8 @@ struct ContentView: View {
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
                     
-                    if musicMonitor.curSong.title == "" {
+                    // Use info.currentSong directly
+                    if info.currentSong.title == "" {
                         Text("No music playing")
                             .font(.headline)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
@@ -116,40 +144,28 @@ struct ContentView: View {
                     }else{
                         // Current playing music plus progress bar
                         VStack(alignment: .leading) {
-                            Text(musicMonitor.curSong.title)
+                            // Use info.currentSong properties
+                            Text(info.currentSong.title)
                                 .font(.headline)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            HStack {
-                                Text(musicMonitor.curSong.album)
-                                    .font(.subheadline)
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                
-                                Text(musicMonitor.curSong.artist)
-                                    .font(.subheadline)
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                
-                            }
-                            HStack {
-                                let formattedCurrentTime = Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))
-                                let formattedduration = Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond))
-                                
-                                Text("\(formattedCurrentTime)")
-                                    .font(.caption)
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                
-                                
-                                Text("\(formattedduration)")
-                                    .font(.caption)
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                
-                            }
+                            Text("\(info.currentSong.album) - \(info.currentSong.artist)")
+                                .font(.subheadline)
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            
+                            let formattedCurrentTime = Duration.seconds(info.currentSong.currentTime).formatted(.time(pattern: .minuteSecond))
+                            let formattedduration = Duration.seconds(info.currentSong.duration).formatted(.time(pattern: .minuteSecond))
+                            
+                            Text("\(formattedCurrentTime) \(formattedduration)")
+                                .font(.caption)
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                         }
                         .listRowBackground(
                             VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                         )
                     }
                     
-                    if displayManager.eventsFormatted.isEmpty {
+                    // Use info.eventsFormatted directly
+                    if info.eventsFormatted.isEmpty {
                         Text("No events today")
                             .font(.headline)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
@@ -157,18 +173,16 @@ struct ContentView: View {
                                 VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                             )
                     }else{
-                        Text("Calendar events")
+                        Text("Calendar events: ")
                             .font(.headline)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             .listRowBackground(
                                 VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                             )
-                        
-                        if isLoading {
-                            ProgressView("Loading events...")
-                        } else {
-                            ForEach(displayManager.eventsFormatted) { event in
-                                
+                        // Use info.eventsFormatted for ForEach
+                        ForEach(info.eventsFormatted) { event in
+                            HStack{
+                                Spacer()
                                 VStack(alignment: .leading) {
                                     Text(event.titleLine)
                                         .font(.caption)
@@ -178,102 +192,95 @@ struct ContentView: View {
                                     Text(event.subtitleLine)
                                         .font(.footnote)
                                         .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                    
                                 }
-                                .listRowBackground(
-                                    VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                                )
+                                Spacer()
+                                Spacer()
+                                Spacer()
+                                Spacer()
                             }
-                        }
-                        
-                        
-                        Text("end calendar")
-                            .font(.headline)
-                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             .listRowBackground(
                                 VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                             )
+                        }
                     }
                     
-                    
-                    Spacer()
-                        .listRowBackground(
-                            VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                        )
-                    
-                    
-                    HStack{
-                        Spacer()
-                        Button("Start scan"){
-                            bleManager.startScan()
+                    VStack{
+                        ScrollView(.horizontal) {
+                            HStack{
+                                
+                                Button("Start scan"){
+                                    bleManager.startScan()
+                                }
+                                .padding(2)
+                                .frame(width: 100, height: 50)
+                                .background((!darkMode ? primaryColor : secondaryColor))
+                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                .buttonStyle(.borderless)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                
+                                /*else{
+                                 Button("Disconnect"){
+                                 bleManager.disconnect()
+                                 }
+                                 .padding(2)
+                                 .frame(width: 150, height: 50)
+                                 .background((!darkMode ? primaryColor : secondaryColor))
+                                 .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                 .buttonStyle(.borderless)
+                                 .clipShape(RoundedRectangle(cornerRadius: 12))
+                                 }*/
+                                
+                                Button(UserDefaults.standard.bool(forKey: "displayOn") == true ? "Turn display off" : "Turn display on"){
+                                    
+                                    UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "displayOn"), forKey: "displayOn")
+                                    bleManager.sendBlank()
+                                }
+                                .padding(2)
+                                .frame(width: 150, height: 50)
+                                .background((!darkMode ? primaryColor : secondaryColor))
+                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                .buttonStyle(.borderless)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                
+                                Button ("Auto shut off: \(UserDefaults.standard.bool(forKey: "autoOff") ? "on" : "off")"){
+                                    UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "autoOff"), forKey: "autoOff")
+                                }
+                                .padding(2)
+                                .frame(width: 150, height: 50)
+                                .background((!darkMode ? primaryColor : secondaryColor))
+                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                .buttonStyle(.borderless)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
                         }
-                        .padding(2)
-                        .frame(width: 100, height: 30)
-                        .background((!darkMode ? primaryColor : secondaryColor))
-                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                        .buttonStyle(.borderless)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        
-                    }.listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                    )
-                    
-                    HStack{
-                        Spacer()
-                        Button(UserDefaults.standard.bool(forKey: "displayOn") == true ? "Turn display off" : "Turn display on"){
-                            
-                            UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "displayOn"), forKey: "displayOn")
-                            sendTextCommand()
-                        }
-                        .padding(2)
-                        .frame(width: 150, height: 30)
-                        .background((!darkMode ? primaryColor : secondaryColor))
-                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                        .buttonStyle(.borderless)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        
-                    }.listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                    )
-                    HStack{
-                        Spacer()
-                        Button ("Auto shut off: \(UserDefaults.standard.bool(forKey: "autoOff") ? "on" : "off")"){
-                            UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "autoOff"), forKey: "autoOff")
-                        }
-                        .padding(2)
-                        .frame(width: 150, height: 30)
-                        .background((!darkMode ? primaryColor : secondaryColor))
-                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                        .buttonStyle(.borderless)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                     .listRowBackground(
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
                     
-                    VStack{
-                        if displayOn {
-                            Text(mainLoop.textOutput)
+                    if displayOn {
+                        VStack{
+                            // bgManager.pageHandler() indirectly uses infoManager via formattingManager
+                            // Ensure formattingManager is correctly using the @ObservedObject info
+                            Text(bgManager.pageHandler())
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                 .font(.system(size: 11))
                         }
+                        .listRowBackground(
+                            VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                        )
                         
-                    }.listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                    )
+                    }
                     HStack{
-                        Spacer()
                         Text("Connection status: \(bleManager.connectionStatus)")
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            .font(.headline)
                     }.listRowBackground(
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
                     
                 }
                 
-                .scrollContentBackground(.hidden)
-                .background(darkMode ? primaryColor : secondaryColor)
-                .edgesIgnoringSafeArea(.bottom)
                 
                 VStack {
                     Spacer()
@@ -299,65 +306,23 @@ struct ContentView: View {
                     .environmentObject(theme)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.clear) // List background is now clear
+        .font(Font.custom("Geeza Pro", size: 18, relativeTo: .body))
         .onAppear {
-            bleManager.startScan()
-            
-            if displayDetailsList.isEmpty {
-                let newItem = DataItem()
-                context.insert(newItem)
-                try? context.save()
-            }
-            
-            var displayOnCounter: Int = 0
-            UIDevice.current.isBatteryMonitoringEnabled = true
-            mainLoop.update()
-            Task{
-                try await weather.fetchWeatherData()
-            }
-            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-                if !showingCalibration{
-                    if UserDefaults.standard.bool(forKey: "autoOff") {
-                        if UserDefaults.standard.bool(forKey: "displayOn") {
-                            displayOnCounter += 1
-                        }
-                        if displayOnCounter >= 5 {
-                            displayOnCounter = 0
-                            UserDefaults.standard.set(false, forKey: "displayOn")
-                        }
-                    }
-                    
-                    // Update the mainLoop with the current counter value
-                    mainLoop.update()
-                    if UserDefaults.standard.bool(forKey: "displayOn") {
-                        mainLoop.HandleText()
-                        sendTextCommand(text: mainLoop.textOutput)
-                    }
-                    
-                    // Update events
-                    counter += 1
-                    totalCounter += 1
-                    if UInt8(counter) >= 255 {
-                        counter = 0
-                    }
-                }
-            }
+            info.update(updateWeatherBool: true) // Initial update
+            bgManager.startTimer() // Start the background task timer
         }
         .onDisappear {
-            timer?.invalidate()
-            UserDefaults.standard.set("Disconnected", forKey: "connectionStatus")
-            bleManager.disconnect()
-            
-        }.onChange(of: displayOn) { oldValue, newValue in
+            bgManager.stopTimer() // Stop the timer when view disappears
+        }
+        .onChange(of: displayOn) { oldValue, newValue in //Checking if displayOn changes and acting accordingly, mainly to bypass lag in timer
             if !newValue{
-                sendTextCommand()
+                bleManager.sendBlank()
+            }else{
+                bleManager.startScan()
             }
         }
-        
-    }
-    
-    func sendTextCommand(text: String = ""){
-        bleManager.sendTextCommand(seq: UInt8(self.counter), text: text)
-        
     }
 }
 
@@ -367,6 +332,5 @@ class ThemeColors: ObservableObject {
 }
 
 #Preview {
-    ContentView(weather: weatherManager())
-        .environmentObject(MusicMonitor()) // Add MusicMonitor to the environment
+    ContentView()
 }
