@@ -47,7 +47,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
             
             // Update InfoManager's data
             self.infoManager.update(updateWeatherBool: shouldUpdateWeather)
-            
+
             if shouldUpdateWeather {
                 self.weatherUpdateTicker = 0 // Reset ticker
                 print("BackgroundTaskManager timer: Triggered weather update.")

@@ -43,7 +43,7 @@ struct ContentView: View {
     init() {
         // Create local instances of all managers first.
         // These instances will be used to initialize the @StateObject properties.
-        let infoInstance = InfoManager(cal: CalendarManager(), music: MusicMonitor(), weather: WeatherManager())
+        let infoInstance = InfoManager(cal: CalendarManager(), music: MusicMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
         let bleInstance = G1BLEManager()
         // FormattingManager depends on the InfoManager instance.
         let fmInstance = FormattingManager(info: infoInstance)

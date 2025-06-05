@@ -55,6 +55,10 @@ class MusicMonitor: ObservableObject {
 
         self.currentTime = currentTime  // Also update separately published property
     }
+    
+    func getAuthStatus() -> Bool {
+        return MPMediaLibrary.authorizationStatus() == .authorized
+    }
 
     deinit {
         player.endGeneratingPlaybackNotifications()

@@ -2,22 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>UIBackgroundModes</key>
-    <array>
-        <string>fetch</string>
-        <string>remote-notification</string>
-        <string>bluetooth-central</string>
-        <string>nearby-interaction</string>
-        <string>location</string>
-        <string>processing</string>
-    </array>
-    <key>BGTaskSchedulerPermittedIdentifiers</key>
-    <array>
-        <string>Oliemanq.DisplayPlus</string>
-    </array>
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>This app needs your location to provide weather updates.</string>
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>This app needs your location to provide weather updates even when the app is in the background.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Needed to access ring data</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>Oliemanq.DisplayPlus</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+		<string>bluetooth-central</string>
+		<string>nearby-interaction</string>
+		<string>location</string>
+		<string>processing</string>
+	</array>
 </dict>
 </plist>

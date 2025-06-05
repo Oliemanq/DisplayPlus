@@ -13,6 +13,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     let cal: CalendarManager
     let music: MusicMonitor
     let weather: WeatherManager
+    let health: HealthInfoGetter
     
     //Time vars
     @Published var time: String // Mark with @Published
@@ -25,42 +26,57 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     
     //Battery var
     @Published var batteryLevelFormatted: Int = 0 // Mark with @Published
+    
+    // Health var
+    @Published var healthData: RingData = RingData(steps: 0, exercise: 0, standHours: 0) // Mark with @Published
 
     // Music var
     @Published var currentSong: Song = Song(title: "", artist: "", album: "", duration: 0.0, currentTime: 0.0, isPaused: true) // Mark with @Published, provide default
 
-    init (cal: CalendarManager, music: MusicMonitor, weather: WeatherManager) {
+    init (cal: CalendarManager, music: MusicMonitor, weather: WeatherManager, health: HealthInfoGetter) {
         self.cal = cal
         self.music = music
         self.weather = weather
+        self.health = health
         time = Date().formatted(date: .omitted, time: .shortened)
         UIDevice.current.isBatteryMonitoringEnabled = true // Enable battery monitoring
+        
     }
     
-    
     public func update(updateWeatherBool: Bool) {
-        loadEvents() // This already updates self.eventsFormatted which will publish changes
-        
-        // Check if battery monitoring is enabled and level is valid
         time = Date().formatted(date: .omitted, time: .shortened) // Update time
         
+        //Update battery level var
         if UIDevice.current.isBatteryMonitoringEnabled && UIDevice.current.batteryLevel >= 0.0 {
             self.batteryLevelFormatted = (Int)(UIDevice.current.batteryLevel * 100)
         } else {
-            self.batteryLevelFormatted = 0 // Or some other default/error value like -1 if you prefer to indicate an issue
-            print("Battery level not available or monitoring disabled. Current value: \(UIDevice.current.batteryLevel)")
+            self.batteryLevelFormatted = 0
         }
         
+        //check calendar auth then update events
+        if getCalendarAuthStatus(){
+            loadEvents()
+        }
+        
+        // Fetch health data asynchronously
+        Task{
+            await fetchHealthData() // Fetch health data asynchronously
+        }
+        
+        //Update weather only when needed (every 5 minutes or so
         Task{
             if updateWeatherBool {
-                await updateWeather() // updateWeather will now update @Published properties
+                if getLocationAuthStatus() {
+                    await updateWeather() // updateWeather will now update @Published properties
+                }
             }
         }
         
-        self.time = Date().formatted(date: .omitted, time: .shortened) // This will publish changes
-        
-        music.updateCurrentSong()
-        self.currentSong = music.curSong // Update the @Published property
+        //Check if music auth is granted and update current song
+        if getMusicAuthStatus() {
+            music.updateCurrentSong()
+            self.currentSong = music.curSong // Update the @Published property
+        }
     }
     
     private func loadEvents(completion: (() -> Void)? = nil) {
@@ -153,8 +169,43 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         
         return "\(weekDay), \(month) \(day)"
     }
+    
     func getBattery() -> Int {
         return batteryLevelFormatted // Return the @Published property
+    }
+    
+    func getHealthData() -> RingData {
+        // Simply return the current value - no async operations
+        print("Steps \(healthData.steps), Exercise \(healthData.exercise), Stand Hours \(healthData.standHours)")
+        return healthData
+    }
+    
+    // Separate function to handle fetching health data asynchronously
+    func fetchHealthData() async {
+        do {
+            let fetchedData = try await health.getRingData()
+            // Use MainActor to update the @Published property on the main thread
+            await MainActor.run {
+                self.healthData = fetchedData
+            }
+        } catch {
+            print("Error fetching health data: \(error)")
+        }
+    }
+    
+    
+    //AUTH FUNCS _____________________________________________________________________________________________________________________________________________________________________________________
+    func getHealthAuthStatus() -> Bool {
+        return (health.getAuthStatus()[0] == true && health.getAuthStatus()[1] == true && health.getAuthStatus()[2] == true) //return true if all health data is authorized, otherwise returns false
+    }
+    func getMusicAuthStatus() -> Bool {
+        return music.getAuthStatus() // Return the music authorization status
+    }
+    func getCalendarAuthStatus() -> Bool {
+        return cal.getAuthStatus() // Return the calendar authorization status
+    }
+    func getLocationAuthStatus() -> Bool {
+        return weather.getAuthStatus() // Return the location authorization status
     }
     
     private func updateAuthorizationStatus() {
