@@ -59,10 +59,12 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         }
         
         // Fetch health data asynchronously
+        /* DISABLING FOR TESTFLIGHT BUILD, NOT IMPLEMENTED YET
         Task{
             await fetchHealthData() // Fetch health data asynchronously
         }
-        
+        */
+         
         //Update weather only when needed (every 5 minutes or so
         Task{
             if updateWeatherBool {
