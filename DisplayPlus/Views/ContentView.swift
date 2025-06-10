@@ -201,6 +201,7 @@ struct ContentView: View {
                             .listRowBackground(
                                 VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                             )
+                            
                         }
                     }
                     
@@ -281,26 +282,50 @@ struct ContentView: View {
                     
                 }
                 
-                
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        NavigationLink(destination: CalibrationView(ble: bleManager)){
-                            Text("Calibrate screen")
+                //Bottom buttons
+                if #available(iOS 26, *) {
+                    GlassEffectContainer{
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Spacer()
+                                NavigationLink(destination: CalibrationView(ble: bleManager)){
+                                    Text("Calibrate screen")
+                                }
+                                .frame(width: CGFloat(100+"Calibrate screen".count), height: 42.5)
+                                .simultaneousGesture(TapGesture().onEnded {showingCalibration = true})
+                                .font(.system(size: 12))
+                                .fontWeight(.semibold)
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                .contentShape(.rect(cornerRadius: 8))
+                                .glassEffect()
+                                .padding(.trailing, 30) // Padding from the right edge
+                                .padding(.bottom, 10) // Padding from the bottom edge
+                            }
                         }
-                        .simultaneousGesture(TapGesture().onEnded {showingCalibration = true})
-                        .font(.system(size: 12))
-                        .fontWeight(.semibold)
-                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                        .padding(10) // Inner padding for the button's text
-                        .contentShape(.rect(cornerRadius: 8))
-                        .background(.ultraThinMaterial, in: .rect(cornerRadius: 8))
-                        .padding(.trailing, 30) // Padding from the right edge
-                        .padding(.bottom, 10) // Padding from the bottom edge
+                        .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure VStack fills the space
                     }
+                }else{
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            NavigationLink(destination: CalibrationView(ble: bleManager)){
+                                Text("Calibrate screen")
+                            }
+                            .simultaneousGesture(TapGesture().onEnded {showingCalibration = true})
+                            .font(.system(size: 12))
+                            .fontWeight(.semibold)
+                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            .contentShape(.rect(cornerRadius: 8))
+                            .padding(10)
+                            .background(.ultraThinMaterial, in: .rect(cornerRadius: 8))
+                            .padding(.trailing, 30) // Padding from the right edge
+                            .padding(.bottom, 10) // Padding from the bottom edge
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure VStack fills the space
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure VStack fills the space
                 
                 FloatingButton(items: floatingButtons)
                     .environmentObject(theme)

@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4E7010932DBD70F400F868F4 /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 4E7010922DBD70F400F868F4 /* OpenMeteoSdk */; };
+		4EB23FCD2DF89699005A2750 /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 4EB23FCC2DF89699005A2750 /* OpenMeteoSdk */; };
+		4EB23FFE2DF89A83005A2750 /* iOS26Icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4EB23FFD2DF89A83005A2750 /* iOS26Icon.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,6 +32,7 @@
 		4E70104E2DBD6F4800F868F4 /* DisplayPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DisplayPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E70105B2DBD6F4900F868F4 /* DisplayPlusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DisplayPlusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E7010652DBD6F4900F868F4 /* DisplayPlusUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DisplayPlusUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4EB23FFD2DF89A83005A2750 /* iOS26Icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = iOS26Icon.icon; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -69,7 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4E7010932DBD70F400F868F4 /* OpenMeteoSdk in Frameworks */,
+				4EB23FCD2DF89699005A2750 /* OpenMeteoSdk in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -98,6 +100,7 @@
 				4E7010682DBD6F4900F868F4 /* DisplayPlusUITests */,
 				4E7010912DBD70F400F868F4 /* Frameworks */,
 				4E70104F2DBD6F4800F868F4 /* Products */,
+				4EB23FFD2DF89A83005A2750 /* iOS26Icon.icon */,
 			);
 			sourceTree = "<group>";
 		};
@@ -138,7 +141,7 @@
 			);
 			name = DisplayPlus;
 			packageProductDependencies = (
-				4E7010922DBD70F400F868F4 /* OpenMeteoSdk */,
+				4EB23FCC2DF89699005A2750 /* OpenMeteoSdk */,
 			);
 			productName = DisplayPlus;
 			productReference = 4E70104E2DBD6F4800F868F4 /* DisplayPlus.app */;
@@ -198,7 +201,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1630;
-				LastUpgradeCheck = 1630;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					4E70104D2DBD6F4800F868F4 = {
 						CreatedOnToolsVersion = 16.3;
@@ -223,7 +226,7 @@
 			mainGroup = 4E7010452DBD6F4700F868F4;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				4E7010902DBD700C00F868F4 /* XCRemoteSwiftPackageReference "sdk" */,
+				4EB23FCB2DF89699005A2750 /* XCRemoteSwiftPackageReference "sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4E70104F2DBD6F4800F868F4 /* Products */;
@@ -242,6 +245,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EB23FFE2DF89A83005A2750 /* iOS26Icon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -358,6 +362,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -415,6 +420,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -423,8 +429,9 @@
 		4E7010702DBD6F4900F868F4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = iOS26Icon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = DisplayPlus/DisplayPlus.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -438,11 +445,13 @@
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Needed to comunicate with glasses";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Needed to access upcoming events for displaying on glasses";
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Needed to access daily ring information";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Needed to access ring data";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app needs your location to provide weather updates even when the app is in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to provide weather updates.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -450,7 +459,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -462,8 +471,9 @@
 		4E7010712DBD6F4900F868F4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = iOS26Icon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = DisplayPlus/DisplayPlus.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -477,11 +487,13 @@
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Needed to comunicate with glasses";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Needed to access upcoming events for displaying on glasses";
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Needed to access daily ring information";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Needed to access ring data";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app needs your location to provide weather updates even when the app is in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to provide weather updates.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -489,7 +501,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -612,7 +624,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		4E7010902DBD700C00F868F4 /* XCRemoteSwiftPackageReference "sdk" */ = {
+		4EB23FCB2DF89699005A2750 /* XCRemoteSwiftPackageReference "sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/open-meteo/sdk.git";
 			requirement = {
@@ -623,9 +635,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		4E7010922DBD70F400F868F4 /* OpenMeteoSdk */ = {
+		4EB23FCC2DF89699005A2750 /* OpenMeteoSdk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4E7010902DBD700C00F868F4 /* XCRemoteSwiftPackageReference "sdk" */;
+			package = 4EB23FCB2DF89699005A2750 /* XCRemoteSwiftPackageReference "sdk" */;
 			productName = OpenMeteoSdk;
 		};
 /* End XCSwiftPackageProductDependency section */
