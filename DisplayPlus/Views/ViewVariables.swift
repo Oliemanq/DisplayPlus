@@ -136,7 +136,6 @@ struct FloatingButtons<Destination: View>: View {
                 
                 //Left button
                 GeometryReader { geometry in
-                    
                     GlassEffectContainer(spacing: 10){
                         ZStack{
                             if isExpanded{
@@ -164,6 +163,7 @@ struct FloatingButtons<Destination: View>: View {
                                             isExpanded.toggle()
                                         }
                                     }
+                                    
                                 }
                                 .offset(x: !isExpanded ? 0 : -standardOffset) //Fix random offset when expanded
                         }
@@ -172,48 +172,78 @@ struct FloatingButtons<Destination: View>: View {
                 }
                 
                 
-
+                
             }else{
-
-                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                    
-                    HStack{
-                        Image(systemName: item.iconSystemName)
-                            .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
-                        Text(item.extraText ?? "")
-                            .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
-                            .offset(x: CGFloat(item.extraText?.count ?? 10) + 65)
-                    }
-                    .onTapGesture {
-                        item.action()
-                        isExpanded.toggle()
-                    }
-                    .opacity(isExpanded ? 1 : 0)
-                    .offset(x: isExpanded ? -15 : 10, y: isExpanded ? offsetY(index: index) : 0)
-                    .animation(.easeInOut(duration: 0.2).delay(0.03 * Double(index)), value: isExpanded)
+                GeometryReader { geometry in
                     
                     NavigationLink(destination: destinationView()) {
-                        ZStack{
-                            Text("Other screens")
-                                .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Other screens", namespace: namespace, scale: 1)
-                                .offset(x: !isExpanded ? 75 : 85, y: 0)
+                        HStack{
+                            Text("Calibrate")
+                                .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Calibrate", namespace: namespace, scale: 0.8)
+                            Image(systemName: "arrow.right.circle")
+                                .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                .font(.system(size: 28))
+                        }
+                    }
+                        
+                        .position(x: geometry.size.width - standardOffset - 35, y:  geometry.frame(in: .global).maxY - 75)
+                    
+                    
+                    if isExpanded {
+                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                            .onTapGesture {
+                                withAnimation{
+                                    isExpanded = false
+                                }
+                            }
+                            .ignoresSafeArea()
+                            .frame(width: .infinity, height: .infinity)
+                    }
+                    
+                    ZStack{
+                        ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                            
+                            HStack(){
+                                Image(systemName: item.iconSystemName)
+                                    .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                Text(item.extraText ?? "")
+                                    .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
+                                Spacer()
+                            }
+                            .onTapGesture {
+                                item.action()
+                                withAnimation{
+                                    isExpanded.toggle()
+                                }
+                            }
+                            .opacity(isExpanded ? 1 : 0)
+                            .offset(x: isExpanded ? -15 : 10, y: isExpanded ? -standardOffset*CGFloat(index+1) : 0)
+                            .animation(.easeInOut(duration: 0.2).delay(0.03 * Double(index)), value: isExpanded)
+                        }
+                        .offset(x: !isExpanded ? 0 : 125)
+                        
+                        HStack{
                             Image(systemName: "plus")
                                 .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
                                 .animation(.easeInOut, value: isExpanded)
                                 .rotationEffect(.degrees(isExpanded ? 45 : 0))
+                            Text("Other screens")
+                                .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Other screens", namespace: namespace, scale: 1)
                         }
-                    }
-                    .onTapGesture {
-                        isExpanded.toggle()
-                    }
+                        .onTapGesture {
+                            withAnimation{
+                                isExpanded.toggle()
+                            }
+                        }
+                        
+                        
+                    }.position(x: 100, y: geometry.frame(in: .global).maxY - 75)
+                    //.offset(x: !isExpanded ? 0 : standardOffset)
+                    
                 }
             }
         }
         
-    }
-    
-    func offsetY(index: Int) -> CGFloat {
-        return -CGFloat(index) * (standardOffset - 10) - 20
     }
 }
 
