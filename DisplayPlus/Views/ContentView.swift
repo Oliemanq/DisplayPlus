@@ -64,7 +64,7 @@ struct ContentView: View {
         let primaryColor = theme.primaryColor //Color themes being split for easier access
         let secondaryColor  = theme.secondaryColor
         
-        let floatingButtons: [FloatingButtonItem] = [
+        let floatingButtonItems: [FloatingButtonItem] = [
             .init(iconSystemName: "clock", extraText: "Default screen", action: {
                 UserDefaults.standard.set("Default", forKey: "currentPage")
             }),
@@ -103,7 +103,9 @@ struct ContentView: View {
                     }
                 }
                 .edgesIgnoringSafeArea(.all)
+                //End background gradient
                 
+                //Start Main UI
                 List {
                     HStack {
                         Spacer()
@@ -261,8 +263,6 @@ struct ContentView: View {
                     
                     if displayOn {
                         VStack{
-                            // bgManager.pageHandler() indirectly uses infoManager via formattingManager
-                            // Ensure formattingManager is correctly using the @ObservedObject info
                             Text(bgManager.pageHandler())
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                 .font(.system(size: 11))
@@ -283,51 +283,7 @@ struct ContentView: View {
                 }
                 
                 //Bottom buttons
-                if #available(iOS 26, *) {
-                    GlassEffectContainer{
-                        VStack {
-                            Spacer()
-                            HStack {
-                                Spacer()
-                                NavigationLink(destination: CalibrationView(ble: bleManager)){
-                                    Text("Calibrate screen")
-                                }
-                                .frame(width: CGFloat(100+"Calibrate screen".count), height: 42.5)
-                                .simultaneousGesture(TapGesture().onEnded {showingCalibration = true})
-                                .font(.system(size: 12))
-                                .fontWeight(.semibold)
-                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                .contentShape(.rect(cornerRadius: 8))
-                                .glassEffect()
-                                .padding(.trailing, 30) // Padding from the right edge
-                                .padding(.bottom, 10) // Padding from the bottom edge
-                            }
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure VStack fills the space
-                    }
-                }else{
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Spacer()
-                            NavigationLink(destination: CalibrationView(ble: bleManager)){
-                                Text("Calibrate screen")
-                            }
-                            .simultaneousGesture(TapGesture().onEnded {showingCalibration = true})
-                            .font(.system(size: 12))
-                            .fontWeight(.semibold)
-                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            .contentShape(.rect(cornerRadius: 8))
-                            .padding(10)
-                            .background(.ultraThinMaterial, in: .rect(cornerRadius: 8))
-                            .padding(.trailing, 30) // Padding from the right edge
-                            .padding(.bottom, 10) // Padding from the bottom edge
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure VStack fills the space
-                }
-                
-                FloatingButton(items: floatingButtons)
+                FloatingButtons(items: floatingButtonItems, destinationView: { CalibrationView(ble: bleManager) })
                     .environmentObject(theme)
             }
         }
@@ -340,6 +296,7 @@ struct ContentView: View {
         }
         .onDisappear {
             bgManager.stopTimer() // Stop the timer when view disappears
+            displayOn.toggle()
         }
         .onChange(of: displayOn) { oldValue, newValue in //Checking if displayOn changes and acting accordingly, mainly to bypass lag in timer
             if !newValue{

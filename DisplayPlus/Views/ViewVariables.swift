@@ -15,7 +15,7 @@ struct VisualEffectView: UIViewRepresentable {
 struct FloatingButtonStyle: ViewModifier {
     var primaryColor: Color
     var secondaryColor: Color
-    @Namespace private var glassNamespace
+    var namespace: Namespace.ID
     @Environment(\.colorScheme) private var colorScheme
     
     func body(content: Content) -> some View {
@@ -23,12 +23,11 @@ struct FloatingButtonStyle: ViewModifier {
         
         if #available(iOS 26, *){
             content
-                .frame(width: 50.0, height: 42.5)
-                .font(.system(size: 22))
+                .frame(width: 65, height: 55)
                 .fontWeight(.semibold)
                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                 .glassEffect()
-                .glassEffectID("floatingButton", in: glassNamespace)
+                .glassEffectID("floatingButton", in: namespace)
         }else{
             content
                 .font(.system(size: 22))
@@ -41,15 +40,16 @@ struct FloatingButtonStyle: ViewModifier {
     }
 }
 extension Image {
-    func floatingButtonStyle(prim: Color, sec: Color) -> some View {
-        modifier(FloatingButtonStyle(primaryColor: prim, secondaryColor: sec))
+    func floatingButtonStyle(prim: Color, sec: Color, namespace: Namespace.ID) -> some View {
+        modifier(FloatingButtonStyle(primaryColor: prim, secondaryColor: sec, namespace: namespace))
     }
 }
 struct FloatingTextStyle: ViewModifier {
     var primaryColor: Color
     var secondaryColor: Color
     var text: String
-    @Namespace private var glassNamespace
+    var namespace: Namespace.ID
+    var scale: CGFloat?
     @Environment(\.colorScheme) private var colorScheme
 
     
@@ -59,12 +59,12 @@ struct FloatingTextStyle: ViewModifier {
         
         if #available(iOS 26, *){
             content
-                .frame (width: 100+(textCount), height: 42.5)
-                .font(.system(size: 12))
+                .frame (width: (120+(textCount*1.25))*(scale ?? 1), height: 55*(scale ?? 1))
+                .font(.system(size: 16*(scale ?? 1)))
                 .fontWeight(.semibold)
                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                 .glassEffect()
-                .glassEffectID("floatingText", in: glassNamespace)
+                .glassEffectID("floatingText", in: namespace)
         }else{
             content
                 .font(.system(size: 12))
@@ -77,8 +77,8 @@ struct FloatingTextStyle: ViewModifier {
     }
 }
 extension Text {
-    func floatingTextStyle(prim: Color, sec: Color, text: String) -> some View {
-        modifier(FloatingTextStyle(primaryColor: prim, secondaryColor: sec, text: text))
+    func floatingTextStyle(prim: Color, sec: Color, text: String, namespace: Namespace.ID, scale: CGFloat?) -> some View {
+        modifier(FloatingTextStyle(primaryColor: prim, secondaryColor: sec, text: text, namespace: namespace, scale: scale))
     }
 }
 
@@ -89,112 +89,131 @@ struct FloatingButtonItem: Identifiable {
     var action: () -> Void
 }
 
-struct FloatingButton: View {
+struct FloatingButtons<Destination: View>: View {
     let items: [FloatingButtonItem]
-    let buttonGap: CGFloat = 20
-    let buttonSize: CGFloat = 35
+    let standardOffset: CGFloat = 65
+    let destinationView: () -> Destination
     
     @State var isExpanded: Bool = false
-    
+    @State private var isPressed: Bool = false
     @EnvironmentObject var theme: ThemeColors
-    
-    
+    @Namespace private var namespace
+
     var body: some View {
-        ZStack {
-            if isExpanded {
-                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
-                    .onTapGesture {
-                        isExpanded = false
-                    }
-                    .ignoresSafeArea()
-            }
-            
-            
-            GeometryReader{ geometry in
-                buttonView
-                    .position(x: 55, y:geometry.frame(in: .local).maxY - 30)
-            }
-        }.animation(.easeInOut(duration: 0.3), value: isExpanded)
-    }
-    
-    @ViewBuilder
-    var buttonView: some View {
         let primaryColor = theme.primaryColor
         let secondaryColor  = theme.secondaryColor
         
-        if #available(iOS 26, *){
-            GlassEffectContainer{
-                VStack(alignment: .center, spacing: buttonGap) {
-                    if isExpanded{
-                        ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                            
-                            HStack(spacing: 20){
-                                Image(systemName: item.iconSystemName)
-                                    .floatingButtonStyle(prim: primaryColor, sec: secondaryColor)
-                                    .offset(x: 30)
-                                
-                                Text(item.extraText ?? "")
-                                    .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "")
-                                    .onTapGesture {
-                                        item.action()
-                                        isExpanded.toggle()
-                                        
-                                    }
+        ZStack {
+            //Background when button pressed
+            if #available(iOS 26, *){
+                //Right button
+                GeometryReader { geometry in
+                    NavigationLink(destination: destinationView()) {
+                        GlassEffectContainer{
+                            HStack{
+                                Text("Calibrate")
+                                    .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Calibrate", namespace: namespace, scale: 0.8)
+                                    .offset(x: 40, y: 5)
+                                Image(systemName: "arrow.right.circle")
+                                    .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                    .font(.system(size: 28))
                             }
-                            .offset(x: 10)
                         }
                     }
-                    
-                    HStack(spacing: 22.5){
-                        Image(systemName: "plus")
-                            .floatingButtonStyle(prim: primaryColor, sec: secondaryColor)
-                            .onTapGesture {
-                                isExpanded.toggle()
-                                
+                    .position(x: geometry.size.width - standardOffset - 35, y:  geometry.frame(in: .global).maxY - 75)
+                }
+                
+                //Background when button pressed
+                if isExpanded {
+                    VisualEffectView(effect: UIGlassEffect())
+                        .onTapGesture {
+                            withAnimation{
+                                isExpanded = false
                             }
-                            .offset(x: 30)
-                        Text("Other screens")
-                            .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Other screens")
-                            .offset(x: !isExpanded ? -5 : 5)
-                    }.offset(x: 30)
+                        }
+                        .ignoresSafeArea()
                 }
-            }.offset(y: !isExpanded ? 0 : -70)
-        }else{
-            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 
-                ZStack{
-                    Image(systemName: item.iconSystemName)
-                        .floatingButtonStyle(prim: primaryColor, sec: secondaryColor)
-                    Text(item.extraText ?? "")
-                        .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "")
-                        .offset(x: CGFloat(item.extraText?.count ?? 10) + 65)
-                }
-                .onTapGesture {
-                    item.action()
-                    isExpanded.toggle()
-                }
-                .opacity(isExpanded ? 1 : 0)
-                .offset(x: isExpanded ? -15 : 10, y: isExpanded ? offsetY(index: index) : 0)
-                .animation(.easeInOut(duration: 0.2).delay(0.03 * Double(index)), value: isExpanded)
-                
-                ZStack{
-                    Text("Other screens")
-                        .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Other screens")
-                        .offset(x: !isExpanded ? 75 : 85, y: 0)
-                    Image(systemName: "plus")
-                        .floatingButtonStyle(prim: primaryColor, sec: secondaryColor)
-                        .animation(.easeInOut, value: isExpanded)
-                        .onTapGesture {isExpanded.toggle()}
-                        .rotationEffect(.degrees(isExpanded ? 45 : 0))
+                //Left button
+                GeometryReader { geometry in
                     
+                    GlassEffectContainer(spacing: 10){
+                        ZStack{
+                            if isExpanded{
+                                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                                    HStack(spacing: 0){
+                                        Image(systemName: item.iconSystemName)
+                                            .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                            .font(.system(size: 28))
+                                        Text(item.extraText ?? "")
+                                            .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
+                                            .offset(x: -5)
+                                    }.offset(y: -CGFloat(index+1) * standardOffset)
+                                }.offset(x: -10)
+                            }
+                            
+                            Image(systemName: !isExpanded ? "folder.badge.plus" : "folder.fill.badge.plus")
+                                .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                .font(.system(size: !isPressed ? 28 : 34))
+                                .animation(.spring(response: 0.2, dampingFraction: 0.4), value: isPressed)
+                                .onTapGesture {
+                                    isPressed = true
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                        isPressed = false
+                                        withAnimation {
+                                            isExpanded.toggle()
+                                        }
+                                    }
+                                }
+                                .offset(x: !isExpanded ? 0 : -standardOffset) //Fix random offset when expanded
+                        }
+                    }.position(x: standardOffset-10, y: geometry.frame(in: .global).maxY - 75)
+                        .offset(x: !isExpanded ? 0 : standardOffset)
+                }
+                
+                
+
+            }else{
+
+                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                    
+                    HStack{
+                        Image(systemName: item.iconSystemName)
+                            .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                        Text(item.extraText ?? "")
+                            .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
+                            .offset(x: CGFloat(item.extraText?.count ?? 10) + 65)
+                    }
+                    .onTapGesture {
+                        item.action()
+                        isExpanded.toggle()
+                    }
+                    .opacity(isExpanded ? 1 : 0)
+                    .offset(x: isExpanded ? -15 : 10, y: isExpanded ? offsetY(index: index) : 0)
+                    .animation(.easeInOut(duration: 0.2).delay(0.03 * Double(index)), value: isExpanded)
+                    
+                    NavigationLink(destination: destinationView()) {
+                        ZStack{
+                            Text("Other screens")
+                                .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Other screens", namespace: namespace, scale: 1)
+                                .offset(x: !isExpanded ? 75 : 85, y: 0)
+                            Image(systemName: "plus")
+                                .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                .animation(.easeInOut, value: isExpanded)
+                                .rotationEffect(.degrees(isExpanded ? 45 : 0))
+                        }
+                    }
+                    .onTapGesture {
+                        isExpanded.toggle()
+                    }
                 }
             }
         }
+        
     }
-
     
     func offsetY(index: Int) -> CGFloat {
-        return -CGFloat(index) * (buttonGap - 10) - 20
+        return -CGFloat(index) * (standardOffset - 10) - 20
     }
 }
 
