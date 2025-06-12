@@ -103,10 +103,10 @@ struct ContentView: View {
                     }
                 }
                 .edgesIgnoringSafeArea(.all)
-                //End background gradient
                 
                 //Start Main UI
                 List {
+                    //Time, Date, and DoW
                     HStack {
                         Spacer()
                         VStack {
@@ -135,7 +135,7 @@ struct ContentView: View {
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
                     
-                    // Use info.currentSong directly
+                    //Song info
                     if info.currentSong.title == "" {
                         Text("No music playing")
                             .font(.headline)
@@ -166,7 +166,7 @@ struct ContentView: View {
                         )
                     }
                     
-                    // Use info.eventsFormatted directly
+                    //Calendar events
                     if info.eventsFormatted.isEmpty {
                         Text("No events today")
                             .font(.headline)
@@ -207,6 +207,7 @@ struct ContentView: View {
                         }
                     }
                     
+                    //Buttons
                     VStack{
                         ScrollView(.horizontal) {
                             HStack{
@@ -214,41 +215,37 @@ struct ContentView: View {
                                 Button("Start scan"){
                                     bleManager.startScan()
                                 }
-                                .padding(2)
                                 .frame(width: 100, height: 50)
                                 .background((!darkMode ? primaryColor : secondaryColor))
                                 .foregroundColor(darkMode ? primaryColor : secondaryColor)
                                 .buttonStyle(.borderless)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                                 
-                                /*else{
-                                 Button("Disconnect"){
-                                 bleManager.disconnect()
-                                 }
-                                 .padding(2)
-                                 .frame(width: 150, height: 50)
-                                 .background((!darkMode ? primaryColor : secondaryColor))
-                                 .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                 .buttonStyle(.borderless)
-                                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                                 }*/
                                 
+                                Button("Disconnect"){
+                                    bleManager.disconnect()
+                                }
+                                .frame(width: 120, height: 50)
+                                .background((!darkMode ? primaryColor : secondaryColor))
+                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                .buttonStyle(.borderless)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                
+                                //Display toggle button
                                 Button(UserDefaults.standard.bool(forKey: "displayOn") == true ? "Turn display off" : "Turn display on"){
-                                    
                                     UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "displayOn"), forKey: "displayOn")
                                     bleManager.sendBlank()
                                 }
-                                .padding(2)
                                 .frame(width: 150, height: 50)
                                 .background((!darkMode ? primaryColor : secondaryColor))
                                 .foregroundColor(darkMode ? primaryColor : secondaryColor)
                                 .buttonStyle(.borderless)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                                 
+                                //Auto off button
                                 Button ("Auto shut off: \(UserDefaults.standard.bool(forKey: "autoOff") ? "on" : "off")"){
                                     UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "autoOff"), forKey: "autoOff")
                                 }
-                                .padding(2)
                                 .frame(width: 150, height: 50)
                                 .background((!darkMode ? primaryColor : secondaryColor))
                                 .foregroundColor(darkMode ? primaryColor : secondaryColor)
@@ -261,6 +258,7 @@ struct ContentView: View {
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                     )
                     
+                    //Glasses mirror on app UI
                     if displayOn {
                         VStack{
                             Text(bgManager.pageHandler())
@@ -272,6 +270,8 @@ struct ContentView: View {
                         )
                         
                     }
+                    
+                    //Connection status display
                     HStack{
                         Text("Connection status: \(bleManager.connectionStatus)")
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)

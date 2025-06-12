@@ -175,7 +175,6 @@ struct FloatingButtons<Destination: View>: View {
                 
             }else{
                 GeometryReader { geometry in
-                    
                     NavigationLink(destination: destinationView()) {
                         HStack{
                             Text("Calibrate")

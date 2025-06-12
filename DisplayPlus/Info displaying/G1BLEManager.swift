@@ -42,6 +42,13 @@ class G1BLEManager: NSObject, ObservableObject{
     private var discoveredLeft:  [String: CBPeripheral] = [:]
     private var discoveredRight: [String: CBPeripheral] = [:]
     
+    //Easy access bool for connected status
+    public var connected: Bool = false
+    public var wearing: Bool = false
+    public var glassesBatteryLevel: CGFloat = 0.0
+    public var caseBatteryLevel: CGFloat = 0.0
+    
+    
     override init() {
         super.init()
         // Initialize CoreBluetooth central
@@ -127,36 +134,6 @@ class G1BLEManager: NSObject, ObservableObject{
         writeData(packet, to: arm)
     }
     
-    // Example function: send a text command (for demonstration)
-    // This is a simplified version of the "text sending" approach from earlier,
-    // but calls writeData(_:,to:) for left or right or both.
-    func sendTextCommand(seq: UInt8, text: String, arm: String = "Both") {
-        var packet = [UInt8]()
-        packet.append(0x4E) // command
-        packet.append(seq)
-        packet.append(1) // total_package_num
-        packet.append(0) // current_package_num
-        packet.append(0x71) // newscreen = new content (0x1) + text show (0x70)
-        packet.append(0x00) // new_char_pos0
-        packet.append(0x00) // new_char_pos1
-        packet.append(0x01) // current_page_num
-        packet.append(0x01) // max_page_num
-        
-        let textBytes = [UInt8](text.utf8)
-        packet.append(contentsOf: textBytes)
-        
-        let data = Data(packet)
-        writeData(data, to: arm)
-    }
-    
-    func sendText(text: String = "", counter: Int) {
-        // Ensure counter is treated as an integer for sequence number
-        sendTextCommand(seq: UInt8(Int(counter) % 256), text: text)
-    }
-    
-    func sendBlank() {
-        sendTextCommand(seq: 0, text: "")
-    }
     
     private func handleDiscoveredPeripheral(_ peripheral: CBPeripheral) {
         guard let name = peripheral.name else { return }
@@ -191,6 +168,37 @@ class G1BLEManager: NSObject, ObservableObject{
 
         }
     }
+    
+    // Example function: send a text command (for demonstration)
+    // This is a simplified version of the "text sending" approach from earlier,
+    // but calls writeData(_:,to:) for left or right or both.
+    func sendTextCommand(seq: UInt8, text: String, arm: String = "Both") {
+        var packet = [UInt8]()
+        packet.append(0x4E) // command
+        packet.append(seq)
+        packet.append(1) // total_package_num
+        packet.append(0) // current_package_num
+        packet.append(0x71) // newscreen = new content (0x1) + text show (0x70)
+        packet.append(0x00) // new_char_pos0
+        packet.append(0x00) // new_char_pos1
+        packet.append(0x01) // current_page_num
+        packet.append(0x01) // max_page_num
+        
+        let textBytes = [UInt8](text.utf8)
+        packet.append(contentsOf: textBytes)
+        
+        let data = Data(packet)
+        writeData(data, to: arm)
+    }
+    
+    func sendText(text: String = "", counter: Int) {
+        // Ensure counter is treated as an integer for sequence number
+        sendTextCommand(seq: UInt8(Int(counter) % 256), text: text)
+    }
+    
+    func sendBlank() {
+        sendTextCommand(seq: 0, text: "")
+    }
 }
 
 extension G1BLEManager: CBCentralManagerDelegate {
@@ -198,7 +206,7 @@ extension G1BLEManager: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         switch central.state {
         case .poweredOn:
-            let _ = 2 // Placeholder for any initialization logic
+            print("Bluetooth powered on")
         case .poweredOff:
             print("Bluetooth is powered off.")
         default:
@@ -228,12 +236,14 @@ extension G1BLEManager: CBCentralManagerDelegate {
         if let lp = leftPeripheral, let rp = rightPeripheral,
            lp.state == .connected, rp.state == .connected {
             UserDefaults.standard.set("Connected to G1 Glasses (both arms).", forKey: "connectionStatus")
+            connected = true
         }
     }
     
     /// Called if a peripheral (left or right) disconnects unexpectedly
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("Disconnected from peripheral: \(peripheral.name ?? peripheral.identifier.uuidString)")
+        connected = false
         
         // Auto-reconnect if desired:
         central.connect(peripheral, options: nil)
@@ -245,7 +255,7 @@ extension G1BLEManager: CBCentralManagerDelegate {
 }
 extension G1BLEManager: CBPeripheralDelegate {
     // MARK: - CBPeripheralDelegate
-    
+    //didDiscoverServices handling
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let services = peripheral.services {
             for service in services {
@@ -255,6 +265,7 @@ extension G1BLEManager: CBPeripheralDelegate {
         }
     }
     
+    //didDiscoverCharacteristics handling
     func peripheral(_ peripheral: CBPeripheral,
                     didDiscoverCharacteristicsFor service: CBService,
                     error: Error?) {
@@ -290,6 +301,7 @@ extension G1BLEManager: CBPeripheralDelegate {
         }
     }
     
+    //didUpdateNoficicationState handling
     func peripheral(_ peripheral: CBPeripheral,
                     didUpdateNotificationStateFor characteristic: CBCharacteristic,
                     error: Error?) {
@@ -299,6 +311,7 @@ extension G1BLEManager: CBPeripheralDelegate {
         }
     }
     
+    //didUpdateValue handling
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         guard let data = characteristic.value else { return }
         
@@ -308,48 +321,143 @@ extension G1BLEManager: CBPeripheralDelegate {
         // Process the data based on the protocol from EvenDemoApp
         processIncomingData(byteArray, data, peripheral.name)
     }
-
-    func processIncomingData(_ byteArray: [UInt8], _ data: Data, _ name: String? = nil) {
-        // Example: Check if first byte matches a known command
-        switch byteArray.first {
-        case 245:
-            
-            switch byteArray[1] {
-            case 0:
-                if name!.contains("L"){
-                    touchBarSingle(side: "L")
-                }else if name!.contains("R") {
-                    touchBarSingle(side: "R")
-                }
-                
-            default:
-                break
-            }
-            
-        default:
-            break
-        }
-    }
-
+    
+    //Not sure what these do
     func handleStartAction(_ data: [UInt8]) {
         // Handle start command
     }
-
     func handleStopAction(_ data: [UInt8]) {
         // Handle stop command
         print("Handling stop command with data: \(data)")
     }
-    func touchBarDouble(side: String){
-        if side == "R"{
-            UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "displayOn"), forKey: "displayOn")
+
+    //processing incomming messages from device_________________________________________________________________________________________________________________________________________________________________________________________________________________
+    func processIncomingData(_ byteArray: [UInt8], _ data: Data, _ name: String? = nil) {
+        switch byteArray[0]{
+        case 245 : //0xF5
+            switch byteArray[1]{
+            case 0: //00
+                print(byteArray)
+                if name != nil && name!.contains("R"){
+                    touchBarDouble(side: "R")
+                }else if name != nil && name!.contains("L"){
+                    touchBarDouble(side: "L")
+                }
+            case 1: //01
+                if name != nil && name!.contains("R"){
+                    touchBarSingle(side: "R")
+                }else if name != nil && name!.contains("L"){
+                    touchBarSingle(side: "L")
+                }
+                
+            case 2: //02
+                headUp()
+            case 3: //03
+                headDown()
+                
+            case 4, 5: //04, 05
+                if name != nil && name!.contains("R"){
+                    touchBarTriple(side: "R")
+                }else if name != nil && name!.contains("L"){
+                    touchBarTriple(side: "L")
+                }
+            case 6: //06
+                glassesOn()
+            case 7: //07
+                glassesOff()
+            case 8: //08
+                print("Glasses in case, lid open")
+            case 9: //09
+                print("Charging")
+            case 10: //0A
+                print("Not documented 0A")
+            case 11: //0B
+                print("Glasses in case, lid closed")
+            case 12: //0C
+                print("not documented 0C")
+            case 13: //0D
+                print("Not documented 0D")
+            case 14: //0E
+                print("Case charging")
+            case 15: //0F
+                print("Case battery percentage \(byteArray[2])%")
+            case 16: //10
+                print("Not documented 10")
+            case 17: //11
+                print("Bluetooth pairing success \(name ?? "no name")")
+            case 18: //12
+                print("Right held and released")
+            case 23: //17
+                print("Left held")
+            case 24: //18
+                print("Left released")
+            case 30: //1E
+                print("Open dashboard w/ double tap command")
+            case 31: //1F
+                print("Close dashboard w/ double tap command")
+            case 32: //2A
+                print("double tap w/ translate or transcripe set")
+                
+            default:
+                print("Unknown device event: \(byteArray)")
+            }
+        case 77: //0x4D
+            switch byteArray[1]{
+            case 201:
+                print("Init response success")
+            case 202:
+                print("Init response failed")
+            case 203:
+                print("Continue data init (?)")
+            default:
+                print("unknown init subcommand \(byteArray)")
+            }
+        case 78: //0x4E
+            switch byteArray[1]{
+            case 201:
+                let _ = "Sent screen update successfully" //Filler for documentation and filling the switch case
+            case 202:
+                print("Screen update failed")
+            case 203:
+                print("Continue data screen update (?)")
+                
+            default: print("Unknown text command: 78 \(byteArray[1])")
+            }
+        default:
+            print("unknown message \(byteArray)")
         }
+    }
+
+    //Event handling, called from processIncomingData
+    func touchBarSingle(side: String){
+        print("single tap on \(side) side")
+    }
+    func touchBarDouble(side: String){
         print("Double tap on \(side) side")
     }
-    func touchBarSingle(side: String){
-        if side == "L"{
-            print("Switch page eventually")
+    func touchBarTriple(side: String){
+        print("Triple tap on \(side) side")
+    }
+    func headUp(){
+        print("Head up")
+    }
+    func headDown(){
+        print("Head down")
+    }
+    func glassesOff(){
+        wearing = false
+        print("Took glasses off")
+    }
+    func glassesOn(){
+        wearing = true
+        print("Put glasses on")
+    }
+    func updateBattery(device: String ,batteryLevel: UInt8){
+        if device == "case"{
+            caseBatteryLevel = CGFloat(batteryLevel)
+        }else{
+            glassesBatteryLevel = CGFloat(batteryLevel)
         }
-        print("single tap on \(side) side")
     }
     
     // Called if a write with response completes

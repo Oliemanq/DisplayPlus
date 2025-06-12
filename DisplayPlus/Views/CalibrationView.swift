@@ -286,7 +286,7 @@ struct CalibrationView: View {
                 }
             }else{
                 VStack{
-                    Button(action: {saveCalibrationData(); savingData.toggle()}) { //Confirming data saving
+                    Button(action: {saveCalibrationData(); savingData.toggle()}) {
                         Text("Confirm?")
                             .frame(width: 175, height: 30)
                     }
