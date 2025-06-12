@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		4EB23FCD2DF89699005A2750 /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 4EB23FCC2DF89699005A2750 /* OpenMeteoSdk */; };
-		4EB23FFE2DF89A83005A2750 /* iOS26Icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4EB23FFD2DF89A83005A2750 /* iOS26Icon.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,7 +31,6 @@
 		4E70104E2DBD6F4800F868F4 /* DisplayPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DisplayPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E70105B2DBD6F4900F868F4 /* DisplayPlusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DisplayPlusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E7010652DBD6F4900F868F4 /* DisplayPlusUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DisplayPlusUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		4EB23FFD2DF89A83005A2750 /* iOS26Icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = iOS26Icon.icon; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -100,7 +98,6 @@
 				4E7010682DBD6F4900F868F4 /* DisplayPlusUITests */,
 				4E7010912DBD70F400F868F4 /* Frameworks */,
 				4E70104F2DBD6F4800F868F4 /* Products */,
-				4EB23FFD2DF89A83005A2750 /* iOS26Icon.icon */,
 			);
 			sourceTree = "<group>";
 		};
@@ -245,7 +242,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4EB23FFE2DF89A83005A2750 /* iOS26Icon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
