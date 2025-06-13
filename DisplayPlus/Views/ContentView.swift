@@ -207,7 +207,7 @@ struct ContentView: View {
                         }
                     }
                     
-                    //Buttons
+                    //Buttons ___________________________________________________________________________________________________________________
                     VStack{
                         ScrollView(.horizontal) {
                             HStack{
@@ -251,6 +251,25 @@ struct ContentView: View {
                                 .foregroundColor(darkMode ? primaryColor : secondaryColor)
                                 .buttonStyle(.borderless)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
+                                
+                                Button("Fetch glasses battery level"){
+                                    bleManager.fetchGlassesBattery()
+                                }
+                                .frame(width: 250, height: 50)
+                                .background((!darkMode ? primaryColor : secondaryColor))
+                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                .buttonStyle(.borderless)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                Button("Fetch silent mode status"){
+                                    bleManager.fetchSilentMode()
+                                }
+                                .frame(width: 250, height: 50)
+                                .background((!darkMode ? primaryColor : secondaryColor))
+                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                .buttonStyle(.borderless)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                
+                                
                             }
                         }
                     }

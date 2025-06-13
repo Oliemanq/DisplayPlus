@@ -42,12 +42,15 @@ class G1BLEManager: NSObject, ObservableObject{
     private var discoveredLeft:  [String: CBPeripheral] = [:]
     private var discoveredRight: [String: CBPeripheral] = [:]
     
+    var scanTimeout: Bool = false
+    var scanTimeoutCounter: Int = 5
+    
     //Easy access bool for connected status
     public var connected: Bool = false
-    public var wearing: Bool = false
-    public var glassesBatteryLevel: CGFloat = 0.0
-    public var caseBatteryLevel: CGFloat = 0.0
-    
+    var wearing: Bool = false
+    var glassesBatteryLevel: CGFloat = 0.0
+    var caseBatteryLevel: CGFloat = 0.0
+    var silentMode: Bool = false
     
     override init() {
         super.init()
@@ -58,20 +61,31 @@ class G1BLEManager: NSObject, ObservableObject{
     
     /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
     func startScan() {
-        guard centralManager.state == .poweredOn else {
-            print("Bluetooth is not powered on. Cannot start scan.")
-            return
+        if scanTimeout == true{
+            if scanTimeoutCounter != 0{
+                scanTimeoutCounter -= 1
+            }else{
+                scanTimeoutCounter = 5
+                scanTimeout = false
+            }
+        }else{
+            guard centralManager.state == .poweredOn else {
+                print("Bluetooth is not powered on. Cannot start scan.")
+                return
+            }
+            
+            let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceUUID])
+            for peripheral in connectedPeripherals {
+                handleDiscoveredPeripheral(peripheral)
+            }
+            
+            UserDefaults.standard.set("Scanning...", forKey: "connectionStatus")
+            // You can filter by the UART service, but if you need the name to parse left vs right,
+            // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
+            centralManager.scanForPeripherals(withServices: nil, options: nil)
+            
+            scanTimeout = true
         }
-        
-        let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceUUID])
-        for peripheral in connectedPeripherals {
-            handleDiscoveredPeripheral(peripheral)
-        }
-        
-        UserDefaults.standard.set("Scanning...", forKey: "connectionStatus")
-        // You can filter by the UART service, but if you need the name to parse left vs right,
-        // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
-        centralManager.scanForPeripherals(withServices: nil, options: nil)
     }
     
     /// Stop scanning if desired.
@@ -82,6 +96,7 @@ class G1BLEManager: NSObject, ObservableObject{
     
     /// Disconnect from both arms.
     func disconnect() {
+        sendBlank()
         if let lp = leftPeripheral {
             centralManager.cancelPeripheralConnection(lp)
             leftPeripheral = nil
@@ -169,6 +184,15 @@ class G1BLEManager: NSObject, ObservableObject{
         }
     }
     
+    func sendHeartbeat(counter: Int) {
+        var packet = [UInt8]()
+        
+        packet.append(0x25)
+        packet.append(UInt8(counter))
+        
+        let data = Data(packet)
+        writeData(data, to: "Both")
+    }
     // Example function: send a text command (for demonstration)
     // This is a simplified version of the "text sending" approach from earlier,
     // but calls writeData(_:,to:) for left or right or both.
@@ -198,6 +222,23 @@ class G1BLEManager: NSObject, ObservableObject{
     
     func sendBlank() {
         sendTextCommand(seq: 0, text: "")
+    }
+    
+    func fetchGlassesBattery(){
+        var packet = [UInt8]()
+        packet.append(0x2C)
+        packet.append(0x01)
+        
+        let data = Data(packet)
+        writeData(data, to: "R")
+    }
+    
+    func fetchSilentMode(){
+        var packet = [UInt8]()
+        packet.append(0x2B)
+        
+        let data = Data(packet)
+        writeData(data, to: "Both")
     }
 }
 
@@ -330,7 +371,7 @@ extension G1BLEManager: CBPeripheralDelegate {
         // Handle stop command
         print("Handling stop command with data: \(data)")
     }
-
+    
     //processing incomming messages from device_________________________________________________________________________________________________________________________________________________________________________________________________________________
     func processIncomingData(_ byteArray: [UInt8], _ data: Data, _ name: String? = nil) {
         switch byteArray[0]{
@@ -354,7 +395,6 @@ extension G1BLEManager: CBPeripheralDelegate {
                 headUp()
             case 3: //03
                 headDown()
-                
             case 4, 5: //04, 05
                 if name != nil && name!.contains("R"){
                     touchBarTriple(side: "R")
@@ -373,6 +413,7 @@ extension G1BLEManager: CBPeripheralDelegate {
                 print("Not documented 0A")
             case 11: //0B
                 print("Glasses in case, lid closed")
+                disconnectFromMessage()
             case 12: //0C
                 print("not documented 0C")
             case 13: //0D
@@ -381,6 +422,7 @@ extension G1BLEManager: CBPeripheralDelegate {
                 print("Case charging")
             case 15: //0F
                 print("Case battery percentage \(byteArray[2])%")
+                updateBattery(device: "case", batteryLevel: byteArray[2])
             case 16: //10
                 print("Not documented 10")
             case 17: //11
@@ -397,67 +439,87 @@ extension G1BLEManager: CBPeripheralDelegate {
                 print("Close dashboard w/ double tap command")
             case 32: //2A
                 print("double tap w/ translate or transcripe set")
-                
             default:
                 print("Unknown device event: \(byteArray)")
             }
         case 77: //0x4D
             switch byteArray[1]{
-            case 201:
+            case 201: //C9
                 print("Init response success")
-            case 202:
+            case 202: //CA
                 print("Init response failed")
-            case 203:
+            case 203: //CB
                 print("Continue data init (?)")
             default:
-                print("unknown init subcommand \(byteArray)")
+                print("unknown init response \(byteArray)")
             }
         case 78: //0x4E
             switch byteArray[1]{
-            case 201:
+            case 201: //C9
                 let _ = "Sent screen update successfully" //Filler for documentation and filling the switch case
-            case 202:
+            case 202: //CA
                 print("Screen update failed")
-            case 203:
+            case 203: //CB
                 print("Continue data screen update (?)")
                 
             default: print("Unknown text command: 78 \(byteArray[1])")
             }
+        case 44: //0x2B SHOULD BE RECEIVING FROM R
+            switch byteArray[1]{
+            case 102: //66
+                glassesBatteryLevel = CGFloat(byteArray[2])
+            default:
+                print("Unknown message, header from battery fetch \(byteArray)")
+            }
+        case 43: //
+            if String(format: "%02X", byteArray[2]) == "0C"{
+                silentMode = true
+                print("silent mode on")
+            }else if String(format: "%02X", byteArray[2]) == "0A"{
+                silentMode = false
+                print("silent mode off")
+            }else{
+                print("Unknown silent mode response")
+            }
         default:
             print("unknown message \(byteArray)")
+            print("Header: \(String(format: "%02X", byteArray[0])), ?/subcommand: \(String(format: "%02X", byteArray[1]))\n")
         }
     }
-
+    
     //Event handling, called from processIncomingData
-    func touchBarSingle(side: String){
+    private func touchBarSingle(side: String){
         print("single tap on \(side) side")
     }
-    func touchBarDouble(side: String){
+    private func touchBarDouble(side: String){
         print("Double tap on \(side) side")
     }
-    func touchBarTriple(side: String){
+    private func touchBarTriple(side: String){
         print("Triple tap on \(side) side")
     }
-    func headUp(){
+    private func headUp(){
         print("Head up")
     }
-    func headDown(){
+    private func headDown(){
         print("Head down")
     }
-    func glassesOff(){
+    private func glassesOff(){
         wearing = false
         print("Took glasses off")
     }
-    func glassesOn(){
+    private func glassesOn(){
         wearing = true
         print("Put glasses on")
     }
-    func updateBattery(device: String ,batteryLevel: UInt8){
+    private func updateBattery(device: String ,batteryLevel: UInt8){
         if device == "case"{
             caseBatteryLevel = CGFloat(batteryLevel)
         }else{
             glassesBatteryLevel = CGFloat(batteryLevel)
         }
+    }
+    private func disconnectFromMessage(){
+        disconnect()
     }
     
     // Called if a write with response completes

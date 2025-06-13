@@ -33,29 +33,25 @@ class FormattingManager: ObservableObject {
         self.info = info
     }
     
-    func defaultDisplay() -> [String] {
+    func header() -> String {
         currentDisplayLines.removeAll()
         
+        var header: String
         if info.getCurrentTemp() != 0 {
-            currentDisplayLines.append(centerText(text:("\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())% | \(info.getCurrentTemp())°F")))
+            header = (centerText(text:("\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())% | \(info.getCurrentTemp())°F\n")))
         }else{
-            currentDisplayLines.append(String(centerText(text: "\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())%")))
+            header = (String(centerText(text: "\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())%\n")))
         }
-        
+        return header
+    }
+    
+    func defaultDisplay() -> [String] {
         
         return(currentDisplayLines)
         
     }
     
     func musicDisplay() -> [String]{
-        currentDisplayLines.removeAll()
-        
-        if info.getCurrentTemp() != 0 {
-            currentDisplayLines.append(centerText(text:("\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())% | \(info.getCurrentTemp())°F")))
-        }else{
-            currentDisplayLines.append(String(centerText(text: "\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())%")))
-        } //Hiding weather display if API issues or unknown location
-        
         var artist = ""
         if info.getCurSong().artist.count > 25 {
             artist = ("\(info.getCurSong().artist.prefix(25))...")
@@ -86,14 +82,6 @@ class FormattingManager: ObservableObject {
     }
     
     func calendarDisplay() -> [String]{
-        currentDisplayLines.removeAll()
-        
-        if info.getCurrentTemp() != 0 {
-            currentDisplayLines.append(centerText(text:("\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())% | \(info.getCurrentTemp())°F")))
-        }else{
-            currentDisplayLines.append(String(centerText(text: "\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())%")))
-        } //Hiding weather display if API issues or unknown location
-
         if info.getEvents().count <= 2 {
             for event in info.getEvents() {
                 currentDisplayLines.append(centerText(text: (event.titleLine)))
