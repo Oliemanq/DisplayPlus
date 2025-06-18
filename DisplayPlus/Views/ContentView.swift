@@ -252,7 +252,8 @@ struct ContentView: View {
                                     .buttonStyle(.borderless)
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                                     
-                                    
+                                    /*
+                                    Hiding buttons for testflight build
                                     Button("Fetch glasses battery level"){
                                         bleManager.fetchGlassesBattery()
                                     }
@@ -269,7 +270,7 @@ struct ContentView: View {
                                     .foregroundColor(darkMode ? primaryColor : secondaryColor)
                                     .buttonStyle(.borderless)
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    
+                                    */
                                 }
                             }
                         }
@@ -311,6 +312,7 @@ struct ContentView: View {
         .background(Color.clear) // List background is now clear
         .font(Font.custom("Geeza Pro", size: 18, relativeTo: .body))
         .onAppear {
+            bleManager.fetchGlassesBattery()
             info.update(updateWeatherBool: true) // Initial update
             bgManager.startTimer() // Start the background task timer
         }

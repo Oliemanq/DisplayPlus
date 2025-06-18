@@ -622,15 +622,12 @@ extension G1BLEManager: CBPeripheralDelegate {
         }else{
             if device.contains("R"){
                 glassesBatteryRight = CGFloat(batteryLevel)
-                print("Set right battery to \(glassesBatteryRight)%")
             }else if device.contains("L"){
                 glassesBatteryLeft = CGFloat(batteryLevel)
-                print("Set left battery to \(glassesBatteryLeft)%")
             }
             
             if glassesBatteryLeft != 0.0 && glassesBatteryRight != 0.0{
                 glassesBatteryAvg = (glassesBatteryLeft + glassesBatteryRight)/2
-                print("Avg battery set as \(glassesBatteryAvg)%")
             }
         }
     }
