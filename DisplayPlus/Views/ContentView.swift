@@ -114,23 +114,18 @@ struct ContentView: View {
                     HStack {
                         Spacer()
                         VStack {
-                            // Use info.time directly, which should be @Published in InfoManager
-                            Text(info.time)
-                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            //Display glasses battery level if it has been updated
+                            if bleManager.glassesBatteryAvg != 0.0 {
+                                Text("\(info.time)  |  Glasses battery: \(Int(bleManager.glassesBatteryAvg))%")
+                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            }else{
+                                Text("\(info.time)")
+                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            }
                             
                             HStack {
-                                ForEach(daysOfWeek, id: \.self) { day in
-                                    if day == info.getTodayDate() {
-                                        Text(day).bold()
-                                            .padding(0)
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                        
-                                    } else {
-                                        Text(day)
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                            .padding(-1)
-                                    }
-                                }
+                                Text(info.getTodayDate())
+                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             }
                         }
                         Spacer()
@@ -226,55 +221,56 @@ struct ContentView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                                 
                                 
-                                Button("Disconnect"){
-                                    bleManager.disconnect()
+                                if bleManager.connectionState == .connectedBoth{
+                                    Button("Disconnect"){
+                                        bleManager.disconnect()
+                                    }
+                                    .frame(width: 120, height: 50)
+                                    .background((!darkMode ? primaryColor : secondaryColor))
+                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                    .buttonStyle(.borderless)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    
+                                    //Display toggle button
+                                    Button(UserDefaults.standard.bool(forKey: "displayOn") == true ? "Turn display off" : "Turn display on"){
+                                        displayOn.toggle()
+                                        bleManager.sendBlank()
+                                    }
+                                    .frame(width: 150, height: 50)
+                                    .background((!darkMode ? primaryColor : secondaryColor))
+                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                    .buttonStyle(.borderless)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    
+                                    //Auto off button
+                                    Button ("Auto shut off: \(autoOff ? "on" : "off")"){
+                                        autoOff.toggle()
+                                    }
+                                    .frame(width: 150, height: 50)
+                                    .background((!darkMode ? primaryColor : secondaryColor))
+                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                    .buttonStyle(.borderless)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    
+                                    
+                                    Button("Fetch glasses battery level"){
+                                        bleManager.fetchGlassesBattery()
+                                    }
+                                    .frame(width: 250, height: 50)
+                                    .background((!darkMode ? primaryColor : secondaryColor))
+                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                    .buttonStyle(.borderless)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    Button("Fetch silent mode status"){
+                                        bleManager.fetchSilentMode()
+                                    }
+                                    .frame(width: 250, height: 50)
+                                    .background((!darkMode ? primaryColor : secondaryColor))
+                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                    .buttonStyle(.borderless)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    
                                 }
-                                .frame(width: 120, height: 50)
-                                .background((!darkMode ? primaryColor : secondaryColor))
-                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                .buttonStyle(.borderless)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                
-                                //Display toggle button
-                                Button(UserDefaults.standard.bool(forKey: "displayOn") == true ? "Turn display off" : "Turn display on"){
-                                    displayOn.toggle()
-                                    bleManager.sendBlank()
-                                }
-                                .frame(width: 150, height: 50)
-                                .background((!darkMode ? primaryColor : secondaryColor))
-                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                .buttonStyle(.borderless)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                
-                                //Auto off button
-                                Button ("Auto shut off: \(autoOff ? "on" : "off")"){
-                                    autoOff.toggle()
-                                }
-                                .frame(width: 150, height: 50)
-                                .background((!darkMode ? primaryColor : secondaryColor))
-                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                .buttonStyle(.borderless)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                            
-                                
-                                Button("Fetch glasses battery level"){
-                                    bleManager.fetchGlassesBattery()
-                                }
-                                .frame(width: 250, height: 50)
-                                .background((!darkMode ? primaryColor : secondaryColor))
-                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                .buttonStyle(.borderless)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                Button("Fetch silent mode status"){
-                                    bleManager.fetchSilentMode()
-                                }
-                                .frame(width: 250, height: 50)
-                                .background((!darkMode ? primaryColor : secondaryColor))
-                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                .buttonStyle(.borderless)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                
-                                
                             }
                         }
                     }

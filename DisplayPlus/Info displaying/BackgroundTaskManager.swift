@@ -17,7 +17,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     
     var timer: Timer?
     var counter: Int = 0
-    var HBCounter: Int = 0
+    var HBCounter: Int = 1
     var displayOnCounter: Int = 0
     private var weatherUpdateTicker: Int = 0 // New counter for less frequent weather updates
     
@@ -42,7 +42,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 print("BackgroundTaskManager timer: self is nil, timer cannot continue.") // Log if self is nil
                 return
             }
-            if ble.connected == true {
+            if ble.connectionState == .connectedBoth {
                 if counter%51 == 0{ //Sending heartbeat command every ~25 seconds to maintain connection
                     ble.sendHeartbeat(counter: HBCounter)
                     
