@@ -67,12 +67,15 @@ struct ContentView: View {
         
         let floatingButtonItems: [FloatingButtonItem] = [
             .init(iconSystemName: "clock", extraText: "Default screen", action: {
+                print("Default button pushed")
                 currentPage = "Default"
             }),
             .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {
+                print("Music button pushed")
                 currentPage = "Music"
             }),
             .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
+                print("Calendar button pushed")
                 currentPage = "Calendar"
             })
         ] //Floating button init

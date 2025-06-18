@@ -147,10 +147,16 @@ struct FloatingButtons<Destination: View>: View {
                                         Text(item.extraText ?? "")
                                             .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
                                             .offset(x: -5)
-                                    }.offset(y: -CGFloat(index+1) * standardOffset)
+                                    }
+                                    .offset(y: -CGFloat(index+1) * standardOffset)
+                                    .onTapGesture {
+                                        item.action()
+                                        withAnimation{
+                                            isExpanded.toggle()
+                                        }
+                                    }
                                 }.offset(x: -10)
                             }
-                            
                             Image(systemName: !isExpanded ? "folder.badge.plus" : "folder.fill.badge.plus")
                                 .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
                                 .font(.system(size: !isPressed ? 28 : 34))
