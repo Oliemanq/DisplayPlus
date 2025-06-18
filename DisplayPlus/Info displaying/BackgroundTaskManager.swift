@@ -86,17 +86,13 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 if currentDisplayOn {
                     let pageText = self.pageHandler()
                     self.ble.sendText(text: pageText, counter: self.counter)
-                } else {
                 }
                 
                 self.counter += 1
                 if self.counter > 255 {
                     self.counter = 0
                 }
-            }else{
-                ble.startScan()
             }
-            // print("BackgroundTaskManager timer: Counter incremented to \(self.counter)") // More verbose log if needed
         }
     }
         

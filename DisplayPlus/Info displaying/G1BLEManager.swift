@@ -16,9 +16,11 @@ import SwiftData
 import SwiftUI
 
 class G1BLEManager: NSObject, ObservableObject{
+    public var connectionStatus: String = "Disconnected"
     
-    @AppStorage("connectionStatus") public var connectionStatus = "Disconnected"
-
+    private var reconnectAttempts: [UUID: Int] = [:]
+    private let maxReconnectAttempts = 5
+    private let reconnectDelay: TimeInterval = 2.0
     
     private var centralManager: CBCentralManager!
     // Left & Right peripheral references
@@ -61,6 +63,7 @@ class G1BLEManager: NSObject, ObservableObject{
     
     /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
     func startScan() {
+        /*
         if scanTimeout == true{
             if scanTimeoutCounter != 0{
                 scanTimeoutCounter -= 1
@@ -69,23 +72,22 @@ class G1BLEManager: NSObject, ObservableObject{
                 scanTimeout = false
             }
         }else{
+         */
             guard centralManager.state == .poweredOn else {
                 print("Bluetooth is not powered on. Cannot start scan.")
                 return
             }
-            
-            let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceUUID])
-            for peripheral in connectedPeripherals {
-                handleDiscoveredPeripheral(peripheral)
-            }
-            
+            print("Scanning")
+            connectionStatus = "Scanning..."
             UserDefaults.standard.set("Scanning...", forKey: "connectionStatus")
             // You can filter by the UART service, but if you need the name to parse left vs right,
             // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
             centralManager.scanForPeripherals(withServices: nil, options: nil)
             
+        /*
             scanTimeout = true
         }
+         */
     }
     
     /// Stop scanning if desired.
@@ -110,7 +112,7 @@ class G1BLEManager: NSObject, ObservableObject{
         rightWChar = nil
         rightRChar = nil
         
-        UserDefaults.standard.set("Disconnected", forKey: "connectionStatus")
+        reconnectAttempts.removeAll()
         print("Disconnected from G1 glasses.")
     }
     
@@ -168,17 +170,20 @@ class G1BLEManager: NSObject, ObservableObject{
             return
         }
 
-        if let leftP = discoveredLeft[pairKey], let rightP = discoveredRight[pairKey] {
-            centralManager.stopScan()
+        if let leftP = discoveredLeft[pairKey], let rightP = discoveredRight[pairKey] { //Checking if both sides exist for the same pairKey
+            centralManager.stopScan() //Stops the app from scanning more
+            connectionStatus = "Connecting to channel \(channelNumber)..."
             UserDefaults.standard.set("Connecting to channel \(channelNumber)...", forKey: "connectionStatus")
 
+
+            //updating main vars with found peripherals
             leftPeripheral = leftP
             rightPeripheral = rightP
 
-            leftPeripheral?.delegate = self
+            leftPeripheral?.delegate = self //Making the ble manager handle peripheral events
             rightPeripheral?.delegate = self
 
-            centralManager.connect(leftP, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+            centralManager.connect(leftP, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true]) //actually connecting to device
             centralManager.connect(rightP, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
 
         }
@@ -243,7 +248,8 @@ class G1BLEManager: NSObject, ObservableObject{
 }
 
 extension G1BLEManager: CBCentralManagerDelegate {
-    // MARK: - CBCentralManagerDelegate
+    
+    //Checking bluetooth state
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         switch central.state {
         case .poweredOn:
@@ -255,17 +261,15 @@ extension G1BLEManager: CBCentralManagerDelegate {
         }
     }
     
-    /// Here we parse discovered device names to identify left vs right arm,
-    /// then we connect both arms once we find a pair (same "channelNumber").
+    //Called when finding new device, calls handleDiscoveredPeripheral with peripheral param to manage it
     func centralManager(_ central: CBCentralManager,
                         didDiscover peripheral: CBPeripheral,
                         advertisementData: [String : Any],
                         rssi RSSI: NSNumber) {
-        
-        handleDiscoveredPeripheral(peripheral)
+         handleDiscoveredPeripheral(peripheral)
     }
     
-    /// Called when a peripheral is connected (left or right).
+    //Called when a device connects to the app
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         if peripheral == leftPeripheral {
             leftPeripheral?.discoverServices([uartServiceUUID])
@@ -273,23 +277,65 @@ extension G1BLEManager: CBCentralManagerDelegate {
             rightPeripheral?.discoverServices([uartServiceUUID])
         }
         
+        // Reset reconnect attempts for this peripheral on successful connect
+        reconnectAttempts[peripheral.identifier] = 0
+        
         // If both arms are connected, update status
         if let lp = leftPeripheral, let rp = rightPeripheral,
            lp.state == .connected, rp.state == .connected {
+            connectionStatus = "Connecting to G1 Glasses (both arms)."
             UserDefaults.standard.set("Connected to G1 Glasses (both arms).", forKey: "connectionStatus")
             connected = true
         }
     }
     
-    /// Called if a peripheral (left or right) disconnects unexpectedly
+    // Called if a peripheral (left or right) disconnects unexpectedly
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("Disconnected from peripheral: \(peripheral.name ?? peripheral.identifier.uuidString)")
-        connected = false
         
-        // Auto-reconnect if desired:
-        central.connect(peripheral, options: nil)
+        // Remove the characteristic references if any
+        if peripheral == leftPeripheral {
+            leftWChar = nil
+            leftRChar = nil
+        } else if peripheral == rightPeripheral {
+            rightWChar = nil
+            rightRChar = nil
+        }
+
+        // Track reconnect attempts
+        let id = peripheral.identifier
+        let attempts = (reconnectAttempts[id] ?? 0) + 1
+        reconnectAttempts[id] = attempts
+
+        // Determine if other is still connected
+        let otherConnected = (leftPeripheral?.state == .connected || rightPeripheral?.state == .connected)
+
+        // Only set disconnected status if both are disconnected
+        if !otherConnected {
+            connected = false
+            connectionStatus = "Disconnected"
+            UserDefaults.standard.set("Disconnected", forKey: "connectionStatus")
+        }
+
+        // If retry attempts exceeded, stop
+        if attempts > maxReconnectAttempts {
+            print("Max reconnect attempts reached for: \(peripheral.name ?? peripheral.identifier.uuidString)")
+            if !otherConnected {
+                connectionStatus = "Failed to connect"
+                UserDefaults.standard.set("Failed to connect", forKey: "connectionStatus")
+            }
+            return
+        }
+
+        // Retry after delay
+        print("Attempting reconnect (\(attempts)) to peripheral: \(peripheral.name ?? peripheral.identifier.uuidString) in \(reconnectDelay) seconds")
+        DispatchQueue.main.asyncAfter(deadline: .now() + reconnectDelay) { [weak self] in
+            guard let self = self else { return }
+            self.centralManager.connect(peripheral, options: nil)
+        }
     }
     
+    //Failed to connect to device
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         print("Failed to connect to \(peripheral.name ?? "unknown device")")
     }
@@ -464,14 +510,14 @@ extension G1BLEManager: CBPeripheralDelegate {
                 
             default: print("Unknown text command: 78 \(byteArray[1])")
             }
-        case 44: //0x2B SHOULD BE RECEIVING FROM R
+        case 44: //0x2C SHOULD BE RECEIVING FROM R
             switch byteArray[1]{
             case 102: //66
                 glassesBatteryLevel = CGFloat(byteArray[2])
             default:
                 print("Unknown message, header from battery fetch \(byteArray)")
             }
-        case 43: //
+        case 43: //0x2B
             if String(format: "%02X", byteArray[2]) == "0C"{
                 silentMode = true
                 print("silent mode on")
@@ -483,7 +529,7 @@ extension G1BLEManager: CBPeripheralDelegate {
             }
         default:
             print("unknown message \(byteArray)")
-            print("Header: \(String(format: "%02X", byteArray[0])), ?/subcommand: \(String(format: "%02X", byteArray[1]))\n")
+            print("Header: \(String(format: "%02X", byteArray[0])), subcommand: \(String(format: "%02X", byteArray[1]))\n")
         }
     }
     
@@ -533,3 +579,4 @@ extension G1BLEManager: CBPeripheralDelegate {
         }
     }
 }
+

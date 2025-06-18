@@ -190,11 +190,13 @@ struct FloatingButtons<Destination: View>: View {
                     
                     if isExpanded {
                         VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                        /*
                             .onTapGesture {
                                 withAnimation{
                                     isExpanded = false
                                 }
                             }
+                         */
                             .ignoresSafeArea()
                             .frame(width: .infinity, height: .infinity)
                     }
@@ -205,15 +207,15 @@ struct FloatingButtons<Destination: View>: View {
                             HStack(){
                                 Image(systemName: item.iconSystemName)
                                     .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                    .onTapGesture {
+                                        item.action()
+                                        withAnimation{
+                                            isExpanded.toggle()
+                                        }
+                                    }
                                 Text(item.extraText ?? "")
                                     .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
                                 Spacer()
-                            }
-                            .onTapGesture {
-                                item.action()
-                                withAnimation{
-                                    isExpanded.toggle()
-                                }
                             }
                             .opacity(isExpanded ? 1 : 0)
                             .offset(x: isExpanded ? -15 : 10, y: isExpanded ? -standardOffset*CGFloat(index+1) : 0)
@@ -229,13 +231,6 @@ struct FloatingButtons<Destination: View>: View {
                             Text("Other screens")
                                 .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Other screens", namespace: namespace, scale: 1)
                         }
-                        .onTapGesture {
-                            withAnimation{
-                                isExpanded.toggle()
-                            }
-                        }
-                        
-                        
                     }.position(x: 100, y: geometry.frame(in: .global).maxY - 75)
                     //.offset(x: !isExpanded ? 0 : standardOffset)
                     

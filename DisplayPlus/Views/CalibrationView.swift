@@ -312,7 +312,7 @@ struct CalibrationView: View {
         }
         .onAppear(){
             timer = Timer.scheduledTimer(withTimeInterval: 1/2, repeats: true) { _ in
-                if bleManager.connectionStatus == "Connected to G1 Glasses (both arms)."{ //Checking if glasses are connected to app
+                if bleManager.connected{ //Checking if glasses are connected to app
                     if currentChar == " "{
                         sendTextCommand(text: "\(String(repeating: currentChar, count: amountOfChars))|") //sending looping command to glasses to display currentChar x amount of times
                     }else{

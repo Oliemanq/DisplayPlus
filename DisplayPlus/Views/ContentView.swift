@@ -5,10 +5,10 @@ import AppIntents
 
 struct ContentView: View {
     @State var showingCalibration = false
-    
+        
     @State private var counter: CGFloat = 0
     @State private var totalCounter: CGFloat = 0
-    @State private var displayOnCounter: Int = 0 // Moved from .onAppear to @State
+    @State private var displayOnCounter: Int = 0
     
     // UserDefaults keys (must match BackgroundTaskManager)
     private let userDefaultsCounterKey = "backgroundTaskCounter"
@@ -24,6 +24,7 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase // Added for lifecycle management
     @Environment(\.modelContext) private var context
     
+    @AppStorage("connectionStatus") private var connectionStatus: String = "Disconnected"
     @AppStorage("currentPage") private var currentPage = "Default"
     @AppStorage("displayOn") private var displayOn = true
     @AppStorage("autoOff") private var autoOff: Bool = false
@@ -66,13 +67,13 @@ struct ContentView: View {
         
         let floatingButtonItems: [FloatingButtonItem] = [
             .init(iconSystemName: "clock", extraText: "Default screen", action: {
-                UserDefaults.standard.set("Default", forKey: "currentPage")
+                currentPage = "Default"
             }),
             .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {
-                UserDefaults.standard.set("Music", forKey: "currentPage")
+                currentPage = "Music"
             }),
             .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
-                UserDefaults.standard.set("Calendar", forKey: "currentPage")
+                currentPage = "Calendar"
             })
         ] //Floating button init
         
@@ -233,7 +234,7 @@ struct ContentView: View {
                                 
                                 //Display toggle button
                                 Button(UserDefaults.standard.bool(forKey: "displayOn") == true ? "Turn display off" : "Turn display on"){
-                                    UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "displayOn"), forKey: "displayOn")
+                                    displayOn.toggle()
                                     bleManager.sendBlank()
                                 }
                                 .frame(width: 150, height: 50)
@@ -243,14 +244,15 @@ struct ContentView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                                 
                                 //Auto off button
-                                Button ("Auto shut off: \(UserDefaults.standard.bool(forKey: "autoOff") ? "on" : "off")"){
-                                    UserDefaults.standard.set(!UserDefaults.standard.bool(forKey: "autoOff"), forKey: "autoOff")
+                                Button ("Auto shut off: \(autoOff ? "on" : "off")"){
+                                    autoOff.toggle()
                                 }
                                 .frame(width: 150, height: 50)
                                 .background((!darkMode ? primaryColor : secondaryColor))
                                 .foregroundColor(darkMode ? primaryColor : secondaryColor)
                                 .buttonStyle(.borderless)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
+                            
                                 
                                 Button("Fetch glasses battery level"){
                                     bleManager.fetchGlassesBattery()
@@ -292,7 +294,7 @@ struct ContentView: View {
                     
                     //Connection status display
                     HStack{
-                        Text("Connection status: \(bleManager.connectionStatus)")
+                        Text("Connection status: \(connectionStatus)")
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             .font(.headline)
                     }.listRowBackground(
@@ -315,13 +317,12 @@ struct ContentView: View {
         }
         .onDisappear {
             bgManager.stopTimer() // Stop the timer when view disappears
+            UserDefaults.standard.set("Disconnected", forKey: "connectionStatus")
             displayOn.toggle()
         }
         .onChange(of: displayOn) { oldValue, newValue in //Checking if displayOn changes and acting accordingly, mainly to bypass lag in timer
             if !newValue{
                 bleManager.sendBlank()
-            }else{
-                bleManager.startScan()
             }
         }
     }
