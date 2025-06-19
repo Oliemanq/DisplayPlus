@@ -7,7 +7,7 @@
  - Siri shortcuts/AppIntents support for a few actions
  - Current weather, temp, and wind speed
 
-##In Progress/upcoming
+## In Progress/upcoming
  - Battery life optimizing
  - Full UI redesign for iOS 26 design
 
