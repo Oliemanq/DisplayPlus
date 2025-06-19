@@ -7,9 +7,6 @@
  - Siri shortcuts/AppIntents support for a few actions
  - Current weather, temp, and wind speed
 
-## In progress
- - Apple HealthKit stats/rings
-
 ## Possible future features
  - Notification mirroring
  - glasses brightness
