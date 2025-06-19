@@ -9,6 +9,7 @@
 
 ## In Progress/upcoming
  - Battery life optimizing
+ - Device selection for pairing multiple pairs of glasses/choosing which pair to add to app
  - Full UI redesign for iOS 26 design
 
 ## Possible future features
