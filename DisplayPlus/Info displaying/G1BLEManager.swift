@@ -15,6 +15,12 @@ import CoreBluetooth
 import SwiftData
 import SwiftUI
 
+struct G1DiscoveredPair {
+    var channel: Int? = nil
+    var left: CBPeripheral? = nil
+    var right: CBPeripheral? = nil
+}
+
 enum G1ConnectionState {
     case disconnected
     case connecting
@@ -52,6 +58,8 @@ class G1BLEManager: NSObject, ObservableObject{
     // We'll store them as we find them, then connect them together once we see both sides.
     private var discoveredLeft:  [String: CBPeripheral] = [:]
     private var discoveredRight: [String: CBPeripheral] = [:]
+    
+    @Published public private(set) var discoveredPairs: [String : G1DiscoveredPair] = [:]
     
     var scanTimeout: Bool = false
     var scanTimeoutCounter: Int = 5
@@ -162,7 +170,6 @@ class G1BLEManager: NSObject, ObservableObject{
         writeData(packet, to: arm)
     }
     
-    
     private func handleDiscoveredPeripheral(_ peripheral: CBPeripheral) {
         guard let name = peripheral.name else { return }
         print(name)
@@ -174,28 +181,31 @@ class G1BLEManager: NSObject, ObservableObject{
         let sideIndicator = components[2]
         let pairKey = "Pair_\(channelNumber)"
 
-        // This allows partial connection without waiting for both sides.
         if sideIndicator == "L" {
             discoveredLeft[pairKey] = peripheral
             
-            // Connect left peripheral if not already connected or connecting
-            if leftPeripheral == nil || (leftPeripheral?.state != .connected && leftPeripheral?.state != .connecting) {
-                leftPeripheral = peripheral
-                leftPeripheral?.delegate = self
-                connectionState = rightPeripheral == nil ? .connecting : .connectedRightOnly
-                connectionStatus = "Connecting to left arm channel \(channelNumber)..."
-                centralManager.connect(peripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+            if var pair = discoveredPairs[pairKey] {
+                pair.left = peripheral
+                discoveredPairs[pairKey] = pair
+                print("Updated left on existing pair for channel \(channelNumber)")
+            } else {
+                print(discoveredPairs)
+                let newPair = G1DiscoveredPair(channel: Int(channelNumber), left: peripheral)
+                discoveredPairs[pairKey] = newPair
+                print("Created a new pair and left for channel \(channelNumber)")
             }
         } else if sideIndicator == "R" {
             discoveredRight[pairKey] = peripheral
             
-            // Connect right peripheral if not already connected or connecting
-            if rightPeripheral == nil || (rightPeripheral?.state != .connected && rightPeripheral?.state != .connecting) {
-                rightPeripheral = peripheral
-                rightPeripheral?.delegate = self
-                connectionState = leftPeripheral == nil ? .connecting : .connectedLeftOnly
-                connectionStatus = "Connecting to right arm channel \(channelNumber)..."
-                centralManager.connect(peripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+            if var pair = discoveredPairs[pairKey] {
+                pair.right = peripheral
+                discoveredPairs[pairKey] = pair
+                print("Updated right on existing pair for channel \(channelNumber)")
+            } else {
+                print(discoveredPairs)
+                let newPair = G1DiscoveredPair(channel: Int(channelNumber), right: peripheral)
+                discoveredPairs[pairKey] = newPair
+                print("Created a new pair and right for channel \(channelNumber)")
             }
         }
         
@@ -205,6 +215,30 @@ class G1BLEManager: NSObject, ObservableObject{
             connectionStatus = "Connected to G1 Glasses (both arms)."
             connectionState = .connectedBoth
             centralManager.stopScan()
+        }
+    }
+    
+    func connectPair(pair: G1DiscoveredPair){
+        print("Connecting pair...")
+        connectionStatus = ("Connecting to pair (Channel \(pair.channel ?? 0))...")
+        if pair.right != nil {
+            // Connect right peripheral if not already connected or connecting
+            if rightPeripheral == nil || (rightPeripheral?.state != .connected && rightPeripheral?.state != .connecting) {
+                rightPeripheral = pair.right
+                rightPeripheral?.delegate = self
+                connectionState = leftPeripheral == nil ? .connecting : .connectedLeftOnly
+                centralManager.connect(pair.right!, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+
+            }
+        }
+        if pair.left != nil {
+            // Connect left peripheral if not already connected or connecting
+            if leftPeripheral == nil || (leftPeripheral?.state != .connected && leftPeripheral?.state != .connecting) {
+                leftPeripheral = pair.left
+                leftPeripheral?.delegate = self
+                connectionState = rightPeripheral == nil ? .connecting : .connectedRightOnly
+                centralManager.connect(pair.left!, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+            }
         }
     }
     

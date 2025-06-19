@@ -213,6 +213,7 @@ struct ContentView: View {
                                 
                                 Button("Start scan"){
                                     bleManager.startScan()
+                                    showingDeviceSelectionPopup = true
                                 }
                                 .frame(width: 100, height: 50)
                                 .background((!darkMode ? primaryColor : secondaryColor))
@@ -307,10 +308,57 @@ struct ContentView: View {
                 FloatingButtons(items: floatingButtonItems, destinationView: { CalibrationView(ble: bleManager) })
                     .environmentObject(theme)
             }
+            
+            .popover(isPresented: $showingDeviceSelectionPopup) {
+                VStack {
+                    ForEach(Array(bleManager.discoveredPairs).indices, id: \.self) { index in
+                        let pair = Array(bleManager.discoveredPairs.values)[index]
+                        VStack{
+                            Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
+                            HStack {
+                                if pair.left != nil {
+                                    HStack{
+                                        Image(systemName: "checkmark.circle")
+                                        Text("Left found")
+                                    }
+                                } else {
+                                    HStack {
+                                        Image(systemName: "x.circle")
+                                        Text("No left")
+                                    }
+                                }
+                                if pair.right != nil {
+                                    HStack{
+                                        Image(systemName: "checkmark.circle")
+                                        Text("Right found")
+                                    }
+                                } else {
+                                    HStack {
+                                        Image(systemName: "x.circle")
+                                        Text("No right")
+                                    }
+                                }
+                            }
+                            if pair.left != nil && pair.right != nil {
+                                Button("Connect to pair"){
+                                    bleManager.connectPair(pair: pair)
+                                    showingDeviceSelectionPopup = false
+                                }
+                                .frame(width: 150, height: 50)
+                                .background((!darkMode ? Color.black : Color.white))
+                                .foregroundColor(darkMode ? Color.black : Color.white)
+                                .buttonStyle(.borderless)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                        }
+                    }
+                }
+            }
+             
         }
+        
         .scrollContentBackground(.hidden)
         .background(Color.clear) // List background is now clear
-        .font(Font.custom("Geeza Pro", size: 18, relativeTo: .body))
         .onAppear {
             bleManager.fetchGlassesBattery()
             info.update(updateWeatherBool: true) // Initial update
@@ -321,7 +369,9 @@ struct ContentView: View {
             bleManager.disconnect()
             displayOn.toggle()
         }
-        .onChange(of: displayOn) { oldValue, newValue in //Checking if displayOn changes and acting accordingly, mainly to bypass lag in timer
+        
+        //Checking if displayOn changes and acting accordingly, mainly to bypass lag in timer
+        .onChange(of: displayOn) { oldValue, newValue in
             if !newValue{
                 bleManager.sendBlank()
             }else{
