@@ -378,6 +378,12 @@ struct ContentView: View {
                 bleManager.sendText(text: bgManager.pageHandler(), counter: 0)
             }
         }
+        .onChange(of: currentPage) { oldValue, newValue in
+            if oldValue != newValue{
+                info.changed = true
+                bleManager.sendText(text: bgManager.pageHandler(), counter: 0)
+            }
+        }
     }
 }
 
