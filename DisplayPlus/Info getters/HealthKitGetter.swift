@@ -9,7 +9,7 @@ import Foundation
 import HealthKit
 import os.log
 
-class HealthInfoGetter: ObservableObject {
+class HealthInfoGetter: ObservableObject, @unchecked Sendable {
     private let logger = Logger(subsystem: "com.oliemanq.DisplayPlus", category: "HealthKit")
     let healthStore = HKHealthStore()
     
