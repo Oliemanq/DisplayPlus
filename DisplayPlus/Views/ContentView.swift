@@ -231,7 +231,7 @@ struct ContentView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                                     
                                     //Display toggle button
-                                    Button(UserDefaults.standard.bool(forKey: "displayOn") == true ? "Turn display off" : "Turn display on"){
+                                    Button(displayOn ? "Turn display off" : "Turn display on"){
                                         displayOn.toggle()
                                         bleManager.sendBlank()
                                     }

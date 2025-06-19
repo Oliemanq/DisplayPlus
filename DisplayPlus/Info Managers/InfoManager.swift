@@ -15,6 +15,8 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     let weather: WeatherManager
     let health: HealthInfoGetter
     
+    @Published var changed: Bool = false
+    
     //Time vars
     @Published var time: String // Mark with @Published
     
@@ -44,13 +46,21 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     }
     
     public func update(updateWeatherBool: Bool) {
-        time = Date().formatted(date: .omitted, time: .shortened) // Update time
+        changed = false
+        
+        if time != Date().formatted(date: .omitted, time: .shortened) {
+            time = Date().formatted(date: .omitted, time: .shortened) // Update time
+            changed = true
+        }
         
         //Update battery level var
         if UIDevice.current.isBatteryMonitoringEnabled && UIDevice.current.batteryLevel >= 0.0 {
-            self.batteryLevelFormatted = (Int)(UIDevice.current.batteryLevel * 100)
+            if batteryLevelFormatted != (Int)(UIDevice.current.batteryLevel * 100){
+                batteryLevelFormatted = (Int)(UIDevice.current.batteryLevel * 100)
+                changed = true
+            }
         } else {
-            self.batteryLevelFormatted = 0
+            batteryLevelFormatted = 0
         }
         
         //check calendar auth then update events
@@ -65,7 +75,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         }
         */
          
-        //Update weather only when needed (every 5 minutes or so
+        //Update weather only when needed (every 5 minutes or so)
         Task{
             if updateWeatherBool {
                 if getLocationAuthStatus() {
@@ -77,7 +87,10 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         //Check if music auth is granted and update current song
         if getMusicAuthStatus() {
             music.updateCurrentSong()
-            self.currentSong = music.curSong // Update the @Published property
+            if currentSong.title != music.curSong.title || currentSong.duration != music.curSong.duration || currentSong.currentTime != music.curSong.currentTime {
+                currentSong = music.curSong
+                changed = true
+            }
         }
     }
     
@@ -130,11 +143,11 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     }
     
     public func getCurSong() -> Song {
-        return self.currentSong // Return the @Published property
+        return currentSong // Return the @Published property
     }
     
     public func getTime() -> String {
-        return self.time
+        return time
     }
     
     func updateWeather() async{
@@ -175,6 +188,8 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     func getBattery() -> Int {
         return batteryLevelFormatted // Return the @Published property
     }
+    
+    
     
     func getHealthData() -> RingData {
         // Simply return the current value - no async operations

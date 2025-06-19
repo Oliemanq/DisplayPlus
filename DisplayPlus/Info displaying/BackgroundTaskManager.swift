@@ -16,11 +16,17 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     private var infoManager: InfoManager
     
     var timer: Timer?
+    
+    //various counters
     var counter: Int = 0
     var HBCounter: Int = 1
+    var batteryCounter: Int = 0
     var displayOnCounter: Int = 0
-    private var weatherUpdateTicker: Int = 0 // New counter for less frequent weather updates
+    var weatherCounter: Int = 0
     
+    @AppStorage("displayOn") var displayOn = false
+    @AppStorage("autoOff") var autoOff = false
+     
     init(ble: G1BLEManager, info: InfoManager, formatting: FormattingManager) {
         self.ble = ble
         self.formattingManager = formatting
@@ -28,11 +34,11 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     }
     
     func startTimer() {
-        if UserDefaults.standard.bool(forKey: "displayOn") && !UserDefaults.standard.bool(forKey: "autoOff") {
+        if displayOn && !autoOff {
             displayOnCounter = 0
         }
         // Reset weather ticker when timer starts or restarts
-        weatherUpdateTicker = 0
+        weatherCounter = 0
         
         // Invalidate existing timer before starting a new one
         timer?.invalidate()
@@ -52,22 +58,24 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                     }
                 }
                 // Determine if it's time to update weather
-                let shouldUpdateWeather = (weatherUpdateTicker >= 600) // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
+                let shouldUpdateWeather = (weatherCounter >= 600) // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
                 
                 // Update InfoManager's data
                 infoManager.update(updateWeatherBool: shouldUpdateWeather)
                 
-                ble.fetchGlassesBattery()
-                
-                if shouldUpdateWeather {
-                    weatherUpdateTicker = 0 // Reset ticker
-                    print("BackgroundTaskManager timer: Triggered weather update.")
-                } else {
-                    weatherUpdateTicker += 1
+                if batteryCounter % 15 == 0{
+                    ble.fetchGlassesBattery()
                 }
                 
-                let isAutoOff = UserDefaults.standard.bool(forKey: "autoOff")
-                let isDisplayOnInitially = UserDefaults.standard.bool(forKey: "displayOn") // displayOn state at the start of this tick
+                if shouldUpdateWeather {
+                    weatherCounter = 0 // Reset ticker
+                    print("BackgroundTaskManager timer: Triggered weather update.")
+                } else {
+                    weatherCounter += 1
+                }
+                
+                let isAutoOff = autoOff
+                let isDisplayOnInitially = displayOn
                 
                 if isAutoOff {
                     if isDisplayOnInitially {
@@ -75,14 +83,15 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                     }
                     if displayOnCounter >= 10 {
                         displayOnCounter = 0
-                        UserDefaults.standard.set(false, forKey: "displayOn")
+                        displayOn = false
                     }
                 }
                 
                 // Re-fetch displayOn as it might have been changed by the autoOff logic above in the same tick
-                let currentDisplayOn = UserDefaults.standard.bool(forKey: "displayOn")
+                let currentDisplayOn = displayOn
                 
-                if currentDisplayOn {
+                //infoManager.changed is to reduce unnecesary updates to the glasses
+                if currentDisplayOn && infoManager.changed {
                     let pageText = pageHandler()
                     ble.sendText(text: pageText, counter: counter)
                 }
