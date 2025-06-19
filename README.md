@@ -7,9 +7,9 @@
  - Siri shortcuts/AppIntents support for a few actions
  - Current weather, temp, and wind speed
 
-## In progress
- - Background updating (Permission not handled right for Testflight build)
- - Optimizing main loop
+## In Progress/upcoming
+ - Battery life optimizing
+ - Full UI redesign for iOS 26 design
 
 ## Possible future features
  - Apple HealthKit stats/ring
