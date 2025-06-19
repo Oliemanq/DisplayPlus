@@ -25,7 +25,7 @@ enum G1ConnectionState {
 
 class G1BLEManager: NSObject, ObservableObject{
     @Published public private(set) var connectionState: G1ConnectionState = .disconnected
-    public var connectionStatus: String = "Disconnected"
+    @Published public private(set) var connectionStatus: String = "Disconnected"
     
     private var reconnectAttempts: [UUID: Int] = [:]
     private let maxReconnectAttempts = 5
@@ -89,7 +89,6 @@ class G1BLEManager: NSObject, ObservableObject{
             }
             print("Scanning")
             connectionStatus = "Scanning..."
-            UserDefaults.standard.set("Scanning...", forKey: "connectionStatus")
             // You can filter by the UART service, but if you need the name to parse left vs right,
             // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
             centralManager.scanForPeripherals(withServices: nil, options: nil)
@@ -185,7 +184,6 @@ class G1BLEManager: NSObject, ObservableObject{
                 leftPeripheral?.delegate = self
                 connectionState = rightPeripheral == nil ? .connecting : .connectedRightOnly
                 connectionStatus = "Connecting to left arm channel \(channelNumber)..."
-                UserDefaults.standard.set(connectionStatus, forKey: "connectionStatus")
                 centralManager.connect(peripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
             }
         } else if sideIndicator == "R" {
@@ -197,7 +195,6 @@ class G1BLEManager: NSObject, ObservableObject{
                 rightPeripheral?.delegate = self
                 connectionState = leftPeripheral == nil ? .connecting : .connectedLeftOnly
                 connectionStatus = "Connecting to right arm channel \(channelNumber)..."
-                UserDefaults.standard.set(connectionStatus, forKey: "connectionStatus")
                 centralManager.connect(peripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
             }
         }
@@ -206,7 +203,6 @@ class G1BLEManager: NSObject, ObservableObject{
         if let left = leftPeripheral, left.state == .connected,
            let right = rightPeripheral, right.state == .connected {
             connectionStatus = "Connected to G1 Glasses (both arms)."
-            UserDefaults.standard.set(connectionStatus, forKey: "connectionStatus")
             connectionState = .connectedBoth
             centralManager.stopScan()
         }
@@ -309,18 +305,15 @@ extension G1BLEManager: CBCentralManagerDelegate {
         
         if leftConnected && rightConnected {
             connectionStatus = "Connected to G1 Glasses (both arms)."
-            UserDefaults.standard.set("Connected to G1 Glasses (both arms).", forKey: "connectionStatus")
             connectionState = .connectedBoth
             sendHeartbeat(counter: 0)
             // Stop scanning once both connected
             centralManager.stopScan()
         } else if leftConnected {
             connectionStatus = "Connected to left arm"
-            UserDefaults.standard.set("Connected to left arm", forKey: "connectionStatus")
             connectionState = .connectedLeftOnly
         } else if rightConnected {
             connectionStatus = "Connected to right arm"
-            UserDefaults.standard.set("Connected to right arm", forKey: "connectionStatus")
             connectionState = .connectedRightOnly
         } else {
             connectionState = .connecting
@@ -353,15 +346,12 @@ extension G1BLEManager: CBCentralManagerDelegate {
         if !leftConnected && !rightConnected {
             connectionState = .disconnected
             connectionStatus = "Disconnected"
-            UserDefaults.standard.set("Disconnected", forKey: "connectionStatus")
         } else if leftConnected {
             connectionState = .connectedLeftOnly
             connectionStatus = "Connected to left arm"
-            UserDefaults.standard.set("Connected to left arm", forKey: "connectionStatus")
         } else if rightConnected {
             connectionState = .connectedRightOnly
             connectionStatus = "Connected to right arm"
-            UserDefaults.standard.set("Connected to right arm", forKey: "connectionStatus")
         }
 
         // If retry attempts exceeded, stop
@@ -369,7 +359,6 @@ extension G1BLEManager: CBCentralManagerDelegate {
             print("Max reconnect attempts reached for: \(peripheral.name ?? peripheral.identifier.uuidString)")
             if !leftConnected && !rightConnected {
                 connectionStatus = "Failed to connect"
-                UserDefaults.standard.set("Failed to connect", forKey: "connectionStatus")
             }
             return
         }

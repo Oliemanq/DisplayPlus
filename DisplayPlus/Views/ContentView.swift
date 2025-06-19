@@ -24,7 +24,6 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase // Added for lifecycle management
     @Environment(\.modelContext) private var context
     
-    @AppStorage("connectionStatus") private var connectionStatus: String = "Disconnected"
     @AppStorage("currentPage") private var currentPage = "Default"
     @AppStorage("displayOn") private var displayOn = true
     @AppStorage("autoOff") private var autoOff: Bool = false
@@ -294,7 +293,7 @@ struct ContentView: View {
                     
                     //Connection status display
                     HStack{
-                        Text("Connection status: \(connectionStatus)")
+                        Text("Connection status: \(bleManager.connectionStatus)")
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             .font(.headline)
                     }.listRowBackground(
@@ -318,12 +317,14 @@ struct ContentView: View {
         }
         .onDisappear {
             bgManager.stopTimer() // Stop the timer when view disappears
-            UserDefaults.standard.set("Disconnected", forKey: "connectionStatus")
+            bleManager.disconnect()
             displayOn.toggle()
         }
         .onChange(of: displayOn) { oldValue, newValue in //Checking if displayOn changes and acting accordingly, mainly to bypass lag in timer
             if !newValue{
                 bleManager.sendBlank()
+            }else{
+                bleManager.sendText(text: bgManager.pageHandler(), counter: 0)
             }
         }
     }

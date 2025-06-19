@@ -52,18 +52,18 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                     }
                 }
                 // Determine if it's time to update weather
-                let shouldUpdateWeather = (self.weatherUpdateTicker >= 600) // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
+                let shouldUpdateWeather = (weatherUpdateTicker >= 600) // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
                 
                 // Update InfoManager's data
-                self.infoManager.update(updateWeatherBool: shouldUpdateWeather)
+                infoManager.update(updateWeatherBool: shouldUpdateWeather)
                 
                 ble.fetchGlassesBattery()
                 
                 if shouldUpdateWeather {
-                    self.weatherUpdateTicker = 0 // Reset ticker
+                    weatherUpdateTicker = 0 // Reset ticker
                     print("BackgroundTaskManager timer: Triggered weather update.")
                 } else {
-                    self.weatherUpdateTicker += 1
+                    weatherUpdateTicker += 1
                 }
                 
                 let isAutoOff = UserDefaults.standard.bool(forKey: "autoOff")
@@ -71,14 +71,11 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 
                 if isAutoOff {
                     if isDisplayOnInitially {
-                        self.displayOnCounter += 1
-                        print("BackgroundTaskManager timer: autoOff active, displayOn is true, displayOnCounter incremented to \(self.displayOnCounter).")
+                        displayOnCounter += 1
                     }
-                    if self.displayOnCounter >= 10 {
-                        print("BackgroundTaskManager timer: autoOff threshold reached (displayOnCounter=\(self.displayOnCounter)). Setting UserDefaults[displayOn] to false.")
-                        self.displayOnCounter = 0
+                    if displayOnCounter >= 10 {
+                        displayOnCounter = 0
                         UserDefaults.standard.set(false, forKey: "displayOn")
-                        // self.objectWillChange.send() // Consider if ContentView needs this for @AppStorage observation
                     }
                 }
                 
@@ -86,13 +83,13 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 let currentDisplayOn = UserDefaults.standard.bool(forKey: "displayOn")
                 
                 if currentDisplayOn {
-                    let pageText = self.pageHandler()
-                    self.ble.sendText(text: pageText, counter: self.counter)
+                    let pageText = pageHandler()
+                    ble.sendText(text: pageText, counter: counter)
                 }
                 
-                self.counter += 1
-                if self.counter > 255 {
-                    self.counter = 0
+                counter += 1
+                if counter > 255 {
+                    counter = 0
                 }
             }
         }
