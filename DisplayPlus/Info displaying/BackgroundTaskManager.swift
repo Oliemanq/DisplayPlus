@@ -26,6 +26,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     
     @AppStorage("displayOn") var displayOn = false
     @AppStorage("autoOff") var autoOff = false
+    @AppStorage("showingCalibration") var showingCalibration = false
      
     init(ble: G1BLEManager, info: InfoManager, formatting: FormattingManager) {
         self.ble = ble
@@ -91,7 +92,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 let currentDisplayOn = displayOn
                 
                 //infoManager.changed is to reduce unnecesary updates to the glasses
-                if currentDisplayOn && infoManager.changed {
+                if currentDisplayOn && infoManager.changed && !showingCalibration {
                     let pageText = pageHandler()
                     ble.sendText(text: pageText, counter: counter)
                 }

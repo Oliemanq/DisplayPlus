@@ -4,7 +4,8 @@ import EventKit
 import AppIntents
 
 struct ContentView: View {
-    @State var showingCalibration = false
+    @AppStorage("showingCalibration") var showingCalibration: Bool = false
+    @State var showingDeviceSelectionPopup: Bool = false
         
     @State private var counter: CGFloat = 0
     @State private var totalCounter: CGFloat = 0
