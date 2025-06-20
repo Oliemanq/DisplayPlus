@@ -15,4 +15,4 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
         with:
-          args: "<@1385479196247330937> A new commit has been pushed"
+          args: "<@1385479196247330937> A new commit has been pushed\nhttps://github.com/${{ github.repository }}"
