@@ -5,7 +5,7 @@
  - Upcoming calendar 
  - Battery stats
  - Siri shortcuts/AppIntents support for a few actions
- - Current weather, temp, and wind speed 
+ - Current weather, temp, and wind speed
 
 ## Possible future features
  - Notification mirroring
