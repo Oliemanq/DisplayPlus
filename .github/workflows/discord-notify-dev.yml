@@ -9,11 +9,8 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Send Discord Notification
-        uses: navdepy/discord-webhook-action@3.1.0
+      - name: Notify Discord
+        uses: Ilshidur/action-discord@master
         with:
-          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
           message: "<@1385479196247330937> A new commit as been pushed to the dev branch"
-          title: "${{ github.event.head_commit.message }}"
-          url: "${{ github.event.head_commit.url }}"
-          color: "0366d6"
