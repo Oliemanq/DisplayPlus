@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - main
 
 jobs:
   notify:
@@ -13,4 +14,4 @@ jobs:
         uses: Ilshidur/action-discord@master
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          message: "<@1385479196247330937> A new commit as been pushed to the dev branch"
+          message: "<@1385479196247330937> A new commit has been pushed"
