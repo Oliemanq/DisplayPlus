@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send Discord Notification
-        uses: tschaub/discord-webhook-action@v2
+        uses: navdepy/discord-webhook-action@3.1.0
         with:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          content: "<@1385479196247330937> A new commit as been pushed to the dev branch"
-          embed_title: "${{ github.event.head_commit.message }}"
-          embed_url: "${{ github.event.head_commit.url }}"
-          embed_color: "0366d6" # A nice GitHub blue
+          message: "<@1385479196247330937> A new commit as been pushed to the dev branch"
+          title: "${{ github.event.head_commit.message }}"
+          url: "${{ github.event.head_commit.url }}"
+          color: "0366d6"
