@@ -1,0 +1,20 @@
+name: Discord Commit Notifier
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord Notification
+        uses: tschaub/discord-webhook-action@v2
+        with:
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          content: "<@1385479196247330937> A new commit as been pushed"
+          embed_title: "${{ github.event.head_commit.message }}"
+          embed_url: "${{ github.event.head_commit.url }}"
+          embed_color: "0366d6" # A nice GitHub blue
