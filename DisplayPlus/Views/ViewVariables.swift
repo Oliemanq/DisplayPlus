@@ -24,10 +24,9 @@ struct FloatingButtonStyle: ViewModifier {
         if #available(iOS 26, *){
             content
                 .frame(width: 65, height: 55)
-                .fontWeight(.semibold)
-                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                .glassEffect()
+                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: !darkMode)
                 .glassEffectID("floatingButton", in: namespace)
+                .fontWeight(.semibold)
         }else{
             content
                 .font(.system(size: 22))
@@ -60,11 +59,10 @@ struct FloatingTextStyle: ViewModifier {
         if #available(iOS 26, *){
             content
                 .frame (width: (120+(textCount*1.25))*(scale ?? 1), height: 55*(scale ?? 1))
+                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: !darkMode)
+                .glassEffectID("floatingText", in: namespace)
                 .font(.system(size: 16*(scale ?? 1)))
                 .fontWeight(.semibold)
-                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                .glassEffect()
-                .glassEffectID("floatingText", in: namespace)
         }else{
             content
                 .font(.system(size: 12))
@@ -94,6 +92,8 @@ struct FloatingButtons<Destination: View>: View {
     let standardOffset: CGFloat = 65
     let destinationView: () -> Destination
     
+    @Environment(\.colorScheme) private var colorScheme
+
     @AppStorage("showingCalibration") var showingCalibration: Bool = false
     
     @State var isExpanded: Bool = false
@@ -148,6 +148,7 @@ struct FloatingButtons<Destination: View>: View {
                                             .font(.system(size: 28))
                                         Text(item.extraText ?? "")
                                             .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
+
                                             .offset(x: -5)
                                     }
                                     .offset(y: -CGFloat(index+1) * standardOffset)
@@ -162,14 +163,9 @@ struct FloatingButtons<Destination: View>: View {
                             Image(systemName: !isExpanded ? "folder.badge.plus" : "folder.fill.badge.plus")
                                 .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
                                 .font(.system(size: !isPressed ? 28 : 34))
-                                .animation(.spring(response: 0.2, dampingFraction: 0.4), value: isPressed)
                                 .onTapGesture {
-                                    isPressed = true
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                        isPressed = false
-                                        withAnimation {
-                                            isExpanded.toggle()
-                                        }
+                                    withAnimation {
+                                        isExpanded.toggle()
                                     }
                                     
                                 }
@@ -285,12 +281,14 @@ extension View {
     @ViewBuilder
     func glassListBG(pri: Color, sec: Color, darkMode: Bool) -> some View {
         if #available(iOS 26, *) {
+            let insets: CGFloat = 6
             self
                 .padding(.vertical, 8)
                 .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
+                .listRowInsets(EdgeInsets(top: insets, leading: insets*2, bottom: insets, trailing: insets*2))
                 .listRowBackground(VisualEffectView(effect: UIBlurEffect(style: darkMode ? .dark : .light)))
-                .glassEffect(.regular.tint(darkMode ? pri : sec), in: RoundedRectangle(cornerRadius: 6))
+                .glassEffect(.regular.tint(darkMode ? pri.lighter() : sec)) //
+                .clipShape(Capsule())
                 
         }else{
             self
@@ -302,3 +300,41 @@ extension View {
     
 }
 
+extension Color {
+    func lighter(by amount: CGFloat = 0.25) -> Color {
+        #if canImport(UIKit)
+        // Try to convert to UIColor and lighten
+        let uiColor = UIColor(self)
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        if uiColor.getRed(&r, green: &g, blue: &b, alpha: &a) {
+            print("Original: \(r), \(g), \(b)")
+            print("Lighter: \(min(r + amount, 1.0)), \(min(g + amount, 1.0)), \(min(b + amount, 1.0))")
+            return Color(
+                red: min(r + amount, 1.0),
+                green: min(g + amount, 1.0),
+                blue: min(b + amount, 1.0),
+                opacity: Double(a)
+            )
+        }
+        #endif
+        return self // fallback
+    }
+}
+extension Color {
+    func darker(by amount: CGFloat = 0.25) -> Color {
+        #if canImport(UIKit)
+        // Try to convert to UIColor and lighten
+        let uiColor = UIColor(self)
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        if uiColor.getRed(&r, green: &g, blue: &b, alpha: &a) {
+            return Color(
+                red: min(r - amount, 1.0),
+                green: min(g - amount, 1.0),
+                blue: min(b - amount, 1.0),
+                opacity: Double(a)
+            )
+        }
+        #endif
+        return self // fallback
+    }
+}
