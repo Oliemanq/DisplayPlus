@@ -130,177 +130,255 @@ struct ContentView: View {
                         }
                         Spacer()
                     }
-                    .listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                    )
-                    
+                    .listRowInsets(EdgeInsets(top: 20, leading: 20, bottom: 20, trailing: 20))
+                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+
                     //Song info
                     if info.currentSong.title == "" {
-                        Text("No music playing")
-                            .font(.headline)
-                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            .listRowBackground(
-                                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                            )
+                        HStack{
+                            Spacer()
+                            Text("No music playing")
+                                .font(.headline)
+                            Spacer()
+                        }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     }else{
                         // Current playing music plus progress bar
-                        VStack(alignment: .leading) {
-                            // Use info.currentSong properties
-                            Text(info.currentSong.title)
-                                .font(.headline)
-                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            Text("\(info.currentSong.album) - \(info.currentSong.artist)")
-                                .font(.subheadline)
-                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            
-                            let formattedCurrentTime = Duration.seconds(info.currentSong.currentTime).formatted(.time(pattern: .minuteSecond))
-                            let formattedduration = Duration.seconds(info.currentSong.duration).formatted(.time(pattern: .minuteSecond))
-                            
-                            Text("\(formattedCurrentTime) \(formattedduration)")
-                                .font(.caption)
-                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                        }
-                        .listRowBackground(
-                            VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                        )
+                        HStack{
+                            Spacer()
+                            VStack(alignment: .leading) {
+                                // Use info.currentSong properties
+                                Text(info.currentSong.title)
+                                    .font(.headline)
+                                Text("\(info.currentSong.album) - \(info.currentSong.artist)")
+                                    .font(.subheadline)
+                                
+                                let formattedCurrentTime = Duration.seconds(info.currentSong.currentTime).formatted(.time(pattern: .minuteSecond))
+                                let formattedduration = Duration.seconds(info.currentSong.duration).formatted(.time(pattern: .minuteSecond))
+                                
+                                Text("\(formattedCurrentTime) \(formattedduration)")
+                                    .font(.caption)
+                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            }
+                            Spacer()
+                        }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     }
                     
                     //Calendar events
                     if info.eventsFormatted.isEmpty {
-                        Text("No events today")
-                            .font(.headline)
-                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            .listRowBackground(
-                                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                            )
+                        HStack{
+                            Spacer()
+                            Text("No events today")
+                                .font(.headline)
+                            Spacer()
+                        }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     }else{
                         Text("Calendar events: ")
                             .font(.headline)
-                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            .listRowBackground(
-                                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                            )
+                            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                        
                         // Use info.eventsFormatted for ForEach
-                        ForEach(info.eventsFormatted) { event in
-                            HStack{
-                                Spacer()
-                                VStack(alignment: .leading) {
-                                    Text(event.titleLine)
-                                        .font(.caption)
-                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                    
-                                    
-                                    Text(event.subtitleLine)
-                                        .font(.footnote)
-                                        .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                        if #available(iOS 26, *) {
+                            GlassEffectContainer(spacing: 10.0){
+                                ForEach(info.eventsFormatted) { event in
+                                    HStack{
+                                        VStack(alignment: .leading) {
+                                            Text(" - \(event.titleLine)")
+                                                .font(.caption)
+                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                            
+                                            
+                                            Text("    \(event.subtitleLine)")
+                                                .font(.footnote)
+                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                        }
+                                        
+                                    }
+                                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                 }
-                                Spacer()
-                                Spacer()
-                                Spacer()
-                                Spacer()
                             }
-                            .listRowBackground(
-                                VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                            )
-                            
+                        }else{
+                            ForEach(info.eventsFormatted) { event in
+                                HStack{
+                                    VStack(alignment: .leading) {
+                                        Text(" - \(event.titleLine)")
+                                            .font(.caption)
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                        
+                                        
+                                        Text("    \(event.subtitleLine)")
+                                            .font(.footnote)
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                    }
+                                    
+                                }
+                                .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                
+                                
+                            }
                         }
                     }
-                    
                     //Buttons ___________________________________________________________________________________________________________________
-                    VStack{
-                        ScrollView(.horizontal) {
-                            HStack{
-                                
-                                Button("Start scan"){
-                                    bleManager.startScan()
-                                    showingDeviceSelectionPopup = true
+                    if #available(iOS 26, *){
+                        GlassEffectContainer(spacing: 10.0){
+                            VStack{
+                                ScrollView(.horizontal) {
+                                    HStack{
+                                        Spacer()
+                                        if bleManager.connectionState != .connectedBoth{
+                                            Button("Start scan"){
+                                                bleManager.startScan()
+                                                showingDeviceSelectionPopup = true
+                                            }
+                                            .frame(width: 100, height: 50)
+                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                        }
+                                        
+                                        
+                                        
+                                        if bleManager.connectionState == .connectedBoth{
+                                            Button("Disconnect"){
+                                                bleManager.disconnect()
+                                            }
+                                            .frame(width: 120, height: 50)
+                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                            
+                                            
+                                            //Display toggle button
+                                            Button(displayOn ? "Turn display off" : "Turn display on"){
+                                                displayOn.toggle()
+                                                bleManager.sendBlank()
+                                            }
+                                            .frame(width: 150, height: 50)
+                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                            
+                                            
+                                            //Auto off button
+                                            Button ("Auto shut off: \(autoOff ? "on" : "off")"){
+                                                autoOff.toggle()
+                                            }
+                                            .frame(width: 150, height: 50)
+                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                            
+                                            
+                                            /*
+                                             Hiding buttons for testflight build
+                                             Button("Fetch glasses battery level"){
+                                             bleManager.fetchGlassesBattery()
+                                             }
+                                             .frame(width: 250, height: 50)
+                                             .background((!darkMode ? primaryColor : secondaryColor))
+                                             .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                             .buttonStyle(.borderless)
+                                             .clipShape(RoundedRectangle(cornerRadius: 12))
+                                             Button("Fetch silent mode status"){
+                                             bleManager.fetchSilentMode()
+                                             }
+                                             .frame(width: 250, height: 50)
+                                             .background((!darkMode ? primaryColor : secondaryColor))
+                                             .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                             .buttonStyle(.borderless)
+                                             .clipShape(RoundedRectangle(cornerRadius: 12))
+                                             */
+                                        }
+                                        Spacer()
+
+                                    }
                                 }
-                                .frame(width: 100, height: 50)
-                                .background((!darkMode ? primaryColor : secondaryColor))
-                                .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                .buttonStyle(.borderless)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
                                 
-                                
-                                if bleManager.connectionState == .connectedBoth{
-                                    Button("Disconnect"){
-                                        bleManager.disconnect()
+                            }
+                            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                        }
+
+                    }else{
+                        VStack{
+                            ScrollView(.horizontal) {
+                                HStack{
+                                    if bleManager.connectionState != .connectedBoth{
+                                        Button("Start scan"){
+                                            bleManager.startScan()
+                                            showingDeviceSelectionPopup = true
+                                        }
+                                        .frame(width: 100, height: 50)
+                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                     }
-                                    .frame(width: 120, height: 50)
-                                    .background((!darkMode ? primaryColor : secondaryColor))
-                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                    .buttonStyle(.borderless)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
                                     
-                                    //Display toggle button
-                                    Button(displayOn ? "Turn display off" : "Turn display on"){
-                                        displayOn.toggle()
-                                        bleManager.sendBlank()
-                                    }
-                                    .frame(width: 150, height: 50)
-                                    .background((!darkMode ? primaryColor : secondaryColor))
-                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                    .buttonStyle(.borderless)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
                                     
-                                    //Auto off button
-                                    Button ("Auto shut off: \(autoOff ? "on" : "off")"){
-                                        autoOff.toggle()
-                                    }
-                                    .frame(width: 150, height: 50)
-                                    .background((!darkMode ? primaryColor : secondaryColor))
-                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                    .buttonStyle(.borderless)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
                                     
-                                    /*
-                                    Hiding buttons for testflight build
-                                    Button("Fetch glasses battery level"){
-                                        bleManager.fetchGlassesBattery()
+                                    if bleManager.connectionState == .connectedBoth{
+                                        Button("Disconnect"){
+                                            bleManager.disconnect()
+                                        }
+                                        .frame(width: 120, height: 50)
+                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                        
+                                        
+                                        //Display toggle button
+                                        Button(displayOn ? "Turn display off" : "Turn display on"){
+                                            displayOn.toggle()
+                                            bleManager.sendBlank()
+                                        }
+                                        .frame(width: 150, height: 50)
+                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                        
+                                        
+                                        //Auto off button
+                                        Button ("Auto shut off: \(autoOff ? "on" : "off")"){
+                                            autoOff.toggle()
+                                        }
+                                        .frame(width: 150, height: 50)
+                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                        
+                                        
+                                        /*
+                                         Hiding buttons for testflight build
+                                         Button("Fetch glasses battery level"){
+                                         bleManager.fetchGlassesBattery()
+                                         }
+                                         .frame(width: 250, height: 50)
+                                         .background((!darkMode ? primaryColor : secondaryColor))
+                                         .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                         .buttonStyle(.borderless)
+                                         .clipShape(RoundedRectangle(cornerRadius: 12))
+                                         Button("Fetch silent mode status"){
+                                         bleManager.fetchSilentMode()
+                                         }
+                                         .frame(width: 250, height: 50)
+                                         .background((!darkMode ? primaryColor : secondaryColor))
+                                         .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                         .buttonStyle(.borderless)
+                                         .clipShape(RoundedRectangle(cornerRadius: 12))
+                                         */
                                     }
-                                    .frame(width: 250, height: 50)
-                                    .background((!darkMode ? primaryColor : secondaryColor))
-                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                    .buttonStyle(.borderless)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    Button("Fetch silent mode status"){
-                                        bleManager.fetchSilentMode()
-                                    }
-                                    .frame(width: 250, height: 50)
-                                    .background((!darkMode ? primaryColor : secondaryColor))
-                                    .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                    .buttonStyle(.borderless)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    */
                                 }
                             }
                         }
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+
                     }
-                    .listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                    )
                     
                     //Glasses mirror on app UI
                     if displayOn {
-                        VStack{
-                            Text(bgManager.pageHandler())
-                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                .font(.system(size: 11))
-                        }
-                        .listRowBackground(
-                            VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                        )
-                        
+                        HStack{
+                            Spacer()
+                            VStack{
+                                Text(bgManager.pageHandler())
+                                    .font(.system(size: 11))
+                            }
+                            Spacer()
+                        }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     }
                     
                     //Connection status display
                     HStack{
+                        Spacer()
                         Text("Connection status: \(bleManager.connectionStatus)")
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             .font(.headline)
-                    }.listRowBackground(
-                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                    )
+                        Spacer()
+                    }
+                    .listRowInsets(EdgeInsets(top: 20, leading: 20, bottom: 20, trailing: 20))
+                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+
                     
                 }
                 
@@ -315,27 +393,36 @@ struct ContentView: View {
                         let pair = Array(bleManager.discoveredPairs.values)[index]
                         VStack{
                             Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             HStack {
                                 if pair.left != nil {
                                     HStack{
                                         Image(systemName: "checkmark.circle")
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                         Text("Left found")
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                     }
                                 } else {
                                     HStack {
                                         Image(systemName: "x.circle")
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                         Text("No left")
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                     }
                                 }
                                 if pair.right != nil {
                                     HStack{
                                         Image(systemName: "checkmark.circle")
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                         Text("Right found")
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                     }
                                 } else {
                                     HStack {
                                         Image(systemName: "x.circle")
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                         Text("No right")
+                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                     }
                                 }
                             }
@@ -345,10 +432,7 @@ struct ContentView: View {
                                     showingDeviceSelectionPopup = false
                                 }
                                 .frame(width: 150, height: 50)
-                                .background((!darkMode ? Color.black : Color.white))
-                                .foregroundColor(darkMode ? Color.black : Color.white)
-                                .buttonStyle(.borderless)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                             }
                         }
                     }
@@ -395,3 +479,4 @@ class ThemeColors: ObservableObject {
 #Preview {
     ContentView()
 }
+

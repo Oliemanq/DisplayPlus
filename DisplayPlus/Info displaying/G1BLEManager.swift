@@ -131,7 +131,9 @@ class G1BLEManager: NSObject, ObservableObject{
         
         reconnectAttempts.removeAll()
         
-        connectionState = .disconnected
+        withAnimation{
+            connectionState = .disconnected
+        }
         print("Disconnected from G1 glasses.")
     }
     
@@ -213,7 +215,9 @@ class G1BLEManager: NSObject, ObservableObject{
         if let left = leftPeripheral, left.state == .connected,
            let right = rightPeripheral, right.state == .connected {
             connectionStatus = "Connected to G1 Glasses (both arms)."
-            connectionState = .connectedBoth
+            withAnimation{
+                connectionState = .connectedBoth
+            }
             centralManager.stopScan()
         }
     }
@@ -226,7 +230,9 @@ class G1BLEManager: NSObject, ObservableObject{
             if rightPeripheral == nil || (rightPeripheral?.state != .connected && rightPeripheral?.state != .connecting) {
                 rightPeripheral = pair.right
                 rightPeripheral?.delegate = self
-                connectionState = leftPeripheral == nil ? .connecting : .connectedLeftOnly
+                withAnimation{
+                    connectionState = leftPeripheral == nil ? .connecting : .connectedLeftOnly
+                }
                 centralManager.connect(pair.right!, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
 
             }
@@ -236,7 +242,9 @@ class G1BLEManager: NSObject, ObservableObject{
             if leftPeripheral == nil || (leftPeripheral?.state != .connected && leftPeripheral?.state != .connecting) {
                 leftPeripheral = pair.left
                 leftPeripheral?.delegate = self
-                connectionState = rightPeripheral == nil ? .connecting : .connectedRightOnly
+                withAnimation{
+                    connectionState = rightPeripheral == nil ? .connecting : .connectedRightOnly
+                }
                 centralManager.connect(pair.left!, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
             }
         }
@@ -339,18 +347,26 @@ extension G1BLEManager: CBCentralManagerDelegate {
         
         if leftConnected && rightConnected {
             connectionStatus = "Connected to G1 Glasses (both arms)."
-            connectionState = .connectedBoth
+            withAnimation{
+                connectionState = .connectedBoth
+            }
             sendHeartbeat(counter: 0)
             // Stop scanning once both connected
             centralManager.stopScan()
         } else if leftConnected {
             connectionStatus = "Connected to left arm"
-            connectionState = .connectedLeftOnly
+            withAnimation{
+                connectionState = .connectedLeftOnly
+            }
         } else if rightConnected {
             connectionStatus = "Connected to right arm"
-            connectionState = .connectedRightOnly
+            withAnimation{
+                connectionState = .connectedRightOnly
+            }
         } else {
-            connectionState = .connecting
+            withAnimation{
+                connectionState = .connecting
+            }
         }
     }
     
@@ -378,13 +394,19 @@ extension G1BLEManager: CBCentralManagerDelegate {
 
         // Update connectionState based on remaining connected peripherals
         if !leftConnected && !rightConnected {
-            connectionState = .disconnected
+            withAnimation{
+                connectionState = .disconnected
+            }
             connectionStatus = "Disconnected"
         } else if leftConnected {
-            connectionState = .connectedLeftOnly
+            withAnimation{
+                connectionState = .connectedLeftOnly
+            }
             connectionStatus = "Connected to left arm"
         } else if rightConnected {
-            connectionState = .connectedRightOnly
+            withAnimation{
+                connectionState = .connectedRightOnly
+            }
             connectionStatus = "Connected to right arm"
         }
 

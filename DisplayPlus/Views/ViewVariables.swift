@@ -253,3 +253,52 @@ struct FloatingButtons<Destination: View>: View {
     }
 }
 
+extension View {
+    @ViewBuilder
+    func mainButtonStyle(pri: Color, sec: Color, darkMode: Bool) -> some View {
+        if #available(iOS 26, *) {
+            self
+                .glassEffect(.regular.tint(!darkMode ? pri.opacity(0.95) : sec.opacity(0.95)).interactive(true)) //, in: Rectangle()
+                .foregroundColor(darkMode ? pri : sec)
+
+        } else {
+            self
+                .background(!darkMode ? pri : sec)
+                .foregroundColor(darkMode ? pri : sec)
+                .buttonStyle(.borderless)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func applyGlass() -> some View {
+        if #available(iOS 26, *) {
+            self.glassEffect()
+        }
+    }
+    
+}
+
+extension View {
+    @ViewBuilder
+    func glassListBG(pri: Color, sec: Color, darkMode: Bool) -> some View {
+        if #available(iOS 26, *) {
+            self
+                .padding(.vertical, 8)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
+                .listRowBackground(VisualEffectView(effect: UIBlurEffect(style: darkMode ? .dark : .light)))
+                .glassEffect(.regular.tint(darkMode ? pri : sec), in: RoundedRectangle(cornerRadius: 6))
+                
+        }else{
+            self
+                .listRowBackground(
+                    VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                )
+        }
+    }
+    
+}
+
