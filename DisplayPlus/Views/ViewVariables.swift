@@ -281,15 +281,20 @@ extension View {
     @ViewBuilder
     func glassListBG(pri: Color, sec: Color, darkMode: Bool) -> some View {
         if #available(iOS 26, *) {
-            let insets: CGFloat = 6
+            let insets: CGFloat = 4
+            let rounding: CGFloat = 14
+            
             self
                 .padding(.vertical, 8)
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: insets, leading: insets*2, bottom: insets, trailing: insets*2))
-                .listRowBackground(VisualEffectView(effect: UIBlurEffect(style: darkMode ? .dark : .light)))
-                .glassEffect(.regular.tint(darkMode ? pri.lighter() : sec)) //
-                .clipShape(Capsule())
-                
+                .glassEffect(.regular.tint(darkMode ? pri.lighter() : sec), in: RoundedRectangle(cornerRadius: rounding))
+                .clipShape(RoundedRectangle(cornerRadius: rounding))
+                .listRowBackground(
+                    VisualEffectView(effect: UIBlurEffect(style: !darkMode ? .light : .dark))
+                )
+            
+            
         }else{
             self
                 .listRowBackground(
@@ -338,3 +343,4 @@ extension Color {
         return self // fallback
     }
 }
+
