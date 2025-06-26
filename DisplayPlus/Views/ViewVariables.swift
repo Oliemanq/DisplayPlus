@@ -127,7 +127,9 @@ struct FloatingButtons<Destination: View>: View {
                 
                 //Background when button pressed
                 if isExpanded {
-                    VisualEffectView(effect: UIGlassEffect())
+                    Rectangle()
+                        .foregroundStyle(Color.clear)
+                        .glassEffect(in: Rectangle())
                         .onTapGesture {
                             withAnimation{
                                 isExpanded = false
@@ -145,19 +147,24 @@ struct FloatingButtons<Destination: View>: View {
                                     HStack(spacing: 0){
                                         Image(systemName: item.iconSystemName)
                                             .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                            .onTapGesture {
+                                                item.action()
+                                                withAnimation{
+                                                    isExpanded.toggle()
+                                                }
+                                            }
                                             .font(.system(size: 28))
                                         Text(item.extraText ?? "")
                                             .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
-
+                                            .onTapGesture {
+                                                item.action()
+                                                withAnimation{
+                                                    isExpanded.toggle()
+                                                }
+                                            }
                                             .offset(x: -5)
                                     }
                                     .offset(y: -CGFloat(index+1) * standardOffset)
-                                    .onTapGesture {
-                                        item.action()
-                                        withAnimation{
-                                            isExpanded.toggle()
-                                        }
-                                    }
                                 }.offset(x: -10)
                             }
                             Image(systemName: !isExpanded ? "folder.badge.plus" : "folder.fill.badge.plus")
@@ -281,17 +288,19 @@ extension View {
     @ViewBuilder
     func glassListBG(pri: Color, sec: Color, darkMode: Bool) -> some View {
         if #available(iOS 26, *) {
-            let insets: CGFloat = 4
+            let insets: CGFloat = 8
             let rounding: CGFloat = 14
             
             self
                 .padding(.vertical, 8)
                 .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: insets, leading: insets*2, bottom: insets, trailing: insets*2))
+                .listRowInsets(EdgeInsets(top: insets, leading: insets*1.5, bottom: insets, trailing: insets*1.5))
                 .glassEffect(.regular.tint(darkMode ? pri.lighter() : sec), in: RoundedRectangle(cornerRadius: rounding))
                 .clipShape(RoundedRectangle(cornerRadius: rounding))
                 .listRowBackground(
-                    VisualEffectView(effect: UIBlurEffect(style: !darkMode ? .light : .dark))
+                    Rectangle()
+                        .foregroundStyle(Color.clear)
+                        .glassEffect(.regular.tint(darkMode ? pri.lighter().opacity(0.85) : sec.darker().opacity(0.85)), in: Rectangle())
                 )
             
             

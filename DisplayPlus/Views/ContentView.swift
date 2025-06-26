@@ -129,7 +129,7 @@ struct ContentView: View {
                         }
                         Spacer()
                     }
-                    .listRowInsets(EdgeInsets(top: 20, leading: 20, bottom: 20, trailing: 20))
+                    .listRowInsets(EdgeInsets(top: 20, leading: 50, bottom: 20, trailing: 50))
                     .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
 
                     //Song info
@@ -138,8 +138,12 @@ struct ContentView: View {
                             Spacer()
                             Text("No music playing")
                                 .font(.headline)
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
                             Spacer()
-                        }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                        }
+                        .listRowInsets(EdgeInsets(top: 20, leading: 100, bottom: 20, trailing: 100))
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     }else{
                         // Current playing music plus progress bar
                         HStack{
@@ -147,8 +151,10 @@ struct ContentView: View {
                             VStack(alignment: .center) {
                                 // Use info.currentSong properties
                                 Text(info.currentSong.title)
+                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                     .font(.headline)
                                 Text("\(info.currentSong.album) - \(info.currentSong.artist)")
+                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                     .font(.subheadline)
                                     .multilineTextAlignment(.center)
                                 
@@ -170,11 +176,14 @@ struct ContentView: View {
                             Text("No events today")
                                 .font(.headline)
                             Spacer()
-                        }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                        }
+                        .listRowInsets(EdgeInsets(top: 20, leading: 100, bottom: 20, trailing: 100))
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     }else{
                         Text("Calendar events: ")
                             .font(.headline)
                             .padding(.horizontal, 8)
+                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                         
                         // Use info.eventsFormatted for ForEach
@@ -287,6 +296,7 @@ struct ContentView: View {
                                             
                                         }
                                     }
+                                    .scrollIndicators(.hidden)
                                 }
                             }
                         }
@@ -380,7 +390,7 @@ struct ContentView: View {
                             .font(.headline)
                         Spacer()
                     }
-                    .listRowInsets(EdgeInsets(top: 20, leading: 20, bottom: 20, trailing: 20))
+                    .listRowInsets(EdgeInsets(top: 10, leading: 30, bottom: 10, trailing: 30))
                     .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
 
                     
