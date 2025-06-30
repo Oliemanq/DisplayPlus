@@ -7,13 +7,7 @@
  - Siri shortcuts/AppIntents support for a few actions 
  - Current weather, temp, and wind speed
 
-## In Progress/upcoming
- - Battery life optimizing
- - Device selection for pairing multiple pairs of glasses/choosing which pair to add to app
- - Full UI redesign for iOS 26 design
-
 ## Possible future features
- - Apple HealthKit stats/ring
  - Notification mirroring
  - glasses brightness
 
