@@ -104,10 +104,18 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             )
         )
         
-        DispatchQueue.main.async { [self] in
-                currentTemp = Int(ceil(data.current.temperature2m))
-                currentWind = Int(ceil(data.current.windSpeed10m))
-            }
+        // Calculate the values outside the closure
+        let tempValue = Int(ceil(data.current.temperature2m))
+        let windValue = Int(ceil(data.current.windSpeed10m))
+        
+        await MainActor.run {
+            self.currentTemp = tempValue
+            self.currentWind = windValue
+        }
+    }
+    
+    func getAuthStatus() -> Bool {
+        return locationManager.authorizationStatus == .authorizedAlways || locationManager.authorizationStatus == .authorizedWhenInUse
     }
 }
 

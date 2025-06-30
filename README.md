@@ -4,7 +4,7 @@
  - Even G1 glasses support
  - Upcoming calendar 
  - Battery stats
- - Siri shortcuts/AppIntents support for a few actions
+ - Siri shortcuts/AppIntents support for a few actions 
  - Current weather, temp, and wind speed
 
 ## Possible future features

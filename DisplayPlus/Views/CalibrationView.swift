@@ -14,10 +14,21 @@ struct CalibrationView: View {
     @State var counter = 0
     
     @State var timer: Timer?
-    var currentDisplayLines: [String] = []
-    @State var characters: [String] = []
-    @State var calibratedKeys: [String: Int]
-    let calibrationChars: [String] = ["@", ".", "X", "+", "B", "t", "j"]
+    @State var characters: [String] = [
+        // Uppercase A-Z
+        "A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z",
+        // Lowercase a-z
+        "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z",
+        // Digits 0-9
+        "0","1","2","3","4","5","6","7","8","9",
+        // Punctuation and symbols used
+        "@", ".", "+", ",", "!", ":", ";", "|", "#", "%", "-", "<", "=", ">", "^", "$", "?", "*", "/", "_", "{", "}", "(", ")", "[", "]", "`", "~", "&"
+    ]
+    // This array contains all letters, digits, and punctuation/symbols used in your calibration logic and display formatting.
+    @State var calibratedChars: [String:Int] = [:]
+    
+    @State var quickCal: Bool = false
+    let quickChars: [String] = ["@", ".", "X", "+", "B", "t", "j", " "]
     
     @Environment(\.colorScheme) private var colorScheme
     var primaryColor: Color = Color(red: 1, green: 0.75, blue: 1)
@@ -28,7 +39,7 @@ struct CalibrationView: View {
     @State var timesChanged: Int = 0 //Amount of times amountOfChars has changed for current Char
     
     @State var currentChar: String = "" //Currently selected Character
-    @State var index: Int = 1 //Index in array
+    @State var index: Int = 0 //Index in array
     
     
     @State var savingData = false
@@ -38,8 +49,7 @@ struct CalibrationView: View {
     
     init(ble: G1BLEManager){
         bleManager = ble
-        
-        calibratedKeys = UserDefaults.standard.dictionary(forKey: "calibratedKeys") as? [String: Int] ?? [:]
+        loadCalibrationData()
     }
     
     var body: some View {
@@ -47,23 +57,48 @@ struct CalibrationView: View {
         VStack{
             if !savingData{
                 if showStart{
+                    Spacer()
+                    HStack{
+                        Button("Quick calibration"){
+                            quickCal = true
+                        }
+                        .frame(width: 150, height: 40)
+                        .contentShape(Rectangle())
+                        .background((!darkMode ? primaryColor : secondaryColor))
+                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                        .buttonStyle(.borderless)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        
+                        Button("Long calibration"){
+                            quickCal = false
+                        }
+                        .frame(width: 150, height: 40)
+                        .contentShape(Rectangle())
+                        .background((!darkMode ? primaryColor : secondaryColor))
+                        .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                        .buttonStyle(.borderless)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    Spacer()
                     Button(action: { //Button that shows when launching calibration view
                         mainButtons.toggle()
                         showStart.toggle()
-                        
-                        characters = Array(calibratedKeys.keys).sorted()
+                        if quickCal{
+                            characters = quickChars
+                        }
                         currentChar = characters[index]
-                        amountOfChars = calibratedKeys[currentChar] ?? 80
+                        amountOfChars = 80
                     }) {
                         Text("Begin Calibration")
                             .frame(width: 150, height: 30)
                     }
-                    .padding(2)
+                    .frame(width: 150, height: 40)
                     .contentShape(Rectangle())
                     .background((!darkMode ? primaryColor : secondaryColor))
                     .foregroundColor(darkMode ? primaryColor : secondaryColor)
                     .buttonStyle(.borderless)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
+                    Spacer()
                 }
                 
                 if mainButtons {
@@ -160,7 +195,7 @@ struct CalibrationView: View {
                         
                         Button("Find all repeat values") { //Prints out the whole list of saved characters and how many of them fit
                             var AmountOfCharsPerValue = [:]
-                            let grouped = Dictionary(grouping: calibratedKeys.keys, by: { calibratedKeys[$0] ?? -1 })
+                            let grouped = Dictionary(grouping: calibratedChars.keys, by: { calibratedChars[$0] ?? -1 })
                             for (value, keys) in grouped {
                                 let sortedKeys = keys.sorted().joined(separator: ",")
                                 AmountOfCharsPerValue[sortedKeys] = value
@@ -181,7 +216,7 @@ struct CalibrationView: View {
                     Spacer()
                     
                     Button(action: { //Button to delete all saved calibrations
-                        calibratedKeys = [:]
+                        calibratedChars = [:]
                     }) {
                         Text("Delete ALL calibrations")
                             .frame(width: 200, height: 30)
@@ -251,7 +286,7 @@ struct CalibrationView: View {
                 }
             }else{
                 VStack{
-                    Button(action: {saveCalibrationData(); savingData.toggle()}) { //Confirming data saving
+                    Button(action: {saveCalibrationData(); savingData.toggle()}) {
                         Text("Confirm?")
                             .frame(width: 175, height: 30)
                     }
@@ -277,8 +312,12 @@ struct CalibrationView: View {
         }
         .onAppear(){
             timer = Timer.scheduledTimer(withTimeInterval: 1/2, repeats: true) { _ in
-                if bleManager.connectionStatus == "Connected to G1 Glasses (both arms)."{ //Checking if glasses are connected to app
-                    sendTextCommand(text: String(repeating: currentChar, count: amountOfChars)) //sending looping command to glasses to display currentChar x amount of times
+                if bleManager.connectionState == .connectedBoth{ //Checking if glasses are connected to app
+                    if currentChar == " "{
+                        sendTextCommand(text: "\(String(repeating: currentChar, count: amountOfChars))|") //sending looping command to glasses to display currentChar x amount of times
+                    }else{
+                        sendTextCommand(text: String(repeating: currentChar, count: amountOfChars)) //sending looping command to glasses to display currentChar x amount of times
+                    }
                     
                 }
             }
@@ -291,111 +330,115 @@ struct CalibrationView: View {
     func charFits(){
         let char = currentChar
         
-        /*
         if "&@MWmw~".contains(char){
-            calibratedKeys.updateValue(amountOfChars, forKey: "&")
-            calibratedKeys.updateValue(amountOfChars, forKey: "@")
-            calibratedKeys.updateValue(amountOfChars, forKey: "M")
-            calibratedKeys.updateValue(amountOfChars, forKey: "W")
-            calibratedKeys.updateValue(amountOfChars, forKey: "m")
-            calibratedKeys.updateValue(amountOfChars, forKey: "w")
-            calibratedKeys.updateValue(amountOfChars, forKey: "~")
+            calibratedChars.updateValue(amountOfChars, forKey: "&")
+            calibratedChars.updateValue(amountOfChars, forKey: "@")
+            calibratedChars.updateValue(amountOfChars, forKey: "M")
+            calibratedChars.updateValue(amountOfChars, forKey: "W")
+            calibratedChars.updateValue(amountOfChars, forKey: "m")
+            calibratedChars.updateValue(amountOfChars, forKey: "w")
+            calibratedChars.updateValue(amountOfChars, forKey: "~")
+            print("&@MWmw~ updated with value of \(amountOfChars)")
         }else if "!,.:;il|".contains(char){
-            calibratedKeys.updateValue(amountOfChars, forKey: "!")
-            calibratedKeys.updateValue(amountOfChars, forKey: ",")
-            calibratedKeys.updateValue(amountOfChars, forKey: ".")
-            calibratedKeys.updateValue(amountOfChars, forKey: ";")
-            calibratedKeys.updateValue(amountOfChars, forKey: ":")
-            calibratedKeys.updateValue(amountOfChars, forKey: "i")
-            calibratedKeys.updateValue(amountOfChars, forKey: "l")
-            calibratedKeys.updateValue(amountOfChars, forKey: "|")
+            calibratedChars.updateValue(amountOfChars, forKey: "!")
+            calibratedChars.updateValue(amountOfChars, forKey: ",")
+            calibratedChars.updateValue(amountOfChars, forKey: ".")
+            calibratedChars.updateValue(amountOfChars, forKey: ";")
+            calibratedChars.updateValue(amountOfChars, forKey: ":")
+            calibratedChars.updateValue(amountOfChars, forKey: "i")
+            calibratedChars.updateValue(amountOfChars, forKey: "l")
+            calibratedChars.updateValue(amountOfChars, forKey: "|")
+            print("!,.:;il| updated with value of \(amountOfChars)")
         }else if "#%AVXY".contains(char){
-            calibratedKeys.updateValue(amountOfChars, forKey: "#")
-            calibratedKeys.updateValue(amountOfChars, forKey: "%")
-            calibratedKeys.updateValue(amountOfChars, forKey: "A")
-            calibratedKeys.updateValue(amountOfChars, forKey: "V")
-            calibratedKeys.updateValue(amountOfChars, forKey: "X")
-            calibratedKeys.updateValue(amountOfChars, forKey: "Y")
+            calibratedChars.updateValue(amountOfChars, forKey: "#")
+            calibratedChars.updateValue(amountOfChars, forKey: "%")
+            calibratedChars.updateValue(amountOfChars, forKey: "A")
+            calibratedChars.updateValue(amountOfChars, forKey: "V")
+            calibratedChars.updateValue(amountOfChars, forKey: "X")
+            calibratedChars.updateValue(amountOfChars, forKey: "Y")
+            print("#%AVXY updated with value of \(amountOfChars)")
         }else if "+-<=>EFL^bcdefghknopqsz".contains(char){
-            calibratedKeys.updateValue(amountOfChars, forKey: "+")
-            calibratedKeys.updateValue(amountOfChars, forKey: "-")
-            calibratedKeys.updateValue(amountOfChars, forKey: "<")
-            calibratedKeys.updateValue(amountOfChars, forKey: "=")
-            calibratedKeys.updateValue(amountOfChars, forKey: ">")
-            calibratedKeys.updateValue(amountOfChars, forKey: "E")
-            calibratedKeys.updateValue(amountOfChars, forKey: "F")
-            calibratedKeys.updateValue(amountOfChars, forKey: "L")
-            calibratedKeys.updateValue(amountOfChars, forKey: "^")
-            calibratedKeys.updateValue(amountOfChars, forKey: "b")
-            calibratedKeys.updateValue(amountOfChars, forKey: "c")
-            calibratedKeys.updateValue(amountOfChars, forKey: "d")
-            calibratedKeys.updateValue(amountOfChars, forKey: "e")
-            calibratedKeys.updateValue(amountOfChars, forKey: "f")
-            calibratedKeys.updateValue(amountOfChars, forKey: "g")
-            calibratedKeys.updateValue(amountOfChars, forKey: "h")
-            calibratedKeys.updateValue(amountOfChars, forKey: "k")
-            calibratedKeys.updateValue(amountOfChars, forKey: "n")
-            calibratedKeys.updateValue(amountOfChars, forKey: "o")
-            calibratedKeys.updateValue(amountOfChars, forKey: "p")
-            calibratedKeys.updateValue(amountOfChars, forKey: "q")
-            calibratedKeys.updateValue(amountOfChars, forKey: "s")
-            calibratedKeys.updateValue(amountOfChars, forKey: "z")
+            calibratedChars.updateValue(amountOfChars, forKey: "+")
+            calibratedChars.updateValue(amountOfChars, forKey: "-")
+            calibratedChars.updateValue(amountOfChars, forKey: "<")
+            calibratedChars.updateValue(amountOfChars, forKey: "=")
+            calibratedChars.updateValue(amountOfChars, forKey: ">")
+            calibratedChars.updateValue(amountOfChars, forKey: "E")
+            calibratedChars.updateValue(amountOfChars, forKey: "F")
+            calibratedChars.updateValue(amountOfChars, forKey: "L")
+            calibratedChars.updateValue(amountOfChars, forKey: "^")
+            calibratedChars.updateValue(amountOfChars, forKey: "b")
+            calibratedChars.updateValue(amountOfChars, forKey: "c")
+            calibratedChars.updateValue(amountOfChars, forKey: "d")
+            calibratedChars.updateValue(amountOfChars, forKey: "e")
+            calibratedChars.updateValue(amountOfChars, forKey: "f")
+            calibratedChars.updateValue(amountOfChars, forKey: "g")
+            calibratedChars.updateValue(amountOfChars, forKey: "h")
+            calibratedChars.updateValue(amountOfChars, forKey: "k")
+            calibratedChars.updateValue(amountOfChars, forKey: "n")
+            calibratedChars.updateValue(amountOfChars, forKey: "o")
+            calibratedChars.updateValue(amountOfChars, forKey: "p")
+            calibratedChars.updateValue(amountOfChars, forKey: "q")
+            calibratedChars.updateValue(amountOfChars, forKey: "s")
+            calibratedChars.updateValue(amountOfChars, forKey: "z")
+            print("+-<=>EFL^bcdefghknopqsz updated with value of \(amountOfChars)")
         }else if "$023456789?BCDGHKNOPQRSTUZauvxy".contains(char){
-            calibratedKeys.updateValue(amountOfChars, forKey: "$")
-            calibratedKeys.updateValue(amountOfChars, forKey: "0")
-            calibratedKeys.updateValue(amountOfChars, forKey: "2")
-            calibratedKeys.updateValue(amountOfChars, forKey: "3")
-            calibratedKeys.updateValue(amountOfChars, forKey: "4")
-            calibratedKeys.updateValue(amountOfChars, forKey: "5")
-            calibratedKeys.updateValue(amountOfChars, forKey: "6")
-            calibratedKeys.updateValue(amountOfChars, forKey: "7")
-            calibratedKeys.updateValue(amountOfChars, forKey: "8")
-            calibratedKeys.updateValue(amountOfChars, forKey: "9")
-            calibratedKeys.updateValue(amountOfChars, forKey: "?")
-            calibratedKeys.updateValue(amountOfChars, forKey: "B")
-            calibratedKeys.updateValue(amountOfChars, forKey: "C")
-            calibratedKeys.updateValue(amountOfChars, forKey: "D")
-            calibratedKeys.updateValue(amountOfChars, forKey: "G")
-            calibratedKeys.updateValue(amountOfChars, forKey: "H")
-            calibratedKeys.updateValue(amountOfChars, forKey: "K")
-            calibratedKeys.updateValue(amountOfChars, forKey: "N")
-            calibratedKeys.updateValue(amountOfChars, forKey: "O")
-            calibratedKeys.updateValue(amountOfChars, forKey: "P")
-            calibratedKeys.updateValue(amountOfChars, forKey: "Q")
-            calibratedKeys.updateValue(amountOfChars, forKey: "R")
-            calibratedKeys.updateValue(amountOfChars, forKey: "S")
-            calibratedKeys.updateValue(amountOfChars, forKey: "T")
-            calibratedKeys.updateValue(amountOfChars, forKey: "U")
-            calibratedKeys.updateValue(amountOfChars, forKey: "Z")
-            calibratedKeys.updateValue(amountOfChars, forKey: "a")
-            calibratedKeys.updateValue(amountOfChars, forKey: "u")
-            calibratedKeys.updateValue(amountOfChars, forKey: "v")
-            calibratedKeys.updateValue(amountOfChars, forKey: "x")
-            calibratedKeys.updateValue(amountOfChars, forKey: "y")
-        } else if (/1*J_rt{}".contains(char){
-            calibratedKeys.updateValue(amountOfChars, forKey: "*")
-            calibratedKeys.updateValue(amountOfChars, forKey: "/")
-            calibratedKeys.updateValue(amountOfChars, forKey: "1")
-            calibratedKeys.updateValue(amountOfChars, forKey: "J")
-            calibratedKeys.updateValue(amountOfChars, forKey: "_")
-            calibratedKeys.updateValue(amountOfChars, forKey: "r")
-            calibratedKeys.updateValue(amountOfChars, forKey: "t")
-            calibratedKeys.updateValue(amountOfChars, forKey: "{")
-            calibratedKeys.updateValue(amountOfChars, forKey: "}")
+            calibratedChars.updateValue(amountOfChars, forKey: "$")
+            calibratedChars.updateValue(amountOfChars, forKey: "0")
+            calibratedChars.updateValue(amountOfChars, forKey: "2")
+            calibratedChars.updateValue(amountOfChars, forKey: "3")
+            calibratedChars.updateValue(amountOfChars, forKey: "4")
+            calibratedChars.updateValue(amountOfChars, forKey: "5")
+            calibratedChars.updateValue(amountOfChars, forKey: "6")
+            calibratedChars.updateValue(amountOfChars, forKey: "7")
+            calibratedChars.updateValue(amountOfChars, forKey: "8")
+            calibratedChars.updateValue(amountOfChars, forKey: "9")
+            calibratedChars.updateValue(amountOfChars, forKey: "?")
+            calibratedChars.updateValue(amountOfChars, forKey: "B")
+            calibratedChars.updateValue(amountOfChars, forKey: "C")
+            calibratedChars.updateValue(amountOfChars, forKey: "D")
+            calibratedChars.updateValue(amountOfChars, forKey: "G")
+            calibratedChars.updateValue(amountOfChars, forKey: "H")
+            calibratedChars.updateValue(amountOfChars, forKey: "K")
+            calibratedChars.updateValue(amountOfChars, forKey: "N")
+            calibratedChars.updateValue(amountOfChars, forKey: "O")
+            calibratedChars.updateValue(amountOfChars, forKey: "P")
+            calibratedChars.updateValue(amountOfChars, forKey: "Q")
+            calibratedChars.updateValue(amountOfChars, forKey: "R")
+            calibratedChars.updateValue(amountOfChars, forKey: "S")
+            calibratedChars.updateValue(amountOfChars, forKey: "T")
+            calibratedChars.updateValue(amountOfChars, forKey: "U")
+            calibratedChars.updateValue(amountOfChars, forKey: "Z")
+            calibratedChars.updateValue(amountOfChars, forKey: "a")
+            calibratedChars.updateValue(amountOfChars, forKey: "u")
+            calibratedChars.updateValue(amountOfChars, forKey: "v")
+            calibratedChars.updateValue(amountOfChars, forKey: "x")
+            calibratedChars.updateValue(amountOfChars, forKey: "y")
+            print("$023456789?BCDGHKNOPQRSTUZauvxy updated with value of \(amountOfChars)")
+        }else if "/1*J_rt{}".contains(char) {
+            calibratedChars.updateValue(amountOfChars, forKey: "*")
+            calibratedChars.updateValue(amountOfChars, forKey: "/")
+            calibratedChars.updateValue(amountOfChars, forKey: "1")
+            calibratedChars.updateValue(amountOfChars, forKey: "J")
+            calibratedChars.updateValue(amountOfChars, forKey: "_")
+            calibratedChars.updateValue(amountOfChars, forKey: "r")
+            calibratedChars.updateValue(amountOfChars, forKey: "t")
+            calibratedChars.updateValue(amountOfChars, forKey: "{")
+            calibratedChars.updateValue(amountOfChars, forKey: "}")
+            print("/1*J_rt{} updated with value of \(amountOfChars)")
         }else if "()I[]`j".contains(char) {
-            calibratedKeys.updateValue(amountOfChars, forKey: "(")
-            calibratedKeys.updateValue(amountOfChars, forKey: ")")
-            calibratedKeys.updateValue(amountOfChars, forKey: "I")
-            calibratedKeys.updateValue(amountOfChars, forKey: "[")
-            calibratedKeys.updateValue(amountOfChars, forKey: "]")
-            calibratedKeys.updateValue(amountOfChars, forKey: "`")
-            calibratedKeys.updateValue(amountOfChars, forKey: "j")
+            calibratedChars.updateValue(amountOfChars, forKey: "(")
+            calibratedChars.updateValue(amountOfChars, forKey: ")")
+            calibratedChars.updateValue(amountOfChars, forKey: "I")
+            calibratedChars.updateValue(amountOfChars, forKey: "[")
+            calibratedChars.updateValue(amountOfChars, forKey: "]")
+            calibratedChars.updateValue(amountOfChars, forKey: "`")
+            calibratedChars.updateValue(amountOfChars, forKey: "j")
+            print("()I[]`j updated with value of \(amountOfChars)")
         }else if " ".contains(char) {
-            calibratedKeys.updateValue(amountOfChars, forKey: " ")
+            calibratedChars.updateValue(amountOfChars, forKey: " ")
+            print("' ' updated with value of \(amountOfChars)")
         }
-    */
-        calibratedKeys.updateValue(amountOfChars, forKey: char)
-        print("Added \(char) with value \(amountOfChars) to calibration data")
     }
     
     func charDoesNotFit(tooBig: Bool){
@@ -431,21 +474,18 @@ struct CalibrationView: View {
     
     func saveCalibrationData(){
         //Local storage save
-        UserDefaults.standard.set(calibratedKeys, forKey: "calibratedKeys")
+        UserDefaults.standard.set(calibratedChars, forKey: "calibratedKeys")
         print("Saved calibration data to local storage")
     }
     func loadCalibrationData(){
-        if let loadedCalibratedKeys = UserDefaults.standard.object(forKey: "calibratedKeys") as? [String: Int] {
-            calibratedKeys = loadedCalibratedKeys
+        if let loadedCalibratedChars = UserDefaults.standard.object(forKey: "calibratedKeys") as? [String: Int] {
+            calibratedChars = loadedCalibratedChars
         }
     }
     func sendTextCommand(text: String = ""){
         var currentDisplay = "There should be exactly enough characters to fit in a single line ||\n"
-        if text == " "{
-            currentDisplay.append(String("\(text)|")) //Adding an indicator to the space character to show how far it is
-        }else{
-            currentDisplay.append(contentsOf: text)
-        }
+        currentDisplay.append(contentsOf: text)
+        
         bleManager.sendTextCommand(seq: UInt8(self.counter), text: currentDisplay)
         counter += 1
         if counter >= 255 {
@@ -470,11 +510,10 @@ struct CalibrationView: View {
         }
         
         currentChar = characters[index]
-        amountOfChars = calibratedKeys[currentChar] ?? 80
+        amountOfChars = calibratedChars[currentChar] ?? 80
     }
 }
 
 #Preview {
     CalibrationView(ble: G1BLEManager())
 }
-

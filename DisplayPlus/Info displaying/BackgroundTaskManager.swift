@@ -16,10 +16,18 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     private var infoManager: InfoManager
     
     var timer: Timer?
-    var counter: Int = 0
-    var displayOnCounter: Int = 0
-    private var weatherUpdateTicker: Int = 0 // New counter for less frequent weather updates
     
+    //various counters
+    var counter: Int = 0
+    var HBCounter: Int = 1
+    var batteryCounter: Int = 0
+    var displayOnCounter: Int = 0
+    var weatherCounter: Int = 0
+    
+    @AppStorage("displayOn") var displayOn = false
+    @AppStorage("autoOff") var autoOff = false
+    @AppStorage("showingCalibration") var showingCalibration = false
+     
     init(ble: G1BLEManager, info: InfoManager, formatting: FormattingManager) {
         self.ble = ble
         self.formattingManager = formatting
@@ -27,11 +35,11 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     }
     
     func startTimer() {
-        if UserDefaults.standard.bool(forKey: "displayOn") && !UserDefaults.standard.bool(forKey: "autoOff") {
+        if displayOn && !autoOff {
             displayOnCounter = 0
         }
         // Reset weather ticker when timer starts or restarts
-        weatherUpdateTicker = 0
+        weatherCounter = 0
         
         // Invalidate existing timer before starting a new one
         timer?.invalidate()
@@ -41,50 +49,59 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 print("BackgroundTaskManager timer: self is nil, timer cannot continue.") // Log if self is nil
                 return
             }
-
-            // Determine if it's time to update weather
-            let shouldUpdateWeather = (self.weatherUpdateTicker >= 600) // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
-            
-            // Update InfoManager's data
-            self.infoManager.update(updateWeatherBool: shouldUpdateWeather)
-            
-            if shouldUpdateWeather {
-                self.weatherUpdateTicker = 0 // Reset ticker
-                print("BackgroundTaskManager timer: Triggered weather update.")
-            } else {
-                self.weatherUpdateTicker += 1
-            }
-
-            let isAutoOff = UserDefaults.standard.bool(forKey: "autoOff")
-            let isDisplayOnInitially = UserDefaults.standard.bool(forKey: "displayOn") // displayOn state at the start of this tick
-            
-            if isAutoOff {
-                if isDisplayOnInitially {
-                    self.displayOnCounter += 1
-                    print("BackgroundTaskManager timer: autoOff active, displayOn is true, displayOnCounter incremented to \(self.displayOnCounter).")
+            if ble.connectionState == .connectedBoth {
+                if counter%51 == 0{ //Sending heartbeat command every ~25 seconds to maintain connection
+                    ble.sendHeartbeat(counter: HBCounter)
+                    
+                    HBCounter += 1
+                    if HBCounter > 255{
+                        HBCounter = 0
+                    }
                 }
-                if self.displayOnCounter >= 10 {
-                    print("BackgroundTaskManager timer: autoOff threshold reached (displayOnCounter=\(self.displayOnCounter)). Setting UserDefaults[displayOn] to false.")
-                    self.displayOnCounter = 0
-                    UserDefaults.standard.set(false, forKey: "displayOn")
-                    // self.objectWillChange.send() // Consider if ContentView needs this for @AppStorage observation
+                // Determine if it's time to update weather
+                let shouldUpdateWeather = (weatherCounter >= 600) // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
+                
+                // Update InfoManager's data
+                infoManager.update(updateWeatherBool: shouldUpdateWeather)
+                
+                if batteryCounter % 15 == 0{
+                    ble.fetchGlassesBattery()
+                }
+                
+                if shouldUpdateWeather {
+                    weatherCounter = 0 // Reset ticker
+                    print("BackgroundTaskManager timer: Triggered weather update.")
+                } else {
+                    weatherCounter += 1
+                }
+                
+                let isAutoOff = autoOff
+                let isDisplayOnInitially = displayOn
+                
+                if isAutoOff {
+                    if isDisplayOnInitially {
+                        displayOnCounter += 1
+                    }
+                    if displayOnCounter >= 10 {
+                        displayOnCounter = 0
+                        displayOn = false
+                    }
+                }
+                
+                // Re-fetch displayOn as it might have been changed by the autoOff logic above in the same tick
+                let currentDisplayOn = displayOn
+                
+                //infoManager.changed is to reduce unnecesary updates to the glasses
+                if currentDisplayOn && infoManager.changed && !showingCalibration {
+                    let pageText = pageHandler()
+                    ble.sendText(text: pageText, counter: counter)
+                }
+                
+                counter += 1
+                if counter > 255 {
+                    counter = 0
                 }
             }
-
-            // Re-fetch displayOn as it might have been changed by the autoOff logic above in the same tick
-            let currentDisplayOn = UserDefaults.standard.bool(forKey: "displayOn")
-            
-            if currentDisplayOn {
-                let pageText = self.pageHandler()
-                self.ble.sendText(text: pageText, counter: self.counter)
-            } else {
-            }
-
-            self.counter += 1
-            if self.counter > 255 {
-                self.counter = 0
-            }
-            // print("BackgroundTaskManager timer: Counter incremented to \(self.counter)") // More verbose log if needed
         }
     }
         
@@ -95,36 +112,31 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     
     func pageHandler() -> String {
         var textOutput = ""
+        textOutput = formattingManager.header()
         
         if let page = UserDefaults.standard.string(forKey: "currentPage") {
             if page == "Default" { // DEFAULT PAGE HANDLER
-                let displayLines = self.formattingManager.defaultDisplay()
+                let displayLines = formattingManager.defaultDisplay()
                 
-                if displayLines.isEmpty {
-                    textOutput = "broken"
-                } else {
-                    textOutput = displayLines.joined(separator: "\n")
-                }
+                textOutput.append(displayLines.joined(separator: "\n"))
+                
                 
             } else if page == "Music" { // MUSIC PAGE HANDLER
-                let displayLines = self.formattingManager.musicDisplay()
+                let displayLines = formattingManager.musicDisplay()
                 
                 if displayLines.isEmpty {
                     textOutput = "broken"
                 } else {
-                    textOutput = displayLines.joined(separator: "\n")
+                    textOutput.append(displayLines.joined(separator: "\n"))
                 }
                 
-            } else if page == "RearView" {
-                textOutput = "To be implemented later, getting UI in place"
-                
             } else if page == "Calendar" { // CALENDAR PAGE HANDLER
-                let displayLines = self.formattingManager.calendarDisplay()
+                let displayLines = formattingManager.calendarDisplay()
                 
                 if displayLines.isEmpty {
                     textOutput = "broken"
                 } else {
-                    textOutput = displayLines.joined(separator: "\n")
+                    textOutput.append(displayLines.joined(separator: "\n"))
                 }
             /*
             }else if page == "Debug" {

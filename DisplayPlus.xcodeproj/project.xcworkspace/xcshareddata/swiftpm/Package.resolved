@@ -16,7 +16,7 @@
       "location" : "https://github.com/open-meteo/sdk.git",
       "state" : {
         "branch" : "main",
-        "revision" : "9ccef10f82314dc5ad0c528e661b6a479ace89aa"
+        "revision" : "faa1a3ac1d0ffa5292d949f8ad6f26f4a7d5603c"
       }
     }
   ],
