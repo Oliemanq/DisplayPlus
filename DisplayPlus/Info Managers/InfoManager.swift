@@ -48,8 +48,9 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     public func update(updateWeatherBool: Bool) {
         changed = false
         
-        if time != Date().formatted(date: .omitted, time: .shortened) {
-            time = Date().formatted(date: .omitted, time: .shortened) // Update time
+        let newTime = Date().formatted(date: .omitted, time: .shortened)
+        if time != newTime {
+            time = newTime
             changed = true
         }
         
