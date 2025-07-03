@@ -117,6 +117,7 @@ class CalendarManager {
     }
     
     func getAuthStatus() -> Bool {
+        
         let status = EKEventStore.authorizationStatus(for: .event)
         return (status == .fullAccess)
     }

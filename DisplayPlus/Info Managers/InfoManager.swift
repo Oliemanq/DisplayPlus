@@ -11,7 +11,7 @@ import UIKit
 
 class InfoManager: ObservableObject { // Conform to ObservableObject
     let cal: CalendarManager
-    let music: MusicMonitor
+    let music: AMMonitor
     let weather: WeatherManager
     let health: HealthInfoGetter
     
@@ -35,7 +35,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     // Music var
     @Published var currentSong: Song = Song(title: "", artist: "", album: "", duration: 0.0, currentTime: 0.0, isPaused: true) // Mark with @Published, provide default
 
-    init (cal: CalendarManager, music: MusicMonitor, weather: WeatherManager, health: HealthInfoGetter) {
+    init (cal: CalendarManager, music: AMMonitor, weather: WeatherManager, health: HealthInfoGetter) {
         self.cal = cal
         self.music = music
         self.weather = weather
@@ -68,13 +68,6 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         if getCalendarAuthStatus(){
             loadEvents()
         }
-        
-        // Fetch health data asynchronously
-        /* DISABLING FOR TESTFLIGHT BUILD, NOT IMPLEMENTED YET
-        Task{
-            await fetchHealthData() // Fetch health data asynchronously
-        }
-        */
          
         //Update weather only when needed (every 5 minutes or so)
         Task{
@@ -93,6 +86,13 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
                 changed = true
             }
         }
+        
+        // Fetch health data asynchronously
+        /* DISABLING FOR TESTFLIGHT BUILD, NOT IMPLEMENTED YET
+        Task{
+            await fetchHealthData() // Fetch health data asynchronously
+        }
+        */
     }
     
     private func loadEvents(completion: (() -> Void)? = nil) {
@@ -213,9 +213,11 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     
     
     //AUTH FUNCS _____________________________________________________________________________________________________________________________________________________________________________________
+    /* Removing until I implement it fully
     func getHealthAuthStatus() -> Bool {
         return (health.getAuthStatus()[0] == true && health.getAuthStatus()[1] == true && health.getAuthStatus()[2] == true) //return true if all health data is authorized, otherwise returns false
     }
+     */
     func getMusicAuthStatus() -> Bool {
         return music.getAuthStatus() // Return the music authorization status
     }

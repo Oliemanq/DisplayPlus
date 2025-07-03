@@ -17,6 +17,8 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     
     var timer: Timer?
     
+    var textOutput = ""
+    
     //various counters
     var counter: Int = 0
     var HBCounter: Int = 1
@@ -111,7 +113,6 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     }
     
     func pageHandler() -> String {
-        var textOutput = ""
         textOutput = formattingManager.header()
         
         if let page = UserDefaults.standard.string(forKey: "currentPage") {

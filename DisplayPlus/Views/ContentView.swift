@@ -43,7 +43,7 @@ struct ContentView: View {
     init() {
         // Create local instances of all managers first.
         // These instances will be used to initialize the @StateObject properties.
-        let infoInstance = InfoManager(cal: CalendarManager(), music: MusicMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
+        let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
         let bleInstance = G1BLEManager()
         // FormattingManager depends on the InfoManager instance.
         let fmInstance = FormattingManager(info: infoInstance)
@@ -203,7 +203,10 @@ struct ContentView: View {
                                         }.padding(.horizontal, 8)
                                         
                                     }
-                                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(darkMode ? Color(primaryColor).opacity(0.1) : Color(secondaryColor).opacity(0.1))
+                                    )
                                 }
                             }
                         }else{
@@ -373,12 +376,10 @@ struct ContentView: View {
                     //Glasses mirror on app UI
                     if displayOn {
                         HStack{
-                            Spacer()
                             VStack{
-                                Text(bgManager.pageHandler())
+                                Text(bgManager.textOutput)
                                     .font(.system(size: 11))
                             }
-                            Spacer()
                         }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     }
                     
@@ -392,8 +393,6 @@ struct ContentView: View {
                     }
                     .listRowInsets(EdgeInsets(top: 10, leading: 30, bottom: 10, trailing: 30))
                     .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-
-                    
                 }
                 
                 //Bottom buttons
@@ -402,52 +401,71 @@ struct ContentView: View {
             }
             
             .popover(isPresented: $showingDeviceSelectionPopup) {
-                VStack {
-                    ForEach(Array(bleManager.discoveredPairs).indices, id: \.self) { index in
-                        let pair = Array(bleManager.discoveredPairs.values)[index]
-                        VStack{
-                            Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
-                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            HStack {
-                                if pair.left != nil {
-                                    HStack{
-                                        Image(systemName: "checkmark.circle")
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                        Text("Left found")
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                ZStack {
+                    (darkMode ? primaryColor.opacity(0.5) : secondaryColor.opacity(0.75))
+                        .ignoresSafeArea()
+                    VStack {
+                        ForEach(Array(bleManager.discoveredPairs).indices, id: \.self) { index in
+                            let pair = Array(bleManager.discoveredPairs.values)[index]
+                            VStack{
+                                Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
+                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                HStack {
+                                    if pair.left != nil {
+                                        HStack{
+                                            Image(systemName: "checkmark.circle")
+                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                            Text("Left found")
+                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                        }
+                                    } else {
+                                        HStack {
+                                            Image(systemName: "x.circle")
+                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                            Text("No left")
+                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                        }
                                     }
-                                } else {
-                                    HStack {
-                                        Image(systemName: "x.circle")
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                        Text("No left")
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                    if pair.right != nil {
+                                        HStack{
+                                            Image(systemName: "checkmark.circle")
+                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                            Text("Right found")
+                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                        }
+                                    } else {
+                                        HStack {
+                                            Image(systemName: "x.circle")
+                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                            Text("No right")
+                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                        }
                                     }
                                 }
-                                if pair.right != nil {
-                                    HStack{
-                                        Image(systemName: "checkmark.circle")
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                        Text("Right found")
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                    }
-                                } else {
-                                    HStack {
-                                        Image(systemName: "x.circle")
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                        Text("No right")
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                if pair.left != nil && pair.right != nil {
+                                    withAnimation{
+                                        Button("Connect to pair"){
+                                            bleManager.connectPair(pair: pair)
+                                            showingDeviceSelectionPopup = false
+                                        }
+                                        .frame(width: 150, height: 50)
+                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                     }
                                 }
                             }
-                            if pair.left != nil && pair.right != nil {
-                                Button("Connect to pair"){
-                                    bleManager.connectPair(pair: pair)
-                                    showingDeviceSelectionPopup = false
-                                }
-                                .frame(width: 150, height: 50)
-                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                            }
+                            .padding(.horizontal, 50)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 24)
+                                .fill(!darkMode ? Color(primaryColor).opacity(0.05) : Color(secondaryColor).opacity(0.1))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .stroke(
+                                            (!darkMode ? primaryColor : secondaryColor).opacity(0.3),
+                                            lineWidth: 0.5
+                                        )
+                                )
+                            )
                         }
                     }
                 }
@@ -458,7 +476,6 @@ struct ContentView: View {
         .scrollContentBackground(.hidden)
         .background(Color.clear) // List background is now clear
         .onAppear {
-            bleManager.fetchGlassesBattery()
             info.update(updateWeatherBool: true) // Initial update
             bgManager.startTimer() // Start the background task timer
         }
