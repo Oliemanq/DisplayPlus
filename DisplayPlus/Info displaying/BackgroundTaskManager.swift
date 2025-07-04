@@ -68,7 +68,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 
                 if batteryCounter % 15 == 0{
                     ble.fetchGlassesBattery()
-                    if ble.glassesBatteryAvg <= 5{
+                    if ble.glassesBatteryAvg <= 5 && ble.glassesBatteryAvg != 0.0{
                         disconnectProper()
                     }
                 }
