@@ -68,6 +68,9 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 
                 if batteryCounter % 15 == 0{
                     ble.fetchGlassesBattery()
+                    if ble.glassesBatteryAvg <= 5{
+                        disconnectProper()
+                    }
                 }
                 
                 if shouldUpdateWeather {
@@ -154,4 +157,27 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
         
         return textOutput
     }
+    
+    func disconnectProper(){
+        //Stopping timer to stop overwritting eachother
+        timer?.invalidate()
+        
+        displayOn = true
+
+        //Looping animation drawing attention to disconnecting glasses
+        var i = 0
+        if i < 3{
+            textOutput = formattingManager.centerText(text: "Battery low, disconnecting.")
+            ble.sendTextCommand(seq: 1, text: textOutput)
+            textOutput = formattingManager.centerText(text: "Battery low, disconnecting..")
+            ble.sendTextCommand(seq: 2, text: textOutput)
+            textOutput = formattingManager.centerText(text: "Battery low, disconnecting...")
+            ble.sendTextCommand(seq: 3, text: textOutput)
+            i += 1
+        }
+        
+        ble.disconnect()
+    }
 }
+
+

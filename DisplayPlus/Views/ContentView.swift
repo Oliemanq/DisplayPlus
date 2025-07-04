@@ -129,7 +129,7 @@ struct ContentView: View {
                         }
                         Spacer()
                     }
-                    .listRowInsets(EdgeInsets(top: 20, leading: 50, bottom: 20, trailing: 50))
+                    .listRowInsets(EdgeInsets(top: 8, leading: 40, bottom: 8, trailing: 40))
                     .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
 
                     //Song info
@@ -142,7 +142,6 @@ struct ContentView: View {
 
                             Spacer()
                         }
-                        .listRowInsets(EdgeInsets(top: 20, leading: 100, bottom: 20, trailing: 100))
                         .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     }else{
                         // Current playing music plus progress bar
@@ -177,7 +176,6 @@ struct ContentView: View {
                                 .font(.headline)
                             Spacer()
                         }
-                        .listRowInsets(EdgeInsets(top: 20, leading: 100, bottom: 20, trailing: 100))
                         .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     }else{
                         Text("Calendar events: ")
@@ -194,19 +192,14 @@ struct ContentView: View {
                                         VStack(alignment: .leading) {
                                             Text(" - \(event.titleLine)")
                                                 .font(.caption)
-                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                            
                                             
                                             Text("    \(event.subtitleLine)")
                                                 .font(.footnote)
-                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+
                                         }.padding(.horizontal, 8)
                                         
                                     }
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(darkMode ? Color(primaryColor).opacity(0.1) : Color(secondaryColor).opacity(0.1))
-                                    )
+                                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                 }
                             }
                         }else{
@@ -375,12 +368,12 @@ struct ContentView: View {
                     
                     //Glasses mirror on app UI
                     if displayOn {
-                        HStack{
-                            VStack{
-                                Text(bgManager.textOutput)
-                                    .font(.system(size: 11))
-                            }
-                        }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                        VStack{
+                            Text(bgManager.textOutput)
+                                .font(.system(size: 11))
+                            
+                        }
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     }
                     
                     //Connection status display
@@ -391,7 +384,7 @@ struct ContentView: View {
                             .font(.headline)
                         Spacer()
                     }
-                    .listRowInsets(EdgeInsets(top: 10, leading: 30, bottom: 10, trailing: 30))
+                    .listRowInsets(EdgeInsets(top: 8, leading: 40, bottom: 8, trailing: 40))
                     .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                 }
                 

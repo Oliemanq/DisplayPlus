@@ -288,17 +288,19 @@ extension View {
         if #available(iOS 26, *) {
             let insets: CGFloat = 8
             let rounding: CGFloat = 14
+            let op: CGFloat = 0.85
+            
             
             self
                 .padding(.vertical, 8)
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: insets, leading: insets*1.5, bottom: insets, trailing: insets*1.5))
-                .glassEffect(.regular.tint(darkMode ? pri.lighter() : sec), in: RoundedRectangle(cornerRadius: rounding))
+                .glassEffect(.regular.tint(darkMode ? pri.opacity(op/2) : sec.opacity(op/2)), in: RoundedRectangle(cornerRadius: rounding))
                 .clipShape(RoundedRectangle(cornerRadius: rounding))
                 .listRowBackground(
                     Rectangle()
                         .foregroundStyle(Color.clear)
-                        .glassEffect(.regular.tint(darkMode ? pri.lighter().opacity(0.85) : sec.darker().opacity(0.85)), in: Rectangle())
+                        .glassEffect(.regular.tint(darkMode ? pri.opacity(op) : sec.opacity(op)), in: Rectangle())
                 )
             
             
@@ -311,43 +313,3 @@ extension View {
     }
     
 }
-
-extension Color {
-    func lighter(by amount: CGFloat = 0.25) -> Color {
-        #if canImport(UIKit)
-        // Try to convert to UIColor and lighten
-        let uiColor = UIColor(self)
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        if uiColor.getRed(&r, green: &g, blue: &b, alpha: &a) {
-            print("Original: \(r), \(g), \(b)")
-            print("Lighter: \(min(r + amount, 1.0)), \(min(g + amount, 1.0)), \(min(b + amount, 1.0))")
-            return Color(
-                red: min(r + amount, 1.0),
-                green: min(g + amount, 1.0),
-                blue: min(b + amount, 1.0),
-                opacity: Double(a)
-            )
-        }
-        #endif
-        return self // fallback
-    }
-}
-extension Color {
-    func darker(by amount: CGFloat = 0.25) -> Color {
-        #if canImport(UIKit)
-        // Try to convert to UIColor and lighten
-        let uiColor = UIColor(self)
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        if uiColor.getRed(&r, green: &g, blue: &b, alpha: &a) {
-            return Color(
-                red: min(r - amount, 1.0),
-                green: min(g - amount, 1.0),
-                blue: min(b - amount, 1.0),
-                opacity: Double(a)
-            )
-        }
-        #endif
-        return self // fallback
-    }
-}
-
