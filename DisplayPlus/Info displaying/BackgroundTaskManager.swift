@@ -21,7 +21,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     
     //various counters
     var counter: Int = 0
-    var HBCounter: Int = 1
+    var HBCounter: Int = 0
     var batteryCounter: Int = 0
     var displayOnCounter: Int = 0
     var weatherCounter: Int = 0
@@ -52,13 +52,9 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 return
             }
             if ble.connectionState == .connectedBoth {
-                if counter%51 == 0{ //Sending heartbeat command every ~25 seconds to maintain connection
-                    ble.sendHeartbeat(counter: HBCounter)
-                    
-                    HBCounter += 1
-                    if HBCounter > 255{
-                        HBCounter = 0
-                    }
+                HBCounter += 1
+                if HBCounter%56 == 0 || HBCounter == 1{ //Sending heartbeat command every ~28 seconds to maintain connection
+                    ble.sendHeartbeat(counter: HBCounter%255)
                 }
                 // Determine if it's time to update weather
                 let shouldUpdateWeather = (weatherCounter >= 600) // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
