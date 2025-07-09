@@ -27,9 +27,9 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     var displayOnCounter: Int = 0
     var weatherCounter: Int = 0
     
-    @AppStorage("displayOn") var displayOn = false
-    @AppStorage("autoOff") var autoOff = false
-    @AppStorage("showingCalibration") var showingCalibration = false
+    @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
+    @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var autoOff = false
+    @AppStorage("showingCalibration", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var showingCalibration = false
      
     init(ble: G1BLEManager, info: InfoManager, formatting: FormattingManager) {
         self.ble = ble
@@ -177,5 +177,4 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
         ble.disconnect()
     }
 }
-
 

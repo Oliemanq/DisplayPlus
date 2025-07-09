@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E8DA2AE2E1EFE9700934ED3 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E8DA28F2E1EFDFE00934ED3 /* WidgetKit.framework */; };
+		4E8DA2AF2E1EFE9700934ED3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E8DA2912E1EFDFF00934ED3 /* SwiftUI.framework */; };
+		4E8DA2BC2E1EFE9800934ED3 /* WidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4E8DA2AD2E1EFE9700934ED3 /* WidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4EB23FCD2DF89699005A2750 /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 4EB23FCC2DF89699005A2750 /* OpenMeteoSdk */; };
 /* End PBXBuildFile section */
 
@@ -25,15 +28,53 @@
 			remoteGlobalIDString = 4E70104D2DBD6F4800F868F4;
 			remoteInfo = DisplayPlus;
 		};
+		4E8DA2BA2E1EFE9800934ED3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4E7010462DBD6F4700F868F4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4E8DA2AC2E1EFE9700934ED3;
+			remoteInfo = WidgetsExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		4E8DA2A82E1EFE0000934ED3 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				4E8DA2BC2E1EFE9800934ED3 /* WidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		4E70104E2DBD6F4800F868F4 /* DisplayPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DisplayPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E70105B2DBD6F4900F868F4 /* DisplayPlusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DisplayPlusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E7010652DBD6F4900F868F4 /* DisplayPlusUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DisplayPlusUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E8DA28F2E1EFDFE00934ED3 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		4E8DA2912E1EFDFF00934ED3 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		4E8DA2AD2E1EFE9700934ED3 /* WidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4E8DA2C02E1EFE9800934ED3 /* Exceptions for "Widgets" folder in "WidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4E8DA2AC2E1EFE9700934ED3 /* WidgetsExtension */;
+		};
+		4EC144532E1F00B300B986EB /* Exceptions for "DisplayPlus" folder in "WidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Info Managers/ViewIntents.swift",
+			);
+			target = 4E8DA2AC2E1EFE9700934ED3 /* WidgetsExtension */;
+		};
 		4EC790A92DDFC63700DE5DB2 /* Exceptions for "DisplayPlus" folder in "DisplayPlus" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -48,6 +89,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				4EC790A92DDFC63700DE5DB2 /* Exceptions for "DisplayPlus" folder in "DisplayPlus" target */,
+				4EC144532E1F00B300B986EB /* Exceptions for "DisplayPlus" folder in "WidgetsExtension" target */,
 			);
 			path = DisplayPlus;
 			sourceTree = "<group>";
@@ -60,6 +102,14 @@
 		4E7010682DBD6F4900F868F4 /* DisplayPlusUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = DisplayPlusUITests;
+			sourceTree = "<group>";
+		};
+		4E8DA2B02E1EFE9700934ED3 /* Widgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4E8DA2C02E1EFE9800934ED3 /* Exceptions for "Widgets" folder in "WidgetsExtension" target */,
+			);
+			path = Widgets;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -87,6 +137,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4E8DA2AA2E1EFE9700934ED3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E8DA2AF2E1EFE9700934ED3 /* SwiftUI.framework in Frameworks */,
+				4E8DA2AE2E1EFE9700934ED3 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -96,6 +155,7 @@
 				4E7010502DBD6F4800F868F4 /* DisplayPlus */,
 				4E70105E2DBD6F4900F868F4 /* DisplayPlusTests */,
 				4E7010682DBD6F4900F868F4 /* DisplayPlusUITests */,
+				4E8DA2B02E1EFE9700934ED3 /* Widgets */,
 				4E7010912DBD70F400F868F4 /* Frameworks */,
 				4E70104F2DBD6F4800F868F4 /* Products */,
 			);
@@ -107,6 +167,7 @@
 				4E70104E2DBD6F4800F868F4 /* DisplayPlus.app */,
 				4E70105B2DBD6F4900F868F4 /* DisplayPlusTests.xctest */,
 				4E7010652DBD6F4900F868F4 /* DisplayPlusUITests.xctest */,
+				4E8DA2AD2E1EFE9700934ED3 /* WidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -114,6 +175,8 @@
 		4E7010912DBD70F400F868F4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4E8DA28F2E1EFDFE00934ED3 /* WidgetKit.framework */,
+				4E8DA2912E1EFDFF00934ED3 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -128,10 +191,12 @@
 				4E70104A2DBD6F4800F868F4 /* Sources */,
 				4E70104B2DBD6F4800F868F4 /* Frameworks */,
 				4E70104C2DBD6F4800F868F4 /* Resources */,
+				4E8DA2A82E1EFE0000934ED3 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				4E8DA2BB2E1EFE9800934ED3 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				4E7010502DBD6F4800F868F4 /* DisplayPlus */,
@@ -190,6 +255,28 @@
 			productReference = 4E7010652DBD6F4900F868F4 /* DisplayPlusUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		4E8DA2AC2E1EFE9700934ED3 /* WidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4E8DA2BD2E1EFE9800934ED3 /* Build configuration list for PBXNativeTarget "WidgetsExtension" */;
+			buildPhases = (
+				4E8DA2A92E1EFE9700934ED3 /* Sources */,
+				4E8DA2AA2E1EFE9700934ED3 /* Frameworks */,
+				4E8DA2AB2E1EFE9700934ED3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4E8DA2B02E1EFE9700934ED3 /* Widgets */,
+			);
+			name = WidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = WidgetsExtension;
+			productReference = 4E8DA2AD2E1EFE9700934ED3 /* WidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -197,7 +284,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1630;
+				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					4E70104D2DBD6F4800F868F4 = {
@@ -210,6 +297,9 @@
 					4E7010642DBD6F4900F868F4 = {
 						CreatedOnToolsVersion = 16.3;
 						TestTargetID = 4E70104D2DBD6F4800F868F4;
+					};
+					4E8DA2AC2E1EFE9700934ED3 = {
+						CreatedOnToolsVersion = 26.0;
 					};
 				};
 			};
@@ -233,6 +323,7 @@
 				4E70104D2DBD6F4800F868F4 /* DisplayPlus */,
 				4E70105A2DBD6F4900F868F4 /* DisplayPlusTests */,
 				4E7010642DBD6F4900F868F4 /* DisplayPlusUITests */,
+				4E8DA2AC2E1EFE9700934ED3 /* WidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -253,6 +344,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		4E7010632DBD6F4900F868F4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E8DA2AB2E1EFE9700934ED3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -283,6 +381,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4E8DA2A92E1EFE9700934ED3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -295,6 +400,11 @@
 			isa = PBXTargetDependency;
 			target = 4E70104D2DBD6F4800F868F4 /* DisplayPlus */;
 			targetProxy = 4E7010662DBD6F4900F868F4 /* PBXContainerItemProxy */;
+		};
+		4E8DA2BB2E1EFE9800934ED3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4E8DA2AC2E1EFE9700934ED3 /* WidgetsExtension */;
+			targetProxy = 4E8DA2BA2E1EFE9800934ED3 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -441,7 +551,8 @@
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Needed to comunicate with glasses";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Needed to access upcoming events for displaying on glasses";
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Needed to access daily ring information";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Needed to access ring data";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads your step count and heart rate to show activity trends.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app saves your workout data to your health profile.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app needs your location to provide weather updates even when the app is in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to provide weather updates.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -483,7 +594,8 @@
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Needed to comunicate with glasses";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Needed to access upcoming events for displaying on glasses";
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Needed to access daily ring information";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Needed to access ring data";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads your step count and heart rate to show activity trends.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app saves your workout data to your health profile.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app needs your location to provide weather updates even when the app is in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to provide weather updates.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -578,6 +690,66 @@
 			};
 			name = Release;
 		};
+		4E8DA2BE2E1EFE9800934ED3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Widgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Widgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus.Widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4E8DA2BF2E1EFE9800934ED3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 339H2WC2Z9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Widgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Widgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus.Widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -613,6 +785,15 @@
 			buildConfigurations = (
 				4E7010762DBD6F4900F868F4 /* Debug */,
 				4E7010772DBD6F4900F868F4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4E8DA2BD2E1EFE9800934ED3 /* Build configuration list for PBXNativeTarget "WidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4E8DA2BE2E1EFE9800934ED3 /* Debug */,
+				4E8DA2BF2E1EFE9800934ED3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

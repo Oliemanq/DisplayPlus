@@ -7,13 +7,14 @@
 
 import Foundation
 import AppIntents
+import WidgetKit
 import SwiftUI
 import SwiftData
 
 struct ConnectionStatus: AppIntent {
     static let title: LocalizedStringResource = "Check connection status"
     
-    @AppStorage("connectionStatus") var connectionStatus: String = ""
+    @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = ""
     
     func perform() async throws -> some IntentResult & ReturnsValue<Bool> {
         if connectionStatus != "" {
@@ -33,7 +34,7 @@ struct PageIntents{
         static let title: LocalizedStringResource = "Change page to Music"
         
         func perform() async throws -> some IntentResult & ProvidesDialog {
-            UserDefaults.standard.set("Music", forKey: "currentPage")
+            UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set("Music", forKey: "currentPage")
             return .result(dialog: "Changed view to music")
         }
     }
@@ -42,7 +43,7 @@ struct PageIntents{
         static let title: LocalizedStringResource = "Change page to Calendar"
             
         func perform() async throws -> some IntentResult & ProvidesDialog {
-            UserDefaults.standard.set("Calendar", forKey: "currentPage")
+            UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set("Calendar", forKey: "currentPage")
             return .result(dialog: "Changed view to Calendar")
         }
     }
@@ -50,7 +51,7 @@ struct PageIntents{
         static let title: LocalizedStringResource = "Change page to Default"
         
         func perform() async throws -> some IntentResult & ProvidesDialog {
-            UserDefaults.standard.set("Default", forKey: "currentPage")
+            UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set("Default", forKey: "currentPage")
             return .result(dialog: "Changed view to the default")
         }
     }
@@ -58,17 +59,17 @@ struct PageIntents{
         static let title: LocalizedStringResource = "Get current page"
         
         func perform() async throws -> some IntentResult {
-            return .result(value: UserDefaults.standard.string(forKey: "currentPage"))
+            return .result(value: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.string(forKey: "currentPage"))
         }
     }
 }
 
-struct DisplayIntents {
+public struct DisplayIntents {
     struct ToggleDisplayOn: AppIntent {
         static let title: LocalizedStringResource = "Turn the display on"
         
         func perform() async throws -> some IntentResult & ProvidesDialog {
-            UserDefaults.standard.set(true, forKey: "displayOn")
+            UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set(true, forKey: "displayOn")
             return .result(dialog: "Turned display on")
         }
     }
@@ -77,7 +78,7 @@ struct DisplayIntents {
         static let title: LocalizedStringResource = "Turn the display off"
         
         func perform() async throws -> some IntentResult & ProvidesDialog {
-            UserDefaults.standard.set(false, forKey: "displayOn")
+            UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set(false, forKey: "displayOn")
             return .result(dialog: "Turned display off")
         }
     }
@@ -85,7 +86,7 @@ struct DisplayIntents {
     struct ToggleDisplay: AppIntent {
         static let title: LocalizedStringResource = "Toggle current display status (On/Off)"
         
-        @AppStorage("displayOn") var displayOn = false
+        @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
         
         func perform() async throws -> some IntentResult & ProvidesDialog {
             displayOn.toggle()
@@ -98,7 +99,23 @@ struct DisplayIntents {
         static let title: LocalizedStringResource = "Get display status (On/Off)"
         
         func perform() async throws -> some IntentResult & ReturnsValue<Bool> {
-            return .result(value: UserDefaults.standard.bool(forKey: "displayOn"))
+            return .result(value: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.bool(forKey: "displayOn") ?? false)
+        }
+    }
+    
+    struct SetDisplayStateIntent: SetValueIntent {
+        static var title: LocalizedStringResource = "Set Display State"
+
+        // This parameter will receive the 'on' or 'off' value from the toggle
+        @Parameter(title: "Display On")
+        var value: Bool
+
+        func perform() async throws -> some IntentResult {
+            // Set the UserDefaults value based on the toggle's state
+            @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
+            displayOn = value
+            print("Display turned \(value ? "on" : "off")")
+            return .result()
         }
     }
 }

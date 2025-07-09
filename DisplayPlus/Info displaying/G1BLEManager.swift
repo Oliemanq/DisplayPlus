@@ -31,7 +31,7 @@ enum G1ConnectionState {
 
 class G1BLEManager: NSObject, ObservableObject{
     @Published public private(set) var connectionState: G1ConnectionState = .disconnected
-    @Published public private(set) var connectionStatus: String = "Disconnected"
+    @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
     
     private var reconnectAttempts: [UUID: Int] = [:]
     private let maxReconnectAttempts = 5

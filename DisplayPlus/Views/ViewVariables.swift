@@ -94,7 +94,7 @@ struct FloatingButtons<Destination: View>: View {
     
     @Environment(\.colorScheme) private var colorScheme
     
-    @AppStorage("showingCalibration") var showingCalibration: Bool = false
+    @AppStorage("showingCalibration", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var showingCalibration: Bool = false
     
     @State var isExpanded: Bool = false
     @State private var isPressed: Bool = false
@@ -328,3 +328,4 @@ struct RoundedCorner: Shape {
         return Path(path.cgPath)
     }
 }
+

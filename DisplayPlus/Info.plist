@@ -15,9 +15,5 @@
 		<string>location</string>
 		<string>processing</string>
 	</array>
-    <key>NSHealthShareUsageDescription</key>
-    <string>This app reads your step count and heart rate to show activity trends.</string>
-    <key>NSHealthUpdateUsageDescription</key>
-    <string>This app saves your workout data to your health profile.</string>
 </dict>
 </plist>

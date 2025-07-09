@@ -4,7 +4,7 @@ import EventKit
 import AppIntents
 
 struct ContentView: View {
-    @AppStorage("showingCalibration") var showingCalibration: Bool = false
+    @AppStorage("showingCalibration", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var showingCalibration: Bool = false
     @State var showingDeviceSelectionPopup: Bool = false
         
     @State private var counter: CGFloat = 0
@@ -24,9 +24,9 @@ struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var context
     
-    @AppStorage("currentPage") private var currentPage = "Default"
-    @AppStorage("displayOn") private var displayOn = true
-    @AppStorage("autoOff") private var autoOff: Bool = false
+    @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
+    @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var displayOn = true
+    @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
     
     @State private var isLoading = false
     @State private var errorMessage: String?
@@ -504,4 +504,3 @@ class ThemeColors: ObservableObject {
 #Preview {
     ContentView()
 }
-
