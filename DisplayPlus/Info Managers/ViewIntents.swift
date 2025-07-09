@@ -13,7 +13,7 @@ import SwiftData
 struct ConnectionStatus: AppIntent {
     static let title: LocalizedStringResource = "Check connection status"
     
-    var connectionStatus: String = UserDefaults.standard.string(forKey: "connectionStatus") ?? ""
+    @AppStorage("connectionStatus") var connectionStatus: String = ""
     
     func perform() async throws -> some IntentResult & ReturnsValue<Bool> {
         if connectionStatus != "" {
@@ -21,7 +21,7 @@ struct ConnectionStatus: AppIntent {
             print((connected ? "Connected" : "Disconnected"))
             return .result(value: connected)
         }else{
-            print("BROKEN ----------------------------------------")
+            print("BROKEN")
             return .result(value: false)
         }
     }
@@ -30,7 +30,7 @@ struct ConnectionStatus: AppIntent {
 
 struct PageIntents{
     struct MusicPage: AppIntent {
-        static let title: LocalizedStringResource = "Change view to music"
+        static let title: LocalizedStringResource = "Change page to Music"
         
         func perform() async throws -> some IntentResult & ProvidesDialog {
             UserDefaults.standard.set("Music", forKey: "currentPage")
@@ -39,7 +39,7 @@ struct PageIntents{
     }
     
     struct CalendarPage: AppIntent {
-        static let title: LocalizedStringResource = "Change view to calendar"
+        static let title: LocalizedStringResource = "Change page to Calendar"
             
         func perform() async throws -> some IntentResult & ProvidesDialog {
             UserDefaults.standard.set("Calendar", forKey: "currentPage")
@@ -47,7 +47,7 @@ struct PageIntents{
         }
     }
     struct DefaultPage: AppIntent {
-        static let title: LocalizedStringResource = "Change view to the default"
+        static let title: LocalizedStringResource = "Change page to Default"
         
         func perform() async throws -> some IntentResult & ProvidesDialog {
             UserDefaults.standard.set("Default", forKey: "currentPage")
@@ -55,7 +55,7 @@ struct PageIntents{
         }
     }
     struct GetCurrentPage: AppIntent {
-        static let title: LocalizedStringResource = "Get current view"
+        static let title: LocalizedStringResource = "Get current page"
         
         func perform() async throws -> some IntentResult {
             return .result(value: UserDefaults.standard.string(forKey: "currentPage"))
@@ -82,8 +82,20 @@ struct DisplayIntents {
         }
     }
     
+    struct ToggleDisplay: AppIntent {
+        static let title: LocalizedStringResource = "Toggle current display status (On/Off)"
+        
+        @AppStorage("displayOn") var displayOn = false
+        
+        func perform() async throws -> some IntentResult & ProvidesDialog {
+            displayOn.toggle()
+            print("Turned display \(displayOn ? "on" : "off")")
+            return .result(dialog: "Turned display \(displayOn ? "on" : "off")")
+        }
+    }
+    
     struct GetDisplayOn: AppIntent {
-        static let title: LocalizedStringResource = "Get display status"
+        static let title: LocalizedStringResource = "Get display status (On/Off)"
         
         func perform() async throws -> some IntentResult & ReturnsValue<Bool> {
             return .result(value: UserDefaults.standard.bool(forKey: "displayOn"))

@@ -255,6 +255,7 @@ class G1BLEManager: NSObject, ObservableObject{
     }
     
     func sendHeartbeat(counter: Int) {
+        print("sent heartbeat signal \(counter)")
         var packet = [UInt8]()
         
         packet.append(0x25)

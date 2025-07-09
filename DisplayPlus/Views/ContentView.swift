@@ -130,7 +130,7 @@ struct ContentView: View {
                         Spacer()
                     }
                     .listRowInsets(EdgeInsets(top: 8, leading: 40, bottom: 8, trailing: 40))
-                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, top: true)
 
                     //Song info
                     if info.currentSong.title == "" {
@@ -174,6 +174,7 @@ struct ContentView: View {
                             Spacer()
                             Text("No events today")
                                 .font(.headline)
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             Spacer()
                         }
                         .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
@@ -366,8 +367,8 @@ struct ContentView: View {
 
                     }
                     
-                    //Glasses mirror on app UI
                     if displayOn {
+                    //Glasses mirror on app UI
                         VStack{
                             Text(bgManager.textOutput)
                                 .font(.system(size: 11))
@@ -385,7 +386,7 @@ struct ContentView: View {
                         Spacer()
                     }
                     .listRowInsets(EdgeInsets(top: 8, leading: 40, bottom: 8, trailing: 40))
-                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bottom: true)
                 }
                 
                 //Bottom buttons

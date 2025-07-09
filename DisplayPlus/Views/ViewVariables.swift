@@ -284,7 +284,7 @@ extension View {
 
 extension View {
     @ViewBuilder
-    func glassListBG(pri: Color, sec: Color, darkMode: Bool) -> some View {
+    func glassListBG(pri: Color, sec: Color, darkMode: Bool, top: Bool = false, bottom: Bool = false) -> some View {
         if #available(iOS 26, *) {
             let insets: CGFloat = 8
             let rounding: CGFloat = 14
@@ -300,16 +300,31 @@ extension View {
                 .listRowBackground(
                     Rectangle()
                         .foregroundStyle(Color.clear)
-                        .glassEffect(.regular.tint(darkMode ? pri.opacity(op) : sec.opacity(op)), in: Rectangle())
+                        .glassEffect(.regular.tint(darkMode ? pri : sec), in: RoundedCorner(radius: 28, corners: (top ? [.topLeft, .topRight] : (bottom ? [.bottomLeft, .bottomRight] : []))))
                 )
             
             
         }else{
             self
-                .listRowBackground(
-                    VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                )
+            .listRowSeparator(.hidden)
+            .listRowBackground(
+                VisualEffectView(effect: UIBlurEffect(style: (darkMode ? .systemUltraThinMaterialDark : .systemUltraThinMaterial)))
+            )
         }
     }
     
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+    
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
+    }
 }

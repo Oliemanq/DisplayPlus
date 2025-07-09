@@ -21,6 +21,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     
     //various counters
     var counter: Int = 0
+    var HBTriggerCounter: Int = 0
     var HBCounter: Int = 0
     var batteryCounter: Int = 0
     var displayOnCounter: Int = 0
@@ -52,9 +53,10 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 return
             }
             if ble.connectionState == .connectedBoth {
-                HBCounter += 1
-                if HBCounter%56 == 0 || HBCounter == 1{ //Sending heartbeat command every ~28 seconds to maintain connection
+                HBTriggerCounter += 1
+                if HBTriggerCounter%56 == 0 || HBTriggerCounter == 1{ //Sending heartbeat command every ~28 seconds to maintain connection
                     ble.sendHeartbeat(counter: HBCounter%255)
+                    HBCounter += 1
                 }
                 // Determine if it's time to update weather
                 let shouldUpdateWeather = (weatherCounter >= 600) // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
@@ -64,7 +66,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 
                 if batteryCounter % 15 == 0{
                     ble.fetchGlassesBattery()
-                    if ble.glassesBatteryAvg <= 5 && ble.glassesBatteryAvg != 0.0{
+                    if (ble.glassesBatteryAvg <= 5 || ble.glassesBatteryLeft <= 5 || ble.glassesBatteryRight <= 5) && ble.glassesBatteryAvg != 0.0{
                         disconnectProper()
                     }
                 }
