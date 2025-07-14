@@ -85,30 +85,8 @@ struct ContentView: View {
         NavigationStack {
             ZStack{
                 // Background gradient
-                Group {
-                    if darkMode {
-                        LinearGradient(
-                            gradient: Gradient(stops: [
-                                .init(color: secondaryColor, location: 0.0), // Lighter color at top-left
-                                .init(color: primaryColor, location: 0.25),  // Transition to darker
-                                .init(color: primaryColor, location: 1.0)   // Darker color for the rest
-                            ]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    } else {
-                        LinearGradient(
-                            gradient: Gradient(stops: [
-                                .init(color: primaryColor, location: 0.0), // Darker color at top-left
-                                .init(color: secondaryColor, location: 0.35),  // Transition to lighter
-                                .init(color: secondaryColor, location: 1.0)   // Lighter color for the rest
-                            ]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    }
-                }
-                .edgesIgnoringSafeArea(.all)
+                backgroundGrid(primaryColor: primaryColor, secondaryColor: secondaryColor)
+                
                 
                 //Start Main UI
                 List {

@@ -273,19 +273,19 @@ extension View {
         if #available(iOS 26, *) {
             let insets: CGFloat = 8
             let rounding: CGFloat = 14
-            let op: CGFloat = 0.85
+            //let op: CGFloat = 0
             
             
             self
                 .padding(.vertical, 8)
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: insets, leading: insets*1.5, bottom: insets, trailing: insets*1.5))
-                .glassEffect(.regular.tint(darkMode ? pri.opacity(op/2) : sec.opacity(op/2)), in: RoundedRectangle(cornerRadius: rounding))
+                .glassEffect(in: RoundedRectangle(cornerRadius: rounding)) //.regular.tint(darkMode ? pri.opacity(op/2) : sec.opacity(op/2)),
                 .clipShape(RoundedRectangle(cornerRadius: rounding))
                 .listRowBackground(
                     Rectangle()
                         .foregroundStyle(Color.clear)
-                        .glassEffect(.regular.tint(darkMode ? pri : sec), in: RoundedCorner(radius: 28, corners: (top ? [.topLeft, .topRight] : (bottom ? [.bottomLeft, .bottomRight] : []))))
+                        .glassEffect(in: RoundedCorner(radius: 28, corners: (top ? [.topLeft, .topRight] : (bottom ? [.bottomLeft, .bottomRight] : [])))) //regular.tint(darkMode ? pri : sec),
                 )
             
             
@@ -326,6 +326,7 @@ extension View {
     
 }
 
+//Grid function
 struct Grid: Shape {
     let spacing: CGFloat
 
@@ -360,13 +361,13 @@ struct backgroundGrid: View {
     
     @State var primaryColor: Color
     @State var secondaryColor: Color
-    @State var darkMode: Bool
     
+    @Environment(\.colorScheme) private var colorScheme
+    var darkMode: Bool { colorScheme == .dark }
     
     var body: some View {
-        @State var lineColor: Color = !darkMode ? primaryColor : secondaryColor
-        @State var backgroundColor: Color = !darkMode ? secondaryColor : primaryColor
-        @State var lineWidth: CGFloat = 4
+        @State var lineColor: Color = darkMode ? primaryColor : secondaryColor
+        @State var lineWidth: CGFloat = 3
         @State var spacing: CGFloat = 12
         
         ZStack{
@@ -374,7 +375,7 @@ struct backgroundGrid: View {
                 LinearGradient(
                     gradient: Gradient(stops: [
                         .init(color: secondaryColor, location: 0.0), // Lighter color at top-left
-                        .init(color: primaryColor, location: 0.25),  // Transition to darker
+                        .init(color: primaryColor, location: 0.5),  // Transition to darker
                         .init(color: primaryColor, location: 1.0)   // Darker color for the rest
                     ]),
                     startPoint: .topLeading,
@@ -384,7 +385,7 @@ struct backgroundGrid: View {
                 LinearGradient(
                     gradient: Gradient(stops: [
                         .init(color: primaryColor, location: 0.0), // Darker color at top-left
-                        .init(color: secondaryColor, location: 0.35),  // Transition to lighter
+                        .init(color: secondaryColor, location: 0.5),  // Transition to lighter
                         .init(color: secondaryColor, location: 1.0)   // Lighter color for the rest
                     ]),
                     startPoint: .topLeading,
@@ -394,6 +395,15 @@ struct backgroundGrid: View {
             
             Grid(spacing: spacing)
                 .stroke(lineColor, lineWidth: lineWidth)
+            
+            LinearGradient(
+                gradient: Gradient(stops: [
+                    .init(color: darkMode ? primaryColor : secondaryColor, location: 0.06),
+                    .init(color: Color.white.opacity(0), location: 0.25)
+                    ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
         }
         .edgesIgnoringSafeArea(.all)
     }
