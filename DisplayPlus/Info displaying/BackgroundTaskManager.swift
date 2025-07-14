@@ -66,8 +66,10 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 
                 if batteryCounter % 15 == 0{
                     ble.fetchGlassesBattery()
-                    if (ble.glassesBatteryAvg <= 5 || ble.glassesBatteryLeft <= 5 || ble.glassesBatteryRight <= 5) && ble.glassesBatteryAvg != 0.0{
-                        disconnectProper()
+                    if (ble.glassesBatteryAvg <= 3.0 || ble.glassesBatteryLeft <= 1 || ble.glassesBatteryRight <= 1) && ble.glassesBatteryAvg != 0.0{
+                        Task{
+                            await self.lowBatteryDisconnect()
+                        }
                     }
                 }
                 
@@ -114,66 +116,96 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     }
     
     func pageHandler() -> String {
+        @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var currentPage = ""
+        
         textOutput = formattingManager.header()
         
-        if let page = UserDefaults.standard.string(forKey: "currentPage") {
-            if page == "Default" { // DEFAULT PAGE HANDLER
-                let displayLines = formattingManager.defaultDisplay()
-                
+        let page = currentPage
+        if page == "Default" { // DEFAULT PAGE HANDLER
+            let displayLines = formattingManager.defaultDisplay()
+            
+            textOutput.append(displayLines.joined(separator: "\n"))
+            
+            
+        } else if page == "Music" { // MUSIC PAGE HANDLER
+            let displayLines = formattingManager.musicDisplay()
+            
+            if displayLines.isEmpty {
+                textOutput = "broken"
+            } else {
                 textOutput.append(displayLines.joined(separator: "\n"))
-                
-                
-            } else if page == "Music" { // MUSIC PAGE HANDLER
-                let displayLines = formattingManager.musicDisplay()
-                
-                if displayLines.isEmpty {
-                    textOutput = "broken"
-                } else {
-                    textOutput.append(displayLines.joined(separator: "\n"))
-                }
-                
-            } else if page == "Calendar" { // CALENDAR PAGE HANDLER
-                let displayLines = formattingManager.calendarDisplay()
-                
-                if displayLines.isEmpty {
-                    textOutput = "broken"
-                } else {
-                    textOutput.append(displayLines.joined(separator: "\n"))
-                }
-            /*
-            }else if page == "Debug" {
-                for line in self.formattingManager.debugDisplay(index: self.counter%26) {
-                    textOutput += line + "\n"
-                }
-             */
-            }else {
-                textOutput = "No page selected"
             }
-        } else {
+            
+        } else if page == "Calendar" { // CALENDAR PAGE HANDLER
+            let displayLines = formattingManager.calendarDisplay()
+            
+            if displayLines.isEmpty {
+                textOutput = "broken"
+            } else {
+                textOutput.append(displayLines.joined(separator: "\n"))
+            }
+            /*
+             }else if page == "Debug" {
+             for line in self.formattingManager.debugDisplay(index: self.counter%26) {
+             textOutput += line + "\n"
+             }
+             */
+        }else {
             textOutput = "No page selected"
         }
         
         return textOutput
     }
     
-    func disconnectProper(){
+    @MainActor
+    func lowBatteryDisconnect() async{
         //Stopping timer to stop overwritting eachother
-        timer?.invalidate()
+        stopTimer()
         
         displayOn = true
 
         //Looping animation drawing attention to disconnecting glasses
         var i = 0
-        if i < 3{
-            textOutput = formattingManager.centerText(text: "Battery low, disconnecting.")
+        while i < 3{
+            textOutput = formattingManager.centerText(text: "Battery low, disconnecting") + "."
             ble.sendTextCommand(seq: 1, text: textOutput)
-            textOutput = formattingManager.centerText(text: "Battery low, disconnecting..")
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            textOutput = formattingManager.centerText(text: "Battery low, disconnecting") + ".."
             ble.sendTextCommand(seq: 2, text: textOutput)
-            textOutput = formattingManager.centerText(text: "Battery low, disconnecting...")
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            textOutput = formattingManager.centerText(text: "Battery low, disconnecting") + "..."
             ble.sendTextCommand(seq: 3, text: textOutput)
+            try? await Task.sleep(nanoseconds: 500_000_000)
             i += 1
         }
+        ble.sendBlank()
+        try? await Task.sleep(nanoseconds: 10_000_000)
+        ble.disconnect()
+    }
+    
+    @MainActor
+    func disconnectProper() async{
+        //Stopping timer to stop overwritting eachother
+        stopTimer()
         
+        displayOn = true
+
+        //Looping animation drawing attention to disconnecting glasses
+        var i = 0
+        while i < 3{
+            textOutput = formattingManager.centerText(text: "Disconnecting") + "."
+            ble.sendTextCommand(seq: 1, text: textOutput)
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            textOutput = formattingManager.centerText(text: "Disconnecting") + ".."
+            ble.sendTextCommand(seq: 2, text: textOutput)
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            textOutput = formattingManager.centerText(text: "Disconnecting") + "..."
+            ble.sendTextCommand(seq: 3, text: textOutput)
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            i += 1
+        }
+        ble.sendBlank()
+        try? await Task.sleep(nanoseconds: 10_000_000)
         ble.disconnect()
     }
 }

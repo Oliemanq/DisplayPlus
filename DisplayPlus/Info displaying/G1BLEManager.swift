@@ -115,9 +115,8 @@ class G1BLEManager: NSObject, ObservableObject{
     
     /// Disconnect from both arms.
     func disconnect() {
-        Task{
-            sendBlank()
-        }
+        @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
+
         if let lp = leftPeripheral {
             centralManager.cancelPeripheralConnection(lp)
             leftPeripheral = nil
@@ -136,6 +135,9 @@ class G1BLEManager: NSObject, ObservableObject{
         withAnimation{
             connectionState = .disconnected
         }
+        
+        displayOn = false
+        
         print("Disconnected from G1 glasses.")
     }
     

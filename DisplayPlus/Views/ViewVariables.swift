@@ -106,7 +106,7 @@ struct FloatingButtons<Destination: View>: View {
         let secondaryColor  = theme.secondaryColor
         
         ZStack {
-            //Background when button pressed
+            //Custon popup menu and buttons
             if #available(iOS 26, *){
                 //Right button
                 GeometryReader { geometry in
@@ -127,9 +127,7 @@ struct FloatingButtons<Destination: View>: View {
                 
                 //Background when button pressed
                 if isExpanded {
-                    Rectangle()
-                        .foregroundStyle(Color.clear)
-                        .glassEffect(in: Rectangle())
+                    VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
                         .onTapGesture {
                             withAnimation{
                                 isExpanded = false
@@ -147,22 +145,16 @@ struct FloatingButtons<Destination: View>: View {
                                     HStack(spacing: 0){
                                         Image(systemName: item.iconSystemName)
                                             .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
-                                            .onTapGesture {
-                                                item.action()
-                                                withAnimation{
-                                                    isExpanded.toggle()
-                                                }
-                                            }
                                             .font(.system(size: 28))
                                         Text(item.extraText ?? "")
                                             .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
-                                            .onTapGesture {
-                                                item.action()
-                                                withAnimation{
-                                                    isExpanded.toggle()
-                                                }
-                                            }
                                             .offset(x: -5)
+                                    }
+                                    .onTapGesture {
+                                        withAnimation{
+                                            item.action()
+                                            isExpanded.toggle()
+                                        }
                                     }
                                     .offset(y: -CGFloat(index+1) * standardOffset)
                                 }.offset(x: -10)
@@ -211,6 +203,7 @@ struct FloatingButtons<Destination: View>: View {
                                 .ignoresSafeArea()
                                 .frame(width: 10000, height: 10000)
                         }
+                        
                         ZStack{
                             if isExpanded{
                                 ForEach(Array(items.enumerated()), id: \.offset) { index, item in
@@ -254,6 +247,7 @@ struct FloatingButtons<Destination: View>: View {
     }
 }
 
+//Main style for custon buttons throughout the app
 extension View {
     @ViewBuilder
     func mainButtonStyle(pri: Color, sec: Color, darkMode: Bool) -> some View {
@@ -272,16 +266,7 @@ extension View {
     }
 }
 
-extension View {
-    @ViewBuilder
-    func applyGlass() -> some View {
-        if #available(iOS 26, *) {
-            self.glassEffect()
-        }
-    }
-    
-}
-
+//Extension for applying tinted glass to list items
 extension View {
     @ViewBuilder
     func glassListBG(pri: Color, sec: Color, darkMode: Bool, top: Bool = false, bottom: Bool = false) -> some View {
@@ -315,6 +300,7 @@ extension View {
     
 }
 
+//Specific corner radius on each individual corner
 struct RoundedCorner: Shape {
     var radius: CGFloat = .infinity
     var corners: UIRectCorner = .allCorners
@@ -329,3 +315,87 @@ struct RoundedCorner: Shape {
     }
 }
 
+//Applying glass
+extension View {
+    @ViewBuilder
+    func applyGlass() -> some View {
+        if #available(iOS 26, *) {
+            self.glassEffect()
+        }
+    }
+    
+}
+
+struct Grid: Shape {
+    let spacing: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        // Calculate the number of lines to draw.
+        let numberOfHorizontalLines = Int(rect.height / spacing)
+        let numberOfVerticalLines = Int(rect.width / spacing)
+
+        // Add horizontal lines to the path.
+        for index in 0...numberOfHorizontalLines {
+            let y = CGFloat(index) * spacing
+            path.move(to: CGPoint(x: 0, y: y))
+            path.addLine(to: CGPoint(x: rect.width, y: y))
+        }
+
+        // Add vertical lines to the path.
+        for index in 0...numberOfVerticalLines {
+            let x = CGFloat(index) * spacing
+            path.move(to: CGPoint(x: x, y: 0))
+            path.addLine(to: CGPoint(x: x, y: rect.height))
+        }
+
+        return path
+    }
+}
+
+// A view that displays the grid and controls for customization.
+struct backgroundGrid: View {
+    // State variables to hold the customizable properties of the grid.
+    
+    @State var primaryColor: Color
+    @State var secondaryColor: Color
+    @State var darkMode: Bool
+    
+    
+    var body: some View {
+        @State var lineColor: Color = !darkMode ? primaryColor : secondaryColor
+        @State var backgroundColor: Color = !darkMode ? secondaryColor : primaryColor
+        @State var lineWidth: CGFloat = 4
+        @State var spacing: CGFloat = 12
+        
+        ZStack{
+            if darkMode {
+                LinearGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: secondaryColor, location: 0.0), // Lighter color at top-left
+                        .init(color: primaryColor, location: 0.25),  // Transition to darker
+                        .init(color: primaryColor, location: 1.0)   // Darker color for the rest
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            } else {
+                LinearGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: primaryColor, location: 0.0), // Darker color at top-left
+                        .init(color: secondaryColor, location: 0.35),  // Transition to lighter
+                        .init(color: secondaryColor, location: 1.0)   // Lighter color for the rest
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+            
+            Grid(spacing: spacing)
+                .stroke(lineColor, lineWidth: lineWidth)
+        }
+        .edgesIgnoringSafeArea(.all)
+    }
+    
+}

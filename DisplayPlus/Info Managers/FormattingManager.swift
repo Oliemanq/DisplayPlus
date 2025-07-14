@@ -25,7 +25,8 @@ class FormattingManager: ObservableObject {
     
     var songProgAsBars: String = ""
     
-    var currentPage = UserDefaults.standard.string(forKey: "currentPage")
+
+    @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     
     var currentDisplayLines: [String] = []
     

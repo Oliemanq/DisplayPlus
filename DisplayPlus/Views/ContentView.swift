@@ -25,7 +25,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var context
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
-    @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var displayOn = true
+    @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var displayOn = false
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
     
     @State private var isLoading = false
@@ -68,14 +68,17 @@ struct ContentView: View {
             .init(iconSystemName: "clock", extraText: "Default screen", action: {
                 print("Default button pushed")
                 currentPage = "Default"
+                print(currentPage)
             }),
             .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {
                 print("Music button pushed")
                 currentPage = "Music"
+                print(currentPage)
             }),
             .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
                 print("Calendar button pushed")
                 currentPage = "Calendar"
+                print(currentPage)
             })
         ] //Floating button init
         
@@ -246,7 +249,9 @@ struct ContentView: View {
                                             
                                             if bleManager.connectionState == .connectedBoth{
                                                 Button("Disconnect"){
-                                                    bleManager.disconnect()
+                                                    Task{
+                                                        await bgManager.disconnectProper()
+                                                    }
                                                 }
                                                 .frame(width: 120, height: 50)
                                                 .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
@@ -268,6 +273,13 @@ struct ContentView: View {
                                                 .frame(width: 150, height: 50)
                                                 .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                                 
+                                                Button("Low battery disconnect"){
+                                                    Task{
+                                                        await bgManager.lowBatteryDisconnect()
+                                                    }
+                                                }
+                                                .frame(width: 100, height: 50)
+                                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                                 
                                                 /*
                                                  Hiding buttons for testflight build
