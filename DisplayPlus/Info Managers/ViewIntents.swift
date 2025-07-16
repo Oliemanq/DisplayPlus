@@ -13,12 +13,12 @@ import SwiftData
 
 struct ConnectionStatus: AppIntent {
     static let title: LocalizedStringResource = "Check connection status"
-    
-    @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = ""
-    
+        
     func perform() async throws -> some IntentResult & ReturnsValue<Bool> {
+        let connectionStatus: String = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.value(forKey: "connectionStatus") as! String
+
         if connectionStatus != "" {
-            let connected = connectionStatus.contains("Connected")
+            let connected: Bool = connectionStatus.contains("Connected")
             print((connected ? "Connected" : "Disconnected"))
             return .result(value: connected)
         }else{
@@ -85,13 +85,16 @@ public struct DisplayIntents {
     
     struct ToggleDisplay: AppIntent {
         static let title: LocalizedStringResource = "Toggle current display status (On/Off)"
-        
-        @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
-        
+                
         func perform() async throws -> some IntentResult & ProvidesDialog {
-            displayOn.toggle()
-            print("Turned display \(displayOn ? "on" : "off")")
-            return .result(dialog: "Turned display \(displayOn ? "on" : "off")")
+            let defaults = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")
+            let current = defaults?.bool(forKey: "displayOn") ?? false
+            let toggled = !current
+            
+            defaults?.set(toggled, forKey: "displayOn")
+            
+            print("Turned display \(toggled ? "on" : "off")")
+            return .result(dialog: "Turned display \(toggled ? "on" : "off")")
         }
     }
     
@@ -112,10 +115,10 @@ public struct DisplayIntents {
 
         func perform() async throws -> some IntentResult {
             // Set the UserDefaults value based on the toggle's state
-            @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
-            displayOn = value
+            UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set(value, forKey: "displayOn")
             print("Display turned \(value ? "on" : "off")")
             return .result()
         }
     }
 }
+
