@@ -15,8 +15,8 @@ struct ContentView: View {
     private let userDefaultsCounterKey = "backgroundTaskCounter"
     private let userDefaultsDisplayOnCounterKey = "backgroundTaskDisplayOnCounter"
     
-    //Initializing all info managers here
-    @StateObject var info: InfoManager // Removed inline initialization
+    //Initializing all infoManager managers here
+    @StateObject var infoManager: InfoManager // Removed inline initialization
     @StateObject var bleManager: G1BLEManager // Removed inline initialization
     @StateObject var formattingManager: FormattingManager // Removed inline initialization
     @StateObject var bgManager: BackgroundTaskManager // Removed inline initialization
@@ -40,6 +40,9 @@ struct ContentView: View {
     
     @StateObject var theme = ThemeColors()
     
+    @Namespace private var namespace
+
+    
     init() {
         // Create local instances of all managers first.
         // These instances will be used to initialize the @StateObject properties.
@@ -52,7 +55,7 @@ struct ContentView: View {
 
         // Now, initialize all @StateObject properties using these local instances.
         // This order ensures that dependencies are available.
-        _info = StateObject(wrappedValue: infoInstance)
+        _infoManager = StateObject(wrappedValue: infoInstance)
         _bleManager = StateObject(wrappedValue: bleInstance)
         _formattingManager = StateObject(wrappedValue: fmInstance)
         _bgManager = StateObject(wrappedValue: bgmInstance)
@@ -63,6 +66,8 @@ struct ContentView: View {
         
         let primaryColor = theme.primaryColor //Color themes being split for easier access
         let secondaryColor  = theme.secondaryColor
+        
+        let BGOpacity = 0.75
         
         let floatingButtonItems: [FloatingButtonItem] = [
             .init(iconSystemName: "clock", extraText: "Default screen", action: {
@@ -89,123 +94,117 @@ struct ContentView: View {
                 
                 
                 //Start Main UI
-                List {
-                    //Time, Date, and DoW
-                    HStack {
-                        Spacer()
-                        VStack {
-                            //Display glasses battery level if it has been updated
-                            if bleManager.glassesBatteryAvg != 0.0 {
-                                Text("\(info.time)  |  Glasses battery: \(Int(bleManager.glassesBatteryAvg))%")
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            }else{
-                                Text("\(info.time)")
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            }
-                            
-                            HStack {
-                                Text(info.getTodayDate())
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            }
-                        }
-                        Spacer()
-                    }
-                    .listRowInsets(EdgeInsets(top: 8, leading: 40, bottom: 8, trailing: 40))
-                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, top: true)
+                ScrollView(.vertical, showsIndicators: false) {
+                    //MARK: - Time, Date, and DoW
+                    headerContent(primaryColor: primaryColor, secondaryColor: secondaryColor, darkMode: darkMode, BGOpacity: BGOpacity, bleManager: bleManager, info: infoManager, namespace: namespace)
+                        .padding(4)
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
+                        .padding(.top, 40) //Giving the entire scrollview some extra padding at the top
 
-                    //Song info
-                    if info.currentSong.title == "" {
+                    //MARK: - Song infoManager
+                    if infoManager.currentSong.title == "" {
                         HStack{
                             Spacer()
                             Text("No music playing")
                                 .font(.headline)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
 
                             Spacer()
                         }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
                     }else{
-                        // Current playing music plus progress bar
+                        // Current playing music
                         HStack{
                             Spacer()
                             VStack(alignment: .center) {
-                                // Use info.currentSong properties
-                                Text(info.currentSong.title)
+                                // Use infoManager.currentSong properties
+                                Text(infoManager.currentSong.title)
                                     .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                     .font(.headline)
-                                Text("\(info.currentSong.album) - \(info.currentSong.artist)")
+                                Text("\(infoManager.currentSong.album) - \(infoManager.currentSong.artist)")
                                     .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                     .font(.subheadline)
                                     .multilineTextAlignment(.center)
                                 
-                                let formattedCurrentTime = Duration.seconds(info.currentSong.currentTime).formatted(.time(pattern: .minuteSecond))
-                                let formattedduration = Duration.seconds(info.currentSong.duration).formatted(.time(pattern: .minuteSecond))
+                                let formattedCurrentTime = Duration.seconds(infoManager.currentSong.currentTime).formatted(.time(pattern: .minuteSecond))
+                                let formattedduration = Duration.seconds(infoManager.currentSong.duration).formatted(.time(pattern: .minuteSecond))
                                 
                                 Text("\(formattedCurrentTime) \(formattedduration)")
                                     .font(.caption)
                                     .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             }
+                            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                             Spacer()
-                        }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                        }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
                     }
                     
-                    //Calendar events
-                    if info.eventsFormatted.isEmpty {
+                    //MARK: - Calendar events
+                    if infoManager.eventsFormatted.isEmpty {
                         HStack{
                             Spacer()
                             Text("No events today")
                                 .font(.headline)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                             Spacer()
                         }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
                     }else{
-                        Text("Calendar events: ")
-                            .font(.headline)
-                            .padding(.horizontal, 8)
-                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                        
-                        // Use info.eventsFormatted for ForEach
-                        if #available(iOS 26, *) {
-                            GlassEffectContainer(spacing: 10.0){
-                                ForEach(info.eventsFormatted) { event in
-                                    HStack{
-                                        VStack(alignment: .leading) {
-                                            Text(" - \(event.titleLine)")
-                                                .font(.caption)
-                                            
-                                            Text("    \(event.subtitleLine)")
-                                                .font(.footnote)
-
-                                        }.padding(.horizontal, 8)
-                                        
-                                    }
+                        HStack{
+                            VStack{
+                                Text("Calendar events: ")
+                                    .font(.headline)
+                                    .padding(.horizontal, 8)
+                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                     .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                }
-                            }
-                        }else{
-                            ForEach(info.eventsFormatted) { event in
-                                HStack{
-                                    VStack(alignment: .leading) {
-                                        Text(" - \(event.titleLine)")
-                                            .font(.caption)
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                        
-                                        
-                                        Text("    \(event.subtitleLine)")
-                                            .font(.footnote)
-                                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                
+                                // Use infoManager.eventsFormatted for ForEach
+                                if #available(iOS 26, *) {
+                                    GlassEffectContainer(spacing: 10.0){
+                                        ForEach(infoManager.eventsFormatted) { event in
+                                            HStack{
+                                                VStack(alignment: .leading) {
+                                                    Text(" - \(event.titleLine)")
+                                                        .font(.caption)
+                                                    
+                                                    Text("    \(event.subtitleLine)")
+                                                        .font(.footnote)
+                                                    
+                                                }.padding(.horizontal, 8)
+                                                
+                                            }
+                                            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                        }
                                     }
-                                    
+                                }else{
+                                    ForEach(infoManager.eventsFormatted) { event in
+                                        HStack{
+                                            VStack(alignment: .leading) {
+                                                Text(" - \(event.titleLine)")
+                                                    .font(.caption)
+                                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                                
+                                                
+                                                Text("    \(event.subtitleLine)")
+                                                    .font(.footnote)
+                                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                            }
+                                            
+                                        }
+                                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                        
+                                        
+                                    }
                                 }
-                                .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                
-                                
                             }
+                            Spacer()
                         }
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
+
                     }
-                    //Buttons ___________________________________________________________________________________________________________________
+                    
+                    //MARK: - Buttons
                     if #available(iOS 26, *){
                         VStack{
                             HStack{
@@ -251,26 +250,28 @@ struct ContentView: View {
                                                 .frame(width: 150, height: 50)
                                                 .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                                 
-                                                Button("Low battery disconnect"){
-                                                    Task{
-                                                        await bgManager.lowBatteryDisconnect()
-                                                    }
-                                                }
-                                                .frame(width: 100, height: 50)
-                                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                                
                                                 /*
                                                  Hiding buttons for testflight build
+                                                 
+                                                 Button("Low battery disconnect"){
+                                                     Task{
+                                                         await bgManager.lowBatteryDisconnect()
+                                                     }
+                                                 }
+                                                 .frame(width: 100, height: 50)
+                                                 .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                                 
                                                  Button("Fetch glasses battery level"){
-                                                 bleManager.fetchGlassesBattery()
+                                                    bleManager.fetchGlassesBattery()
                                                  }
                                                  .frame(width: 250, height: 50)
                                                  .background((!darkMode ? primaryColor : secondaryColor))
                                                  .foregroundColor(darkMode ? primaryColor : secondaryColor)
                                                  .buttonStyle(.borderless)
                                                  .clipShape(RoundedRectangle(cornerRadius: 12))
+                                                 
                                                  Button("Fetch silent mode status"){
-                                                 bleManager.fetchSilentMode()
+                                                    bleManager.fetchSilentMode()
                                                  }
                                                  .frame(width: 250, height: 50)
                                                  .background((!darkMode ? primaryColor : secondaryColor))
@@ -282,12 +283,14 @@ struct ContentView: View {
                                             Spacer()
                                             
                                         }
+                                        
                                     }
                                     .scrollIndicators(.hidden)
                                 }
-                            }
+                            }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+
                         }
-                            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
                         
 
                     }else{
@@ -357,14 +360,14 @@ struct ContentView: View {
 
                     }
                     
-                    if displayOn {
+                    if displayOn && bleManager.connectionState == .connectedBoth {
                     //Glasses mirror on app UI
                         VStack{
                             Text(bgManager.textOutput)
                                 .font(.system(size: 11))
                             
                         }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
                     }
                     
                     //Connection status display
@@ -373,11 +376,14 @@ struct ContentView: View {
                         Text("Connection status: \(bleManager.connectionStatus)")
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                             .font(.headline)
+                            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+
                         Spacer()
                     }
                     .listRowInsets(EdgeInsets(top: 8, leading: 40, bottom: 8, trailing: 40))
-                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bottom: true)
+                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
                 }
+                .padding(.horizontal, 16)
                 
                 //Bottom buttons
                 FloatingButtons(items: floatingButtonItems, destinationView: { CalibrationView(ble: bleManager) })
@@ -460,7 +466,7 @@ struct ContentView: View {
         .scrollContentBackground(.hidden)
         .background(Color.clear) // List background is now clear
         .onAppear {
-            info.update(updateWeatherBool: true) // Initial update
+            infoManager.update(updateWeatherBool: true) // Initial update
             bgManager.startTimer() // Start the background task timer
         }
         .onDisappear {
@@ -479,7 +485,7 @@ struct ContentView: View {
         }
         .onChange(of: currentPage) { oldValue, newValue in
             if oldValue != newValue{
-                info.changed = true
+                infoManager.changed = true
                 bleManager.sendText(text: bgManager.pageHandler(), counter: 0)
             }
         }

@@ -108,7 +108,7 @@ struct FloatingButtons<Destination: View>: View {
         ZStack {
             //Custon popup menu and buttons
             if #available(iOS 26, *){
-                //Right button
+                /*Right button
                 GeometryReader { geometry in
                     NavigationLink(destination: destinationView()) {
                         GlassEffectContainer{
@@ -124,6 +124,7 @@ struct FloatingButtons<Destination: View>: View {
                     }
                     .position(x: geometry.size.width - standardOffset - 35, y:  geometry.frame(in: .global).maxY - 75)
                 }
+                 */
                 
                 //Background when button pressed
                 if isExpanded {
@@ -179,6 +180,7 @@ struct FloatingButtons<Destination: View>: View {
             }else{
                 NavigationStack {
                     GeometryReader { geometry in
+                        /*
                         HStack{
                             Text("Calibrate")
                                 .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Calibrate", namespace: namespace, scale: 0.8)
@@ -193,6 +195,7 @@ struct FloatingButtons<Destination: View>: View {
                         .navigationDestination(isPresented: $showingCalibration) {
                             destinationView()
                         }
+                         */
                         if isExpanded {
                             VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                                 .onTapGesture {
@@ -266,36 +269,39 @@ extension View {
     }
 }
 
-//Extension for applying tinted glass to list items
+//Extension for applying glass to items
 extension View {
     @ViewBuilder
-    func glassListBG(pri: Color, sec: Color, darkMode: Bool, top: Bool = false, bottom: Bool = false) -> some View {
+    func glassListBG(pri: Color, sec: Color, darkMode: Bool, op: CGFloat = 1) -> some View {
         if #available(iOS 26, *) {
-            let insets: CGFloat = 8
             let rounding: CGFloat = 14
-            //let op: CGFloat = 0
             
-            
+            if (op != 1){
+                self
+                    .padding(8)
+                    .background(
+                        RoundedRectangle(cornerRadius: rounding)
+                            .glassEffect(darkMode ?  .clear : .clear, in: RoundedRectangle(cornerRadius: rounding)) //.tint(sec.desaturated(amount: 0.75))
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: rounding))
+            }else{
+                self
+                    .padding(8)
+                    .background(
+                        RoundedRectangle(cornerRadius: rounding)
+                            .foregroundStyle(darkMode ? pri.opacity(0.85) : sec)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: rounding))
+            }
+        }
+        /*
+        else{
             self
-                .padding(.vertical, 8)
-                .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: insets, leading: insets*1.5, bottom: insets, trailing: insets*1.5))
-                .glassEffect(in: RoundedRectangle(cornerRadius: rounding)) //.regular.tint(darkMode ? pri.opacity(op/2) : sec.opacity(op/2)),
-                .clipShape(RoundedRectangle(cornerRadius: rounding))
-                .listRowBackground(
-                    Rectangle()
-                        .foregroundStyle(Color.clear)
-                        .glassEffect(in: RoundedCorner(radius: 28, corners: (top ? [.topLeft, .topRight] : (bottom ? [.bottomLeft, .bottomRight] : [])))) //regular.tint(darkMode ? pri : sec),
-                )
-            
-            
-        }else{
-            self
-            .listRowSeparator(.hidden)
-            .listRowBackground(
+            .background(
                 VisualEffectView(effect: UIBlurEffect(style: (darkMode ? .systemUltraThinMaterialDark : .systemUltraThinMaterial)))
             )
         }
+         */
     }
     
 }
@@ -313,17 +319,6 @@ struct RoundedCorner: Shape {
         )
         return Path(path.cgPath)
     }
-}
-
-//Applying glass
-extension View {
-    @ViewBuilder
-    func applyGlass() -> some View {
-        if #available(iOS 26, *) {
-            self.glassEffect()
-        }
-    }
-    
 }
 
 //Grid function
@@ -399,7 +394,7 @@ struct backgroundGrid: View {
             LinearGradient(
                 gradient: Gradient(stops: [
                     .init(color: darkMode ? primaryColor : secondaryColor, location: 0.06),
-                    .init(color: Color.white.opacity(0), location: 0.25)
+                    .init(color: Color.clear, location: 0.25)
                     ]),
                 startPoint: .top,
                 endPoint: .bottom
@@ -408,4 +403,16 @@ struct backgroundGrid: View {
         .edgesIgnoringSafeArea(.all)
     }
     
+}
+
+//Quick modifier for colors that desaturates them by "amount" percentage
+extension Color {
+    func desaturated(amount: CGFloat = 1) -> Color {
+        // Convert to UIColor
+        let uiColor = UIColor(self)
+        var hue: CGFloat = 0, sat: CGFloat = 0, bri: CGFloat = 0, alpha: CGFloat = 0
+        uiColor.getHue(&hue, saturation: &sat, brightness: &bri, alpha: &alpha)
+        // Reduce saturation by the given amount
+        return Color(hue: Double(hue), saturation: Double(sat * (1 - amount)), brightness: Double(bri), opacity: Double(alpha))
+    }
 }
