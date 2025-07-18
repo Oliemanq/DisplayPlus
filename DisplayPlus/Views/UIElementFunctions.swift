@@ -12,7 +12,6 @@ func headerContent(
     primaryColor: Color,
     secondaryColor: Color,
     darkMode: Bool,
-    BGOpacity: CGFloat,
     bleManager: G1BLEManager,
     info: InfoManager,
     namespace: Namespace.ID

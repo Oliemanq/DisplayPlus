@@ -67,7 +67,6 @@ struct ContentView: View {
         let primaryColor = theme.primaryColor //Color themes being split for easier access
         let secondaryColor  = theme.secondaryColor
         
-        let BGOpacity = 0.75
         
         let floatingButtonItems: [FloatingButtonItem] = [
             .init(iconSystemName: "clock", extraText: "Default screen", action: {
@@ -96,12 +95,12 @@ struct ContentView: View {
                 //Start Main UI
                 ScrollView(.vertical, showsIndicators: false) {
                     //MARK: - Time, Date, and DoW
-                    headerContent(primaryColor: primaryColor, secondaryColor: secondaryColor, darkMode: darkMode, BGOpacity: BGOpacity, bleManager: bleManager, info: infoManager, namespace: namespace)
+                    headerContent(primaryColor: primaryColor, secondaryColor: secondaryColor, darkMode: darkMode, bleManager: bleManager, info: infoManager, namespace: namespace)
                         .padding(4)
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
                         .padding(.top, 40) //Giving the entire scrollview some extra padding at the top
-
-                    //MARK: - Song infoManager
+                    
+                    //MARK: - Song details
                     if infoManager.currentSong.title == "" {
                         HStack{
                             Spacer()
@@ -109,10 +108,10 @@ struct ContentView: View {
                                 .font(.headline)
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                                 .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-
+                            
                             Spacer()
                         }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
                     }else{
                         // Current playing music
                         HStack{
@@ -136,7 +135,7 @@ struct ContentView: View {
                             }
                             .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                             Spacer()
-                        }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
+                        }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
                     }
                     
                     //MARK: - Calendar events
@@ -149,7 +148,7 @@ struct ContentView: View {
                                 .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                             Spacer()
                         }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
                     }else{
                         HStack{
                             VStack{
@@ -160,49 +159,30 @@ struct ContentView: View {
                                     .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                 
                                 // Use infoManager.eventsFormatted for ForEach
-                                if #available(iOS 26, *) {
-                                    GlassEffectContainer(spacing: 10.0){
-                                        ForEach(infoManager.eventsFormatted) { event in
-                                            HStack{
-                                                VStack(alignment: .leading) {
-                                                    Text(" - \(event.titleLine)")
-                                                        .font(.caption)
-                                                    
-                                                    Text("    \(event.subtitleLine)")
-                                                        .font(.footnote)
-                                                    
-                                                }.padding(.horizontal, 8)
-                                                
-                                            }
-                                            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                        }
-                                    }
-                                }else{
-                                    ForEach(infoManager.eventsFormatted) { event in
-                                        HStack{
-                                            VStack(alignment: .leading) {
-                                                Text(" - \(event.titleLine)")
-                                                    .font(.caption)
-                                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                                
-                                                
-                                                Text("    \(event.subtitleLine)")
-                                                    .font(.footnote)
-                                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                            }
+                                ForEach(infoManager.eventsFormatted) { event in
+                                    HStack{
+                                        VStack(alignment: .leading) {
+                                            Text(" - \(event.titleLine)")
+                                                .font(.caption)
                                             
-                                        }
-                                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                        
-                                        
+                                            Text("    \(event.subtitleLine)")
+                                                .font(.footnote)
+                                            
+                                        }.padding(.horizontal, 8)
                                     }
+                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                 }
+                                
+                                
                             }
                             Spacer()
                         }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
-
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+                        
                     }
+                    Spacer()
+                
                     
                     //MARK: - Buttons
                     if #available(iOS 26, *){
@@ -290,7 +270,7 @@ struct ContentView: View {
                             }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
 
                         }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
                         
 
                     }else{
@@ -367,7 +347,7 @@ struct ContentView: View {
                                 .font(.system(size: 11))
                             
                         }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
                     }
                     
                     //Connection status display
@@ -381,7 +361,7 @@ struct ContentView: View {
                         Spacer()
                     }
                     .listRowInsets(EdgeInsets(top: 8, leading: 40, bottom: 8, trailing: 40))
-                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, op: BGOpacity)
+                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
                 }
                 .padding(.horizontal, 16)
                 

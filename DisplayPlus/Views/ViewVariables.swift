@@ -24,8 +24,9 @@ struct FloatingButtonStyle: ViewModifier {
         if #available(iOS 26, *){
             content
                 .frame(width: 65, height: 55)
-                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: !darkMode)
+                .glassEffect(.regular.tint(darkMode ? primaryColor : secondaryColor).interactive(true)) //, in: Rectangle()
                 .glassEffectID("floatingButton", in: namespace)
+                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                 .fontWeight(.semibold)
         }else{
             content
@@ -59,8 +60,9 @@ struct FloatingTextStyle: ViewModifier {
         if #available(iOS 26, *){
             content
                 .frame (width: (120+(textCount*1.25))*(scale ?? 1), height: 55*(scale ?? 1))
-                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: !darkMode)
-                .glassEffectID("floatingText", in: namespace)
+                .glassEffect(.regular.tint(darkMode ? primaryColor : secondaryColor).interactive(true)) //, in: Rectangle()
+                .glassEffectID("floatingButton", in: namespace)
+                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                 .font(.system(size: 16*(scale ?? 1)))
                 .fontWeight(.semibold)
         }else{
@@ -105,6 +107,8 @@ struct FloatingButtons<Destination: View>: View {
         let primaryColor = theme.primaryColor
         let secondaryColor  = theme.secondaryColor
         
+        let darkMode = colorScheme == .dark
+        
         ZStack {
             //Custon popup menu and buttons
             if #available(iOS 26, *){
@@ -135,6 +139,7 @@ struct FloatingButtons<Destination: View>: View {
                             }
                         }
                         .ignoresSafeArea()
+                        .opacity(0.9)
                 }
                 
                 //Left button
@@ -147,6 +152,7 @@ struct FloatingButtons<Destination: View>: View {
                                         Image(systemName: item.iconSystemName)
                                             .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
                                             .font(.system(size: 28))
+                                        
                                         Text(item.extraText ?? "")
                                             .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
                                             .offset(x: -5)
@@ -272,24 +278,33 @@ extension View {
 //Extension for applying glass to items
 extension View {
     @ViewBuilder
-    func glassListBG(pri: Color, sec: Color, darkMode: Bool, op: CGFloat = 1) -> some View {
+    func glassListBG(pri: Color, sec: Color, darkMode: Bool, bg: Bool = false) -> some View {
         if #available(iOS 26, *) {
-            let rounding: CGFloat = 14
             
-            if (op != 1){
+            if bg{
+                let rounding: CGFloat = 12
+
                 self
                     .padding(8)
                     .background(
                         RoundedRectangle(cornerRadius: rounding)
-                            .glassEffect(darkMode ?  .clear : .clear, in: RoundedRectangle(cornerRadius: rounding)) //.tint(sec.desaturated(amount: 0.75))
+                            .foregroundStyle(Color.clear)
+                            .glassEffect(darkMode ?  .clear : .clear.tint(Color.black.opacity(0.5)), in: RoundedRectangle(cornerRadius: rounding)) //.tint(sec.desaturated(amount: 0.75))
                     )
                     .clipShape(RoundedRectangle(cornerRadius: rounding))
             }else{
+                let rounding: CGFloat = 12
+
                 self
                     .padding(8)
                     .background(
                         RoundedRectangle(cornerRadius: rounding)
-                            .foregroundStyle(darkMode ? pri.opacity(0.85) : sec)
+                            .foregroundStyle(darkMode ? pri.opacity(0.6) : sec.opacity(0.85))
+                            //.glassEffect(.regular.tint(darkMode ? pri : sec),in: RoundedRectangle(cornerRadius: rounding))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: rounding)
+                                    .stroke(darkMode ? pri : sec, lineWidth: 1)
+                            )
                     )
                     .clipShape(RoundedRectangle(cornerRadius: rounding))
             }
@@ -330,13 +345,13 @@ struct Grid: Shape {
 
         // Calculate the number of lines to draw.
         let numberOfHorizontalLines = Int(rect.height / spacing)
-        let numberOfVerticalLines = Int(rect.width / spacing)
+        let numberOfVerticalLines = Int(rect.height / spacing)
 
         // Add horizontal lines to the path.
         for index in 0...numberOfHorizontalLines {
             let y = CGFloat(index) * spacing
             path.move(to: CGPoint(x: 0, y: y))
-            path.addLine(to: CGPoint(x: rect.width, y: y))
+            path.addLine(to: CGPoint(x: rect.height, y: y))
         }
 
         // Add vertical lines to the path.
@@ -350,7 +365,7 @@ struct Grid: Shape {
     }
 }
 
-// A view that displays the grid and controls for customization.
+// A view that displays the grid background and controls for customization.
 struct backgroundGrid: View {
     // State variables to hold the customizable properties of the grid.
     
@@ -362,8 +377,8 @@ struct backgroundGrid: View {
     
     var body: some View {
         @State var lineColor: Color = darkMode ? primaryColor : secondaryColor
-        @State var lineWidth: CGFloat = 3
-        @State var spacing: CGFloat = 12
+        @State var lineWidth: CGFloat = 1
+        @State var spacing: CGFloat = 10
         
         ZStack{
             if darkMode {
@@ -390,11 +405,13 @@ struct backgroundGrid: View {
             
             Grid(spacing: spacing)
                 .stroke(lineColor, lineWidth: lineWidth)
+                .offset(x: -300, y: 25)
+                .rotationEffect(.degrees(45))
             
             LinearGradient(
                 gradient: Gradient(stops: [
-                    .init(color: darkMode ? primaryColor : secondaryColor, location: 0.06),
-                    .init(color: Color.clear, location: 0.25)
+                    .init(color: darkMode ? primaryColor.opacity(0.95) : secondaryColor.opacity(0.95), location: 0.05),
+                    .init(color: Color.clear, location: 0.1)
                     ]),
                 startPoint: .top,
                 endPoint: .bottom
@@ -416,3 +433,4 @@ extension Color {
         return Color(hue: Double(hue), saturation: Double(sat * (1 - amount)), brightness: Double(bri), opacity: Double(alpha))
     }
 }
+
