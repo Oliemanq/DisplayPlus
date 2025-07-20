@@ -107,29 +107,9 @@ struct FloatingButtons<Destination: View>: View {
         let primaryColor = theme.primaryColor
         let secondaryColor  = theme.secondaryColor
         
-        let darkMode = colorScheme == .dark
-        
         ZStack {
             //Custon popup menu and buttons
             if #available(iOS 26, *){
-                /*Right button
-                GeometryReader { geometry in
-                    NavigationLink(destination: destinationView()) {
-                        GlassEffectContainer{
-                            HStack{
-                                Text("Calibrate")
-                                    .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Calibrate", namespace: namespace, scale: 0.8)
-                                    .offset(x: 40, y: 5)
-                                Image(systemName: "arrow.right.circle")
-                                    .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
-                                    .font(.system(size: 28))
-                            }
-                        }
-                    }
-                    .position(x: geometry.size.width - standardOffset - 35, y:  geometry.frame(in: .global).maxY - 75)
-                }
-                 */
-                
                 //Background when button pressed
                 if isExpanded {
                     VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
@@ -309,14 +289,41 @@ extension View {
                     .clipShape(RoundedRectangle(cornerRadius: rounding))
             }
         }
-        /*
+        
         else{
-            self
-            .background(
-                VisualEffectView(effect: UIBlurEffect(style: (darkMode ? .systemUltraThinMaterialDark : .systemUltraThinMaterial)))
-            )
+            
+            if bg{
+                let rounding: CGFloat = 12
+
+                self
+                    .padding(8)
+                    .background(
+                        RoundedRectangle(cornerRadius: rounding)
+                            .foregroundStyle(.ultraThinMaterial)
+                            .opacity(0.9)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: rounding)
+                                    .stroke(darkMode ? pri : sec, lineWidth: 1)
+                            )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: rounding))
+            }else{
+                let rounding: CGFloat = 12
+
+                self
+                    .padding(8)
+                    .background(
+                        RoundedRectangle(cornerRadius: rounding)
+                            .foregroundStyle(darkMode ? pri.opacity(0.6) : sec.opacity(0.85))
+                            //.glassEffect(.regular.tint(darkMode ? pri : sec),in: RoundedRectangle(cornerRadius: rounding))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: rounding)
+                                    .stroke(darkMode ? pri : sec, lineWidth: 1)
+                            )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: rounding))
+            }
         }
-         */
     }
     
 }

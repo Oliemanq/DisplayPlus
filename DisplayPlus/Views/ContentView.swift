@@ -274,70 +274,72 @@ struct ContentView: View {
                         
 
                     }else{
-                        VStack{
-                            ScrollView(.horizontal) {
-                                HStack{
-                                    if bleManager.connectionState != .connectedBoth{
-                                        Button("Start scan"){
-                                            bleManager.startScan()
-                                            showingDeviceSelectionPopup = true
+                        HStack{
+                            VStack{
+                                ScrollView(.horizontal) {
+                                    HStack{
+                                        if bleManager.connectionState != .connectedBoth{
+                                            Button("Start scan"){
+                                                bleManager.startScan()
+                                                showingDeviceSelectionPopup = true
+                                            }
+                                            .frame(width: 100, height: 50)
+                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                         }
-                                        .frame(width: 100, height: 50)
-                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                    }
-                                    
-                                    
-                                    
-                                    if bleManager.connectionState == .connectedBoth{
-                                        Button("Disconnect"){
-                                            bleManager.disconnect()
+                                        
+                                        
+                                        
+                                        if bleManager.connectionState == .connectedBoth{
+                                            Button("Disconnect"){
+                                                bleManager.disconnect()
+                                            }
+                                            .frame(width: 120, height: 50)
+                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                            
+                                            
+                                            //Display toggle button
+                                            Button(displayOn ? "Turn display off" : "Turn display on"){
+                                                displayOn.toggle()
+                                                bleManager.sendBlank()
+                                            }
+                                            .frame(width: 150, height: 50)
+                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                            
+                                            
+                                            //Auto off button
+                                            Button ("Auto shut off: \(autoOff ? "on" : "off")"){
+                                                autoOff.toggle()
+                                            }
+                                            .frame(width: 150, height: 50)
+                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                            
+                                            
+                                            /*
+                                             Hiding buttons for testflight build
+                                             Button("Fetch glasses battery level"){
+                                             bleManager.fetchGlassesBattery()
+                                             }
+                                             .frame(width: 250, height: 50)
+                                             .background((!darkMode ? primaryColor : secondaryColor))
+                                             .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                             .buttonStyle(.borderless)
+                                             .clipShape(RoundedRectangle(cornerRadius: 12))
+                                             Button("Fetch silent mode status"){
+                                             bleManager.fetchSilentMode()
+                                             }
+                                             .frame(width: 250, height: 50)
+                                             .background((!darkMode ? primaryColor : secondaryColor))
+                                             .foregroundColor(darkMode ? primaryColor : secondaryColor)
+                                             .buttonStyle(.borderless)
+                                             .clipShape(RoundedRectangle(cornerRadius: 12))
+                                             */
                                         }
-                                        .frame(width: 120, height: 50)
-                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                        
-                                        
-                                        //Display toggle button
-                                        Button(displayOn ? "Turn display off" : "Turn display on"){
-                                            displayOn.toggle()
-                                            bleManager.sendBlank()
-                                        }
-                                        .frame(width: 150, height: 50)
-                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                        
-                                        
-                                        //Auto off button
-                                        Button ("Auto shut off: \(autoOff ? "on" : "off")"){
-                                            autoOff.toggle()
-                                        }
-                                        .frame(width: 150, height: 50)
-                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                        
-                                        
-                                        /*
-                                         Hiding buttons for testflight build
-                                         Button("Fetch glasses battery level"){
-                                         bleManager.fetchGlassesBattery()
-                                         }
-                                         .frame(width: 250, height: 50)
-                                         .background((!darkMode ? primaryColor : secondaryColor))
-                                         .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                         .buttonStyle(.borderless)
-                                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                                         Button("Fetch silent mode status"){
-                                         bleManager.fetchSilentMode()
-                                         }
-                                         .frame(width: 250, height: 50)
-                                         .background((!darkMode ? primaryColor : secondaryColor))
-                                         .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                         .buttonStyle(.borderless)
-                                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                                         */
                                     }
                                 }
                             }
+                            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                         }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-
+                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
                     }
                     
                     if displayOn && bleManager.connectionState == .connectedBoth {
