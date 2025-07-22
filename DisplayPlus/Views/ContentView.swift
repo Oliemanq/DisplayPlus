@@ -1,446 +1,69 @@
 import SwiftUI
-import SwiftData
 import EventKit
 import AppIntents
 
 struct ContentView: View {
-    @AppStorage("showingCalibration", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var showingCalibration: Bool = false
     @State var showingDeviceSelectionPopup: Bool = false
-        
-    @State private var counter: CGFloat = 0
-    @State private var totalCounter: CGFloat = 0
-    @State private var displayOnCounter: Int = 0
-    
-    // UserDefaults keys (must match BackgroundTaskManager)
-    private let userDefaultsCounterKey = "backgroundTaskCounter"
-    private let userDefaultsDisplayOnCounterKey = "backgroundTaskDisplayOnCounter"
-    
-    //Initializing all infoManager managers here
-    @StateObject var infoManager: InfoManager // Removed inline initialization
-    @StateObject var bleManager: G1BLEManager // Removed inline initialization
-    @StateObject var formattingManager: FormattingManager // Removed inline initialization
-    @StateObject var bgManager: BackgroundTaskManager // Removed inline initialization
     
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.modelContext) private var context
+    @StateObject private var theme = ThemeColors()
     
-    @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
+    @AppStorage("showingScanPopover", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var showingScanPopover: Bool = false
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var displayOn = false
-    @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
-    
-    @State private var isLoading = false
-    @State private var errorMessage: String?
-    @State private var authorizationStatus: String = "Checking..."
-    
-    @State private var progressBar: Double = 0.0
-    
-    private let daysOfWeek: [String] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-    
-    let formatter = DateFormatter()
-    
-    @StateObject var theme = ThemeColors()
+    @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     
     @Namespace private var namespace
 
-    
-    init() {
-        // Create local instances of all managers first.
-        // These instances will be used to initialize the @StateObject properties.
-        let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
-        let bleInstance = G1BLEManager()
-        // FormattingManager depends on the InfoManager instance.
-        let fmInstance = FormattingManager(info: infoInstance)
-        // BackgroundTaskManager depends on the instances of G1BLEManager, InfoManager, and FormattingManager.
-        let bgmInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, formatting: fmInstance)
 
-        // Now, initialize all @StateObject properties using these local instances.
-        // This order ensures that dependencies are available.
-        _infoManager = StateObject(wrappedValue: infoInstance)
-        _bleManager = StateObject(wrappedValue: bleInstance)
-        _formattingManager = StateObject(wrappedValue: fmInstance)
-        _bgManager = StateObject(wrappedValue: bgmInstance)
-    }
     
     var body: some View {
+        let mainUI = MainUIBlocks(pri: theme.primaryColor, sec: theme.secondaryColor, darkMode: colorScheme == .dark, namespace: namespace)
+
         let darkMode: Bool = (colorScheme == .dark) //Dark mode variable
         
         let primaryColor = theme.primaryColor //Color themes being split for easier access
         let secondaryColor  = theme.secondaryColor
         
-        
-        let floatingButtonItems: [FloatingButtonItem] = [
-            .init(iconSystemName: "clock", extraText: "Default screen", action: {
-                print("Default button pushed")
-                currentPage = "Default"
-                print(currentPage)
-            }),
-            .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {
-                print("Music button pushed")
-                currentPage = "Music"
-                print(currentPage)
-            }),
-            .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
-                print("Calendar button pushed")
-                currentPage = "Calendar"
-                print(currentPage)
-            })
-        ] //Floating button init
-        
         NavigationStack {
             ZStack{
                 // Background gradient
-                backgroundGrid(primaryColor: primaryColor, secondaryColor: secondaryColor)
+                MainUIBlocks.backgroundGrid(primaryColor: primaryColor, secondaryColor: secondaryColor)
                 
                 
                 //Start Main UI
                 ScrollView(.vertical, showsIndicators: false) {
                     //MARK: - Time, Date, and DoW
-                    headerContent(primaryColor: primaryColor, secondaryColor: secondaryColor, darkMode: darkMode, bleManager: bleManager, info: infoManager, namespace: namespace)
+                    mainUI.headerContent()
                         .padding(4)
                         .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
                         .padding(.top, 40) //Giving the entire scrollview some extra padding at the top
                     
                     //MARK: - Song details
-                    if infoManager.currentSong.title == "" {
-                        HStack{
-                            Spacer()
-                            Text("No music playing")
-                                .font(.headline)
-                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                            
-                            Spacer()
-                        }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-                    }else{
-                        // Current playing music
-                        HStack{
-                            Spacer()
-                            VStack(alignment: .center) {
-                                // Use infoManager.currentSong properties
-                                Text(infoManager.currentSong.title)
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                    .font(.headline)
-                                Text("\(infoManager.currentSong.album) - \(infoManager.currentSong.artist)")
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                    .font(.subheadline)
-                                    .multilineTextAlignment(.center)
-                                
-                                let formattedCurrentTime = Duration.seconds(infoManager.currentSong.currentTime).formatted(.time(pattern: .minuteSecond))
-                                let formattedduration = Duration.seconds(infoManager.currentSong.duration).formatted(.time(pattern: .minuteSecond))
-                                
-                                Text("\(formattedCurrentTime) \(formattedduration)")
-                                    .font(.caption)
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            }
-                            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                            Spacer()
-                        }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-                    }
+                    mainUI.songInfo()
                     
                     //MARK: - Calendar events
-                    if infoManager.eventsFormatted.isEmpty {
-                        HStack{
-                            Spacer()
-                            Text("No events today")
-                                .font(.headline)
-                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                            Spacer()
-                        }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-                    }else{
-                        HStack{
-                            VStack{
-                                Text("Calendar events: ")
-                                    .font(.headline)
-                                    .padding(.horizontal, 8)
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                
-                                // Use infoManager.eventsFormatted for ForEach
-                                ForEach(infoManager.eventsFormatted) { event in
-                                    HStack{
-                                        VStack(alignment: .leading) {
-                                            Text(" - \(event.titleLine)")
-                                                .font(.caption)
-                                            
-                                            Text("    \(event.subtitleLine)")
-                                                .font(.footnote)
-                                            
-                                        }.padding(.horizontal, 8)
-                                    }
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                }
-                                
-                                
-                            }
-                            Spacer()
-                        }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-                        
-                    }
-                    Spacer()
+                    mainUI.calendarInfo()
                 
                     
                     //MARK: - Buttons
-                    if #available(iOS 26, *){
-                        VStack{
-                            HStack{
-                                GlassEffectContainer(spacing: 10.0){
-                                    ScrollView(.horizontal) {
-                                        
-                                        HStack{
-                                            Spacer()
-                                            if bleManager.connectionState != .connectedBoth{
-                                                Button("Start scan"){
-                                                    bleManager.startScan()
-                                                    showingDeviceSelectionPopup = true
-                                                }
-                                                .frame(width: 100, height: 50)
-                                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                            }
-                                            
-                                            
-                                            
-                                            if bleManager.connectionState == .connectedBoth{
-                                                Button("Disconnect"){
-                                                    Task{
-                                                        await bgManager.disconnectProper()
-                                                    }
-                                                }
-                                                .frame(width: 120, height: 50)
-                                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                                
-                                                
-                                                //Display toggle button
-                                                Button(displayOn ? "Turn display off" : "Turn display on"){
-                                                    displayOn.toggle()
-                                                    bleManager.sendBlank()
-                                                }
-                                                .frame(width: 150, height: 50)
-                                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                                
-                                                
-                                                //Auto off button
-                                                Button ("Auto shut off: \(autoOff ? "on" : "off")"){
-                                                    autoOff.toggle()
-                                                }
-                                                .frame(width: 150, height: 50)
-                                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                                
-                                                /*
-                                                 Hiding buttons for testflight build
-                                                 
-                                                 Button("Low battery disconnect"){
-                                                     Task{
-                                                         await bgManager.lowBatteryDisconnect()
-                                                     }
-                                                 }
-                                                 .frame(width: 100, height: 50)
-                                                 .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                                 
-                                                 Button("Fetch glasses battery level"){
-                                                    bleManager.fetchGlassesBattery()
-                                                 }
-                                                 .frame(width: 250, height: 50)
-                                                 .background((!darkMode ? primaryColor : secondaryColor))
-                                                 .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                                 .buttonStyle(.borderless)
-                                                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                                                 
-                                                 Button("Fetch silent mode status"){
-                                                    bleManager.fetchSilentMode()
-                                                 }
-                                                 .frame(width: 250, height: 50)
-                                                 .background((!darkMode ? primaryColor : secondaryColor))
-                                                 .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                                 .buttonStyle(.borderless)
-                                                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                                                 */
-                                            }
-                                            Spacer()
-                                            
-                                        }
-                                        
-                                    }
-                                    .scrollIndicators(.hidden)
-                                }
-                            }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-
-                        }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-                        
-
-                    }else{
-                        HStack{
-                            VStack{
-                                ScrollView(.horizontal) {
-                                    HStack{
-                                        if bleManager.connectionState != .connectedBoth{
-                                            Button("Start scan"){
-                                                bleManager.startScan()
-                                                showingDeviceSelectionPopup = true
-                                            }
-                                            .frame(width: 100, height: 50)
-                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                        }
-                                        
-                                        
-                                        
-                                        if bleManager.connectionState == .connectedBoth{
-                                            Button("Disconnect"){
-                                                bleManager.disconnect()
-                                            }
-                                            .frame(width: 120, height: 50)
-                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                            
-                                            
-                                            //Display toggle button
-                                            Button(displayOn ? "Turn display off" : "Turn display on"){
-                                                displayOn.toggle()
-                                                bleManager.sendBlank()
-                                            }
-                                            .frame(width: 150, height: 50)
-                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                            
-                                            
-                                            //Auto off button
-                                            Button ("Auto shut off: \(autoOff ? "on" : "off")"){
-                                                autoOff.toggle()
-                                            }
-                                            .frame(width: 150, height: 50)
-                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                            
-                                            
-                                            /*
-                                             Hiding buttons for testflight build
-                                             Button("Fetch glasses battery level"){
-                                             bleManager.fetchGlassesBattery()
-                                             }
-                                             .frame(width: 250, height: 50)
-                                             .background((!darkMode ? primaryColor : secondaryColor))
-                                             .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                             .buttonStyle(.borderless)
-                                             .clipShape(RoundedRectangle(cornerRadius: 12))
-                                             Button("Fetch silent mode status"){
-                                             bleManager.fetchSilentMode()
-                                             }
-                                             .frame(width: 250, height: 50)
-                                             .background((!darkMode ? primaryColor : secondaryColor))
-                                             .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                             .buttonStyle(.borderless)
-                                             .clipShape(RoundedRectangle(cornerRadius: 12))
-                                             */
-                                        }
-                                    }
-                                }
-                            }
-                            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                        }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-                    }
+                    mainUI.buttons()
                     
-                    if displayOn && bleManager.connectionState == .connectedBoth {
-                    //Glasses mirror on app UI
-                        VStack{
-                            Text(bgManager.textOutput)
-                                .font(.system(size: 11))
-                            
-                        }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-                    }
+                    //MARK: - Glasses mirror
+                    mainUI.glassesMirror()
                     
-                    //Connection status display
-                    HStack{
-                        Spacer()
-                        Text("Connection status: \(bleManager.connectionStatus)")
-                            .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                            .font(.headline)
-                            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-
-                        Spacer()
-                    }
-                    .listRowInsets(EdgeInsets(top: 8, leading: 40, bottom: 8, trailing: 40))
-                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+                    //MARK: - Connection status display
+                    mainUI.connectionDisplay()
                 }
                 .padding(.horizontal, 16)
                 
-                //Bottom buttons
-                FloatingButtons(items: floatingButtonItems, destinationView: { CalibrationView(ble: bleManager) })
-                    .environmentObject(theme)
+                //MARK: - Bottom buttons
+                mainUI.floatingButtons()
+                    
             }
             
-            .popover(isPresented: $showingDeviceSelectionPopup) {
-                ZStack {
-                    (darkMode ? primaryColor.opacity(0.5) : secondaryColor.opacity(0.75))
-                        .ignoresSafeArea()
-                    VStack {
-                        ForEach(Array(bleManager.discoveredPairs).indices, id: \.self) { index in
-                            let pair = Array(bleManager.discoveredPairs.values)[index]
-                            VStack{
-                                Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
-                                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                HStack {
-                                    if pair.left != nil {
-                                        HStack{
-                                            Image(systemName: "checkmark.circle")
-                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                            Text("Left found")
-                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                        }
-                                    } else {
-                                        HStack {
-                                            Image(systemName: "x.circle")
-                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                            Text("No left")
-                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                        }
-                                    }
-                                    if pair.right != nil {
-                                        HStack{
-                                            Image(systemName: "checkmark.circle")
-                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                            Text("Right found")
-                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                        }
-                                    } else {
-                                        HStack {
-                                            Image(systemName: "x.circle")
-                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                            Text("No right")
-                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                        }
-                                    }
-                                }
-                                if pair.left != nil && pair.right != nil {
-                                    withAnimation{
-                                        Button("Connect to pair"){
-                                            bleManager.connectPair(pair: pair)
-                                            showingDeviceSelectionPopup = false
-                                        }
-                                        .frame(width: 150, height: 50)
-                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                    }
-                                }
-                            }
-                            .padding(.horizontal, 50)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 24)
-                                .fill(!darkMode ? Color(primaryColor).opacity(0.05) : Color(secondaryColor).opacity(0.1))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 24)
-                                        .stroke(
-                                            (!darkMode ? primaryColor : secondaryColor).opacity(0.3),
-                                            lineWidth: 0.5
-                                        )
-                                )
-                            )
-                        }
-                    }
-                }
+            //MARK: - Device connection popover
+            .popover(isPresented: $showingScanPopover) {
+                mainUI.scanDevicesPopup()
             }
              
         }
@@ -448,27 +71,27 @@ struct ContentView: View {
         .scrollContentBackground(.hidden)
         .background(Color.clear) // List background is now clear
         .onAppear {
-            infoManager.update(updateWeatherBool: true) // Initial update
-            bgManager.startTimer() // Start the background task timer
+            mainUI.info.update(updateWeatherBool: true) // Initial update
+            mainUI.bg.startTimer() // Start the background task timer
         }
         .onDisappear {
-            bgManager.stopTimer() // Stop the timer when view disappears
-            bleManager.disconnect()
+            mainUI.bg.stopTimer() // Stop the timer when view disappears
+            mainUI.ble.disconnect()
             displayOn.toggle()
         }
         
         //Checking if displayOn changes and acting accordingly, mainly to bypass lag in timer
         .onChange(of: displayOn) { oldValue, newValue in
             if !newValue{
-                bleManager.sendBlank()
+                mainUI.ble.sendBlank()
             }else{
-                bleManager.sendText(text: bgManager.pageHandler(), counter: 0)
+                mainUI.ble.sendText(text: mainUI.bg.pageHandler(), counter: 0)
             }
         }
         .onChange(of: currentPage) { oldValue, newValue in
             if oldValue != newValue{
-                infoManager.changed = true
-                bleManager.sendText(text: bgManager.pageHandler(), counter: 0)
+                mainUI.info.changed = true
+                mainUI.ble.sendText(text: mainUI.bg.pageHandler(), counter: 0)
             }
         }
     }

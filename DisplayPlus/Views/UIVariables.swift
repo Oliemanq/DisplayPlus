@@ -89,15 +89,12 @@ struct FloatingButtonItem: Identifiable {
     var action: () -> Void
 }
 
-struct FloatingButtons<Destination: View>: View {
+struct FloatingButtons: View {
     let items: [FloatingButtonItem]
     let standardOffset: CGFloat = 65
-    let destinationView: () -> Destination
     
     @Environment(\.colorScheme) private var colorScheme
-    
-    @AppStorage("showingCalibration", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var showingCalibration: Bool = false
-    
+        
     @State var isExpanded: Bool = false
     @State private var isPressed: Bool = false
     @EnvironmentObject var theme: ThemeColors
@@ -166,22 +163,6 @@ struct FloatingButtons<Destination: View>: View {
             }else{
                 NavigationStack {
                     GeometryReader { geometry in
-                        /*
-                        HStack{
-                            Text("Calibrate")
-                                .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Calibrate", namespace: namespace, scale: 0.8)
-                            Image(systemName: "arrow.right.circle")
-                                .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
-                                .font(.system(size: 28))
-                        }
-                        .onTapGesture {
-                            showingCalibration = true
-                        }
-                        .position(x: geometry.size.width - standardOffset - 35, y:  geometry.frame(in: .global).maxY - 75)
-                        .navigationDestination(isPresented: $showingCalibration) {
-                            destinationView()
-                        }
-                         */
                         if isExpanded {
                             VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
                                 .onTapGesture {
@@ -370,63 +351,6 @@ struct Grid: Shape {
 
         return path
     }
-}
-
-// A view that displays the grid background and controls for customization.
-struct backgroundGrid: View {
-    // State variables to hold the customizable properties of the grid.
-    
-    @State var primaryColor: Color
-    @State var secondaryColor: Color
-    
-    @Environment(\.colorScheme) private var colorScheme
-    var darkMode: Bool { colorScheme == .dark }
-    
-    var body: some View {
-        @State var lineColor: Color = darkMode ? primaryColor : secondaryColor
-        @State var lineWidth: CGFloat = 1
-        @State var spacing: CGFloat = 10
-        
-        ZStack{
-            if darkMode {
-                LinearGradient(
-                    gradient: Gradient(stops: [
-                        .init(color: secondaryColor, location: 0.0), // Lighter color at top-left
-                        .init(color: primaryColor, location: 0.5),  // Transition to darker
-                        .init(color: primaryColor, location: 1.0)   // Darker color for the rest
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            } else {
-                LinearGradient(
-                    gradient: Gradient(stops: [
-                        .init(color: primaryColor, location: 0.0), // Darker color at top-left
-                        .init(color: secondaryColor, location: 0.5),  // Transition to lighter
-                        .init(color: secondaryColor, location: 1.0)   // Lighter color for the rest
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            }
-            
-            Grid(spacing: spacing)
-                .stroke(lineColor, lineWidth: lineWidth)
-                .offset(x: -300, y: 25)
-                .rotationEffect(.degrees(45))
-            
-            LinearGradient(
-                gradient: Gradient(stops: [
-                    .init(color: darkMode ? primaryColor.opacity(0.95) : secondaryColor.opacity(0.95), location: 0.05),
-                    .init(color: Color.clear, location: 0.1)
-                    ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        }
-        .edgesIgnoringSafeArea(.all)
-    }
-    
 }
 
 //Quick modifier for colors that desaturates them by "amount" percentage

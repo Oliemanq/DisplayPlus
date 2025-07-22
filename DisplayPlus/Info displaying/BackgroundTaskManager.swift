@@ -41,6 +41,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
         if displayOn && !autoOff {
             displayOnCounter = 0
         }
+        
         // Reset weather ticker when timer starts or restarts
         weatherCounter = 0
         
@@ -59,7 +60,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                     HBCounter += 1
                 }
                 // Determine if it's time to update weather
-                let shouldUpdateWeather = (weatherCounter >= 600) // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
+                let shouldUpdateWeather = (weatherCounter % 600) == 0 // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
                 
                 // Update InfoManager's data
                 infoManager.update(updateWeatherBool: shouldUpdateWeather)
@@ -74,7 +75,6 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 }
                 
                 if shouldUpdateWeather {
-                    weatherCounter = 0 // Reset ticker
                     print("BackgroundTaskManager timer: Triggered weather update.")
                 } else {
                     weatherCounter += 1

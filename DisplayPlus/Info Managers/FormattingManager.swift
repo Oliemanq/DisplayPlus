@@ -47,9 +47,7 @@ class FormattingManager: ObservableObject {
     }
     
     func defaultDisplay() -> [String] {
-        
         return(currentDisplayLines)
-        
     }
     
     func musicDisplay() -> [String]{
