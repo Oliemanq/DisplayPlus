@@ -269,9 +269,7 @@ extension View {
                     )
                     .clipShape(RoundedRectangle(cornerRadius: rounding))
             }
-        }
-        
-        else{
+        }else{
             
             if bg{
                 let rounding: CGFloat = 12

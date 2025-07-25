@@ -3,40 +3,53 @@ import EventKit
 import AppIntents
 
 struct ContentView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    
     @State var showingDeviceSelectionPopup: Bool = false
     
-    @Environment(\.colorScheme) private var colorScheme
-    @StateObject private var theme = ThemeColors()
-    
+    @StateObject private var info: InfoManager
+    @StateObject private var ble: G1BLEManager
+    @StateObject private var page: PageManager
+    @StateObject private var bg: BackgroundTaskManager
+        
     @AppStorage("showingScanPopover", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var showingScanPopover: Bool = false
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var displayOn = false
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     
     @Namespace private var namespace
 
+    init() {
+        let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
+        let bleInstance = G1BLEManager()
+        let fmInstance = PageManager(info: infoInstance)
+        let bgmInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: fmInstance)
 
+        _info = StateObject(wrappedValue: infoInstance)
+        _ble = StateObject(wrappedValue: bleInstance)
+        _page = StateObject(wrappedValue: fmInstance)
+        _bg = StateObject(wrappedValue: bgmInstance)
+        
+    }
     
     var body: some View {
-        let mainUI = MainUIBlocks(pri: theme.primaryColor, sec: theme.secondaryColor, darkMode: colorScheme == .dark, namespace: namespace)
-
-        let darkMode: Bool = (colorScheme == .dark) //Dark mode variable
-        
-        let primaryColor = theme.primaryColor //Color themes being split for easier access
-        let secondaryColor  = theme.secondaryColor
+        let mainUI = MainUIBlocks(
+            namespace: namespace,
+            infoManager: info,
+            bleManager: ble,
+            pageManager: page,
+            bgManager: bg
+        )
         
         NavigationStack {
             ZStack{
                 // Background gradient
-                MainUIBlocks.backgroundGrid(primaryColor: primaryColor, secondaryColor: secondaryColor)
+                mainUI.backgroundGrid()
                 
                 
                 //Start Main UI
                 ScrollView(.vertical, showsIndicators: false) {
                     //MARK: - Time, Date, and DoW
                     mainUI.headerContent()
-                        .padding(4)
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-                        .padding(.top, 40) //Giving the entire scrollview some extra padding at the top
                     
                     //MARK: - Song details
                     mainUI.songInfo()
@@ -53,6 +66,7 @@ struct ContentView: View {
                     
                     //MARK: - Connection status display
                     mainUI.connectionDisplay()
+                    
                 }
                 .padding(.horizontal, 16)
                 
@@ -100,6 +114,7 @@ struct ContentView: View {
 class ThemeColors: ObservableObject {
     @Published var primaryColor: Color = Color(red: 10/255, green: 25/255, blue: 10/255)
     @Published var secondaryColor: Color = Color(red: 175/255, green: 220/255, blue: 175/255)
+    @Published var darkMode: Bool = (({ UITraitCollection.current.userInterfaceStyle == .dark })() == true)
 }
 
 #Preview {

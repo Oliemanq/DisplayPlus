@@ -9,12 +9,12 @@ import SwiftUI
 import Foundation
 
 class MainUIBlocks{
-    var darkMode: Bool
-    let primaryColor: Color
-    let secondaryColor: Color
+    var primaryColor: Color { theme.primaryColor }
+    var secondaryColor: Color { theme.secondaryColor }
+    var darkMode: Bool { theme.darkMode }
     let namespace: Namespace.ID
     
-    private var theme = ThemeColors()
+    let theme = ThemeColors()
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var displayOn = false
@@ -28,26 +28,18 @@ class MainUIBlocks{
     
     var floatingButtonItems: [FloatingButtonItem] = []
     
-    var info: InfoManager
-    var ble: G1BLEManager
-    var formatting: FormattingManager
-    var bg: BackgroundTaskManager
+    let info: InfoManager
+    let ble: G1BLEManager
+    let page: PageManager
+    let bg: BackgroundTaskManager
     
-    init(pri: Color, sec: Color, darkMode: Bool, namespace: Namespace.ID) {
-        let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
-        let bleInstance = G1BLEManager()
-        let fmInstance = FormattingManager(info: infoInstance)
-        let bgmInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, formatting: fmInstance)
-
-        info = infoInstance
-        ble = bleInstance
-        formatting = fmInstance
-        bg = bgmInstance
-        
-        self.primaryColor = pri
-        self.secondaryColor = sec
-        self.darkMode = darkMode
+    init(namespace: Namespace.ID, infoManager: InfoManager, bleManager: G1BLEManager, pageManager: PageManager, bgManager: BackgroundTaskManager) {
         self.namespace = namespace
+        
+        self.info = infoManager
+        self.ble = bleManager
+        self.page = pageManager
+        self.bg = bgManager
         
         self.floatingButtonItems = [
             .init(iconSystemName: "clock", extraText: "Default screen", action: {
@@ -65,6 +57,7 @@ class MainUIBlocks{
         ] // Floating button init
     }
     
+    //MARK: Header
     func headerContent() -> some View {
         if #available(iOS 26, *) {
             return GlassEffectContainer(spacing: 20){
@@ -107,6 +100,8 @@ class MainUIBlocks{
                     }
                 }
             }
+            .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+            .padding(.top, 40) //Giving the entire scrollview some extra padding at the top
         }else{
             return HStack{
                 Spacer()
@@ -125,8 +120,8 @@ class MainUIBlocks{
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                     }
                     .padding(.horizontal, ble.connectionState == .connectedBoth ? 0 : 64)
-                    .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                    
+                    .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+
                     
                     Spacer()
                     
@@ -140,8 +135,8 @@ class MainUIBlocks{
                             Text("Case - \(Int(ble.caseBatteryLevel))%")
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                         }
-                        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                        
+                        .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+
                         Spacer()
                     }
                 }
@@ -150,6 +145,7 @@ class MainUIBlocks{
         
     }
     
+    //MARK: - Song info
     func songInfo() -> some View {
         return VStack{
             if info.currentSong.title == "" {
@@ -162,7 +158,7 @@ class MainUIBlocks{
                     
                     Spacer()
                 }
-                .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+                .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
             }else{
                 // Current playing music
                 HStack{
@@ -186,12 +182,15 @@ class MainUIBlocks{
                     }
                     .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     Spacer()
-                }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+                }
+                .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+
             }
         }
-                            
+        
     }
     
+    //MARK: - Calendar info
     func calendarInfo() -> some View {
         return HStack{
             if info.eventsFormatted.isEmpty {
@@ -203,11 +202,10 @@ class MainUIBlocks{
                         .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     Spacer()
                 }
-                .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
             }else{
                 HStack{
                     VStack{
-                        Text("Calendar events: ")
+                        Text("Calendar events (\(info.numOfEvents)): ")
                             .font(.headline)
                             .padding(.horizontal, 8)
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
@@ -232,13 +230,13 @@ class MainUIBlocks{
                     }
                     Spacer()
                 }
-                .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-
             }
             Spacer()
-        }
+        }.mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+
     }
     
+    //MARK: - Buttons
     func buttons() -> some View {
         if #available(iOS 26, *){
             return VStack {
@@ -289,15 +287,15 @@ class MainUIBlocks{
                                      Hiding buttons for testflight build
                                      
                                      Button("Low battery disconnect"){
-                                         Task{
-                                             await bgManager.lowBatteryDisconnect()
-                                         }
+                                     Task{
+                                     await bgManager.lowBatteryDisconnect()
+                                     }
                                      }
                                      .frame(width: 100, height: 50)
                                      .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                      
                                      Button("Fetch glasses battery level"){
-                                        bleManager.fetchGlassesBattery()
+                                     bleManager.fetchGlassesBattery()
                                      }
                                      .frame(width: 250, height: 50)
                                      .background((!darkMode ? primaryColor : secondaryColor))
@@ -306,7 +304,7 @@ class MainUIBlocks{
                                      .clipShape(RoundedRectangle(cornerRadius: 12))
                                      
                                      Button("Fetch silent mode status"){
-                                        bleManager.fetchSilentMode()
+                                     bleManager.fetchSilentMode()
                                      }
                                      .frame(width: 250, height: 50)
                                      .background((!darkMode ? primaryColor : secondaryColor))
@@ -323,9 +321,9 @@ class MainUIBlocks{
                         .scrollIndicators(.hidden)
                     }
                 }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-
+                
             }
-            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+            .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
         }else{
             return HStack{
                 VStack{
@@ -373,42 +371,52 @@ class MainUIBlocks{
                 }
                 .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
             }
-            .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+            .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
         }
     }
     
+    //MARK: - Mirror
     func glassesMirror() -> some View {
-        return VStack{
-            if displayOn && ble.connectionState == .connectedBoth {
+        return VStack(alignment: .center){
+            if ble.connectionState == .connectedBoth {
                 //Glasses mirror on app UI
-                VStack{
-                    Text(bg.textOutput)
-                        .font(.system(size: 11))
-                    
-                }
-                .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+                Text(bg.textOutput)
+                    .lineLimit(
+                        currentPage == "Default" ? 1 :
+                        currentPage == "Music" ? 3 :
+                        currentPage == "Calendar" ? (info.numOfEvents == 1 ? 3 : 4) :
+                        3 //Default if currentPage is none of the options
+                    )
+                    .minimumScaleFactor(0.5)
+                    .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+            }else{
+                Text("Waiting for glasses to connect...")
+                    .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                    .font(.caption)
             }
         }
+        .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
     }
     
+    //MARK: - Connection display
     func connectionDisplay() -> some View {
         return HStack{
-            Spacer()
-            Text("Connection status: \(ble.connectionStatus)")
-                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                .font(.headline)
-                .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-
-            Spacer()
+            VStack(alignment: .center){
+                Text("Connection status: \(ble.connectionStatus)")
+                    .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                    .font(.headline)
+            }.mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
         }
-        .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+        .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
     }
     
+    //MARK: - Floating buttons
     func floatingButtons() -> some View {
         return FloatingButtons(items: floatingButtonItems)
             .environmentObject(theme)
     }
     
+    //MARK: - Devices popup
     func scanDevicesPopup() -> some View {
         return ZStack {
             (self.darkMode ? self.primaryColor.opacity(0.5) : self.secondaryColor.opacity(0.75))
@@ -466,81 +474,79 @@ class MainUIBlocks{
                     .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 24)
-                        .fill(!self.darkMode ? Color(self.primaryColor).opacity(0.05) : Color(self.secondaryColor).opacity(0.1))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 24)
-                                .stroke(
-                                    (!self.darkMode ? self.primaryColor : self.secondaryColor).opacity(0.3),
-                                    lineWidth: 0.5
-                                )
-                        )
+                            .fill(!self.darkMode ? Color(self.primaryColor).opacity(0.05) : Color(self.secondaryColor).opacity(0.1))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 24)
+                                    .stroke(
+                                        (!self.darkMode ? self.primaryColor : self.secondaryColor).opacity(0.3),
+                                        lineWidth: 0.5
+                                    )
+                            )
                     )
                 }
             }
         }
     }
     
-    struct backgroundGrid: View {
+    //MARK: - Background
+    func backgroundGrid() -> some View {
         // State variables to hold the customizable properties of the grid.
+        @State var lineColor: Color = darkMode ? primaryColor : secondaryColor
+        @State var lineWidth: CGFloat = 1
+        @State var spacing: CGFloat = 10
         
-        @State var primaryColor: Color
-        @State var secondaryColor: Color
         
-        @Environment(\.colorScheme) private var colorScheme
-        var darkMode: Bool { colorScheme == .dark }
-        
-        var body: some View {
-            @State var lineColor: Color = darkMode ? primaryColor : secondaryColor
-            @State var lineWidth: CGFloat = 1
-            @State var spacing: CGFloat = 10
-            
-            ZStack{
-                if darkMode {
-                    LinearGradient(
-                        gradient: Gradient(stops: [
-                            .init(color: secondaryColor, location: 0.0), // Lighter color at top-left
-                            .init(color: primaryColor, location: 0.5),  // Transition to darker
-                            .init(color: primaryColor, location: 1.0)   // Darker color for the rest
-                        ]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                } else {
-                    LinearGradient(
-                        gradient: Gradient(stops: [
-                            .init(color: primaryColor, location: 0.0), // Darker color at top-left
-                            .init(color: secondaryColor, location: 0.5),  // Transition to lighter
-                            .init(color: secondaryColor, location: 1.0)   // Lighter color for the rest
-                        ]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                }
-                
-                Grid(spacing: spacing)
-                    .stroke(lineColor, lineWidth: lineWidth)
-                    .offset(x: -300, y: 25)
-                    .rotationEffect(.degrees(45))
-                
+        return ZStack{
+            if darkMode {
                 LinearGradient(
                     gradient: Gradient(stops: [
-                        .init(color: darkMode ? primaryColor.opacity(0.95) : secondaryColor.opacity(0.95), location: 0.05),
-                        .init(color: Color.clear, location: 0.1)
-                        ]),
-                    startPoint: .top,
-                    endPoint: .bottom
+                        .init(color: secondaryColor, location: 0.0), // Lighter color at top-left
+                        .init(color: primaryColor, location: 0.5),  // Transition to darker
+                        .init(color: primaryColor, location: 1.0)   // Darker color for the rest
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            } else {
+                LinearGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: primaryColor, location: 0.0), // Darker color at top-left
+                        .init(color: secondaryColor, location: 0.5),  // Transition to lighter
+                        .init(color: secondaryColor, location: 1.0)   // Lighter color for the rest
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
                 )
             }
-            .edgesIgnoringSafeArea(.all)
+            
+            Grid(spacing: spacing)
+                .stroke(lineColor, lineWidth: lineWidth)
+                .offset(x: -300, y: 25)
+                .rotationEffect(.degrees(45))
+            
+            LinearGradient(
+                gradient: Gradient(stops: [
+                    .init(color: darkMode ? primaryColor.opacity(0.95) : secondaryColor.opacity(0.95), location: 0.05),
+                    .init(color: Color.clear, location: 0.1)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
         }
-        
+        .edgesIgnoringSafeArea(.all)
+    }
+    
+}
+
+
+extension View {
+    func mainUIMods(pri: Color, sec: Color, darkMode: Bool, bg: Bool = false) -> some View {
+        self
+            .frame(maxWidth: .infinity)
+            .foregroundStyle(!darkMode ? pri : sec)
+            .padding(2)
+            .glassListBG(pri: pri, sec: sec, darkMode: darkMode, bg: bg)
+            .padding(.horizontal, 6)
     }
 }
 
-extension View {
-    func mainUIMods(pri: Color, sec: Color, darkMode: Bool) -> some View {
-        self
-            .foregroundStyle(!darkMode ? pri : sec)
-            .glassListBG(pri: pri, sec: sec, darkMode: darkMode)
-    }
-}

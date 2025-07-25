@@ -14,7 +14,7 @@ import MapKit
 import OpenMeteoSdk
 
 
-class FormattingManager: ObservableObject {
+class PageManager: ObservableObject {
     var timer: Timer?
     
     var rm = RenderingManager() //Has all measurements from calibration
@@ -36,14 +36,8 @@ class FormattingManager: ObservableObject {
     
     func header() -> String {
         currentDisplayLines.removeAll()
-        
-        var header: String
-        if info.getCurrentTemp() != 0 {
-            header = (centerText(text:("\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())% | \(info.getCurrentTemp())°F\n")))
-        }else{
-            header = (String(centerText(text: "\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())%\n")))
-        }
-        return header
+
+        return centerText(text: ("\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())% \(info.getCurrentTemp() != 0 ? ("| \(info.getCurrentTemp())°F") : "")\n"))
     }
     
     func defaultDisplay() -> [String] {
@@ -81,19 +75,11 @@ class FormattingManager: ObservableObject {
     }
     
     func calendarDisplay() -> [String]{
-        if info.getEvents().count <= 2 {
-            for event in info.getEvents() {
-                currentDisplayLines.append(centerText(text: (event.titleLine)))
-                currentDisplayLines.append(centerText(text: (event.subtitleLine)))
-            }
-        }else{
-            for i in 0...1{
-                currentDisplayLines.append(centerText(text: info.getEvents()[i].titleLine))
-                currentDisplayLines.append(centerText(text: info.getEvents()[i].subtitleLine))
-            }
-            //EVENTUAL HANDLING FOR MORE THAN 5 LINES
-        } //Limiting number of shown events to 2, possibly scroll through them with touch bar in the future
-        
+        for event in info.getEvents() {
+            let title = (event.titleLine.count > 15 ? String(event.titleLine.prefix(25) + "...") : event.titleLine)
+            currentDisplayLines.append(centerText(text: "\(title)"))
+            currentDisplayLines.append(centerText(text: (event.subtitleLine)))
+        }
         return currentDisplayLines
     }
     

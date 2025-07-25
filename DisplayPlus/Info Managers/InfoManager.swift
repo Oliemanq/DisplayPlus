@@ -21,10 +21,11 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     @Published var time: String // Mark with @Published
     
     //Event vars
-    @Published var eventsFormatted: [event] = [] // Mark with @Published
-    var events: [EKEvent] = [] // Keep this for internal fetching if needed
-    @Published var authorizationStatus = "" // Mark with @Published
-    @Published var errorMessage: String = "" // Mark with @Published
+    @Published var eventsFormatted: [event] = []
+    var events: [EKEvent] = []
+    @Published var numOfEvents: Int = 0
+    @Published var authorizationStatus = ""
+    @Published var errorMessage: String = ""
     
     //Battery var
     @Published var batteryLevelFormatted: Int = 0 // Mark with @Published
@@ -45,9 +46,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         
     }
     
-    public func update(updateWeatherBool: Bool) {
-        changed = false
-        
+    public func update(updateWeatherBool: Bool) {        
         let newTime = Date().formatted(date: .omitted, time: .shortened)
         if time != newTime {
             time = newTime
@@ -65,8 +64,14 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         }
         
         //check calendar auth then update events
-        if getCalendarAuthStatus(){
-            loadEvents()
+        if getCalendarAuthStatus() {
+            let tempEventHolder = eventsFormatted
+            loadEvents {
+                if tempEventHolder != self.eventsFormatted {
+                    print("Events changed")
+                    self.changed = true
+                }
+            }
         }
          
         //Update weather only when needed (every 5 minutes or so)
@@ -106,7 +111,10 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
                 case .success(let fetchedEvents):
                     var tempEventsFormatted: [event] = [] // Build locally then assign to @Published
                     events = fetchedEvents
+                    numOfEvents = 0
                     for event in events {
+                        numOfEvents += 1
+                        
                         var eventTemp: event = .init(
                             titleLine: "",
                             subtitleLine: ""
@@ -248,3 +256,4 @@ struct event: Identifiable, Hashable{
     var titleLine: String
     var subtitleLine: String
 }
+

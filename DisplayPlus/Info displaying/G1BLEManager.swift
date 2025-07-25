@@ -80,30 +80,39 @@ class G1BLEManager: NSObject, ObservableObject{
     // MARK: - Public Methods
     
     /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
+    /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
     func startScan() {
-        /*
-        if scanTimeout == true{
-            if scanTimeoutCounter != 0{
-                scanTimeoutCounter -= 1
-            }else{
-                scanTimeoutCounter = 5
-                scanTimeout = false
-            }
-        }else{
-         */
-            guard centralManager.state == .poweredOn else {
-                print("Bluetooth is not powered on. Cannot start scan.")
-                return
-            }
-            print("Scanning")
-            connectionStatus = "Scanning..."
-            // You can filter by the UART service, but if you need the name to parse left vs right,
-            // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
-            centralManager.scanForPeripherals(withServices: nil, options: nil)
-            
-        /*
-            scanTimeout = true
+        guard centralManager.state == .poweredOn else {
+            print("Bluetooth is not powered on. Cannot start scan.")
+            return
         }
+        
+        // --- MODIFICATION START ---
+        // First, retrieve peripherals that are already connected to the system
+        print("Checking for already connected peripherals with service: \(uartServiceUUID.uuidString)")
+        let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceUUID])
+        
+        if !connectedPeripherals.isEmpty {
+            print("Found \(connectedPeripherals.count) already-connected peripheral(s).")
+            for peripheral in connectedPeripherals {
+                print("Handling connected peripheral: \(peripheral.name ?? "Unknown")")
+                // Process this peripheral as if it were just discovered via a scan
+                handleDiscoveredPeripheral(peripheral)
+            }
+        } else {
+            print("No relevant peripherals already connected.")
+        }
+        // --- MODIFICATION END ---
+        
+        print("Scanning for new advertising devices...")
+        connectionStatus = "Scanning..."
+        // You can filter by the UART service, but if you need the name to parse left vs right,
+        // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
+        centralManager.scanForPeripherals(withServices: nil, options: nil)
+        
+        /*
+         scanTimeout = true
+         }
          */
     }
     
