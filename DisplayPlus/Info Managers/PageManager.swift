@@ -75,10 +75,14 @@ class PageManager: ObservableObject {
     }
     
     func calendarDisplay() -> [String]{
-        for event in info.getEvents() {
-            let title = (event.titleLine.count > 15 ? String(event.titleLine.prefix(25) + "...") : event.titleLine)
-            currentDisplayLines.append(centerText(text: "\(title)"))
-            currentDisplayLines.append(centerText(text: (event.subtitleLine)))
+        if (info.getEvents().count != 0) {
+            for event in info.eventsFormatted {
+                let title = (event.titleLine.count > 15 ? String(event.titleLine.prefix(25) + "...") : event.titleLine)
+                currentDisplayLines.append(centerText(text: "\(title)"))
+                currentDisplayLines.append(centerText(text: (event.subtitleLine)))
+            }
+        }else{
+            currentDisplayLines.append(centerText(text: "No events"))
         }
         return currentDisplayLines
     }

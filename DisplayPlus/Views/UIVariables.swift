@@ -161,56 +161,54 @@ struct FloatingButtons: View {
                 
                 
             }else{
-                NavigationStack {
-                    GeometryReader { geometry in
-                        if isExpanded {
-                            VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                                .onTapGesture {
-                                    withAnimation{
-                                        isExpanded = false
-                                    }
-                                }
-                                .ignoresSafeArea()
-                                .frame(width: 10000, height: 10000)
-                        }
-                        
-                        ZStack{
-                            if isExpanded{
-                                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                                    
-                                    HStack(){
-                                        Image(systemName: item.iconSystemName)
-                                            .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
-                                            .onTapGesture {
-                                                item.action()
-                                                withAnimation{
-                                                    isExpanded.toggle()
-                                                }
-                                            }
-                                        Text(item.extraText ?? "")
-                                            .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
-                                        Spacer()
-                                    }
-                                    .opacity(isExpanded ? 1 : 0)
-                                    .offset(x: isExpanded ? -15 : 10, y: isExpanded ? -standardOffset*CGFloat(index+1) : 0)
-                                    .animation(.easeInOut(duration: 0.2).delay(0.03 * Double(index)), value: isExpanded)
-                                }
-                                .offset(x: !isExpanded ? 0 : 125)
-                            }
-                            HStack{
-                                Image(systemName: "plus")
-                                    .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
-                                    .animation(.easeInOut, value: isExpanded)
-                                    .rotationEffect(.degrees(isExpanded ? 45 : 0))
-                                Text("Other screens")
-                                    .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Other screens", namespace: namespace, scale: 1)
-                            }.onTapGesture {
+                GeometryReader { geometry in
+                    if isExpanded {
+                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+                            .onTapGesture {
                                 withAnimation{
-                                    isExpanded.toggle()
+                                    isExpanded = false
                                 }
                             }
-                        }.position(x: 100, y: geometry.frame(in: .global).maxY - 75)
+                            .ignoresSafeArea()
+                            .frame(width: 10000, height: 10000)
                     }
+                    
+                    ZStack{
+                        if isExpanded{
+                            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                                HStack(){
+                                    Image(systemName: item.iconSystemName)
+                                        .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                    Text(item.extraText ?? "")
+                                        .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
+                                    Spacer()
+                                }
+                                .onTapGesture {
+                                    item.action()
+                                    withAnimation{
+                                        isExpanded.toggle()
+                                    }
+                                }
+                                .opacity(isExpanded ? 1 : 0)
+                                .offset(x: isExpanded ? -15 : 10, y: isExpanded ? -standardOffset*CGFloat(index+1) : 0)
+                                .animation(.easeInOut(duration: 0.2).delay(0.03 * Double(index)), value: isExpanded)
+                            }
+                            .offset(x: !isExpanded ? 0 : 125)
+                        }
+                        HStack{
+                            Image(systemName: "plus")
+                                .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                .animation(.easeInOut, value: isExpanded)
+                                .rotationEffect(.degrees(isExpanded ? 45 : 0))
+                            Text("Other screens")
+                                .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Other screens", namespace: namespace, scale: 1)
+                        }.onTapGesture {
+                            withAnimation{
+                                isExpanded.toggle()
+                            }
+                        }
+                    }
+                    .position(x: 100, y: geometry.frame(in: .global).maxY - 75)
                 }
             }
         }
@@ -294,10 +292,9 @@ extension View {
                     .background(
                         RoundedRectangle(cornerRadius: rounding)
                             .foregroundStyle(darkMode ? pri.opacity(0.6) : sec.opacity(0.85))
-                            //.glassEffect(.regular.tint(darkMode ? pri : sec),in: RoundedRectangle(cornerRadius: rounding))
                             .overlay(
                                 RoundedRectangle(cornerRadius: rounding)
-                                    .stroke(darkMode ? pri : sec, lineWidth: 1)
+                                    .stroke(!darkMode ? pri : sec, lineWidth: 0.5)
                             )
                     )
                     .clipShape(RoundedRectangle(cornerRadius: rounding))

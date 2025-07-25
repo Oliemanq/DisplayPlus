@@ -61,7 +61,7 @@ class MainUIBlocks{
     func headerContent() -> some View {
         if #available(iOS 26, *) {
             return GlassEffectContainer(spacing: 20){
-                HStack{ 
+                HStack{
                     Spacer()
                     VStack {
                         //Display glasses battery level if it has been updated
@@ -105,6 +105,7 @@ class MainUIBlocks{
         }else{
             return HStack{
                 Spacer()
+                
                 VStack {
                     //Display glasses battery level if it has been updated
                     if ble.glassesBatteryAvg != 0.0 {
@@ -120,14 +121,13 @@ class MainUIBlocks{
                             .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                     }
                     .padding(.horizontal, ble.connectionState == .connectedBoth ? 0 : 64)
-                    .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-
-                    
-                    Spacer()
-                    
-                    if ble.connectionState == .connectedBoth {
-                        Spacer()
-                        
+                    .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                }
+                
+                Spacer()
+                
+                if ble.connectionState == .connectedBoth {
+                    VStack {
                         VStack{
                             Text("Glasses - \(Int(ble.glassesBatteryAvg))%")
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
@@ -135,14 +135,16 @@ class MainUIBlocks{
                             Text("Case - \(Int(ble.caseBatteryLevel))%")
                                 .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
                         }
-                        .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-
-                        Spacer()
+                        .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     }
+                    .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+
+                    Spacer()
                 }
             }
+            .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+
         }
-        
     }
     
     //MARK: - Song info

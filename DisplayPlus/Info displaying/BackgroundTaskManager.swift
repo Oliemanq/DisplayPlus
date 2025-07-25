@@ -140,14 +140,12 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
             let displayLines = page.calendarDisplay()
             
             if displayLines.isEmpty {
-                textOutput = "broken"
+                textOutput = "Broken"
             } else if info.numOfEvents >= 2 {
 
                 for index in 0..<3 {
                     print(displayLines[index])
                     if index == 2{
-                        print("cutting last line, too many lines")
-                        print()
                         textOutput.append(displayLines[index])
                     }else{
                         textOutput.append(displayLines[index] + "\n")
