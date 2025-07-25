@@ -12,6 +12,7 @@ struct VisualEffectView: UIViewRepresentable {
     func updateUIView(_ uiView: UIVisualEffectView, context: UIViewRepresentableContext<Self>) { uiView.effect = effect }
 }
 
+//MARK: - Icon style for floating button
 struct FloatingButtonStyle: ViewModifier {
     var primaryColor: Color
     var secondaryColor: Color
@@ -44,6 +45,7 @@ extension Image {
         modifier(FloatingButtonStyle(primaryColor: prim, secondaryColor: sec, namespace: namespace))
     }
 }
+//MARK: - Text style for floating button
 struct FloatingTextStyle: ViewModifier {
     var primaryColor: Color
     var secondaryColor: Color
@@ -82,13 +84,13 @@ extension Text {
     }
 }
 
+//MARK: - Floating button creator
 struct FloatingButtonItem: Identifiable {
     private(set) var id: UUID = .init()
     var iconSystemName: String
     var extraText: String?
     var action: () -> Void
 }
-
 struct FloatingButtons: View {
     let items: [FloatingButtonItem]
     let standardOffset: CGFloat = 65
@@ -215,6 +217,7 @@ struct FloatingButtons: View {
     }
 }
 
+//MARK: - General use view modifiers
 //Main style for custon buttons throughout the app
 extension View {
     @ViewBuilder
@@ -360,3 +363,44 @@ extension Color {
     }
 }
 
+//MARK: - Preview
+struct PreviewVars: View {
+    var body: some View {
+        let theme = ThemeColors()
+        
+        let pri = theme.primaryColor
+        let sec = theme.secondaryColor
+        let darkMode = theme.darkMode
+        
+        var toggled: Bool = false
+        
+        ZStack{
+            Grid(spacing: 20)
+                .stroke(toggled ? sec : pri)
+                .background(toggled ? pri : sec)
+                .ignoresSafeArea(edges: .all)
+            VStack{
+                Text("Main button style")
+                    .frame(width: 150, height: 40)
+                    .mainButtonStyle(pri: pri, sec: sec, darkMode: darkMode)
+                Text("Rounded corner style")
+                    .frame(width: 200, height: 40)
+                    .foregroundStyle(sec)
+                    .background(
+                        RoundedCorner(radius: 24 ,corners: [.topLeft, .bottomRight])
+                    )
+                Text("Background glass")
+                    .foregroundStyle(sec)
+                    .glassListBG(pri: pri, sec: sec, darkMode: darkMode, bg: true)
+                
+                Button("Toggle UI colors"){
+                    toggled.toggle()
+                }.mainButtonStyle(pri: pri, sec: sec, darkMode: darkMode)
+            }
+        }
+    }
+}
+
+#Preview {
+    PreviewVars()
+}

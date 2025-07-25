@@ -8,7 +8,7 @@
 import SwiftUI
 import Foundation
 
-class MainUIBlocks{
+class MainUIBlocks: ObservableObject {
     var primaryColor: Color { theme.primaryColor }
     var secondaryColor: Color { theme.secondaryColor }
     var darkMode: Bool { theme.darkMode }
@@ -138,12 +138,12 @@ class MainUIBlocks{
                         .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     }
                     .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-
+                    
                     Spacer()
                 }
             }
             .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-
+            
         }
     }
     
@@ -186,7 +186,7 @@ class MainUIBlocks{
                     Spacer()
                 }
                 .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-
+                
             }
         }
         
@@ -235,7 +235,7 @@ class MainUIBlocks{
             }
             Spacer()
         }.mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-
+        
     }
     
     //MARK: - Buttons
@@ -385,9 +385,9 @@ class MainUIBlocks{
                 Text(bg.textOutput)
                     .lineLimit(
                         currentPage == "Default" ? 1 :
-                        currentPage == "Music" ? 3 :
-                        currentPage == "Calendar" ? (info.numOfEvents == 1 ? 3 : 4) :
-                        3 //Default if currentPage is none of the options
+                            currentPage == "Music" ? 3 :
+                            currentPage == "Calendar" ? (info.numOfEvents == 1 ? 3 : 4) :
+                            3 //Default if currentPage is none of the options
                     )
                     .minimumScaleFactor(0.5)
                     .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
@@ -552,3 +552,44 @@ extension View {
     }
 }
 
+private struct PreviewMainUIBlocks: View {
+    @Namespace private var namespace
+    
+    @StateObject private var info: InfoManager
+    @StateObject private var ble: G1BLEManager
+    @StateObject private var page: PageManager
+    @StateObject private var bg: BackgroundTaskManager
+    
+    init() {
+        let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
+        let bleInstance = G1BLEManager()
+        let fmInstance = PageManager(info: infoInstance)
+        let bgmInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: fmInstance)
+        
+        
+        _info = StateObject(wrappedValue: infoInstance)
+        _ble = StateObject(wrappedValue: bleInstance)
+        _page = StateObject(wrappedValue: fmInstance)
+        _bg = StateObject(wrappedValue: bgmInstance)
+    }
+    var body: some View {
+        let ui = MainUIBlocks(namespace: namespace, infoManager: info, bleManager: ble, pageManager: page, bgManager: bg)
+        
+        ZStack {
+            ui.backgroundGrid()
+            VStack {
+                ui.headerContent()
+                ui.songInfo()
+                ui.calendarInfo()
+                ui.buttons()
+                ui.glassesMirror()
+                ui.connectionDisplay()
+            }
+            
+        }
+    }
+}
+
+#Preview {
+    PreviewMainUIBlocks()
+}
