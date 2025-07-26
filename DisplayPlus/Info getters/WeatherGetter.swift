@@ -18,9 +18,8 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var currentWind: Int = 0
     
     @State var counter: Int = 0
-
-    override init() {
-        super.init()
+    
+    private func initializeLocationPermission() {
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
         locationManager.requestAlwaysAuthorization()
@@ -115,6 +114,8 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     func getAuthStatus() -> Bool {
+        initializeLocationPermission()
+        
         return locationManager.authorizationStatus == .authorizedAlways || locationManager.authorizationStatus == .authorizedWhenInUse
     }
 }

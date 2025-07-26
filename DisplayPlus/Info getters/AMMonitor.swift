@@ -2,7 +2,7 @@ import Foundation
 import Combine
 import MediaPlayer
 
-class MusicMonitor: ObservableObject {
+class AMMonitor: ObservableObject {
     private let player = MPMusicPlayerController.systemMusicPlayer
     
     @Published var curSong: Song = Song(title: "", artist: "", album: "", duration: 0, currentTime: 0, isPaused: true)
@@ -10,7 +10,7 @@ class MusicMonitor: ObservableObject {
     
     private var timer: AnyCancellable?
 
-    init() {
+    private func startMusicObservation() {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(nowPlayingItemChanged),
@@ -57,6 +57,8 @@ class MusicMonitor: ObservableObject {
     }
     
     func getAuthStatus() -> Bool {
+        startMusicObservation()
+        
         return MPMediaLibrary.authorizationStatus() == .authorized
     }
 

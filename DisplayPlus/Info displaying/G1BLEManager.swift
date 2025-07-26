@@ -31,7 +31,7 @@ enum G1ConnectionState {
 
 class G1BLEManager: NSObject, ObservableObject{
     @Published public private(set) var connectionState: G1ConnectionState = .disconnected
-    @Published public private(set) var connectionStatus: String = "Disconnected"
+    @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
     
     private var reconnectAttempts: [UUID: Int] = [:]
     private let maxReconnectAttempts = 5
@@ -80,30 +80,39 @@ class G1BLEManager: NSObject, ObservableObject{
     // MARK: - Public Methods
     
     /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
+    /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
     func startScan() {
-        /*
-        if scanTimeout == true{
-            if scanTimeoutCounter != 0{
-                scanTimeoutCounter -= 1
-            }else{
-                scanTimeoutCounter = 5
-                scanTimeout = false
-            }
-        }else{
-         */
-            guard centralManager.state == .poweredOn else {
-                print("Bluetooth is not powered on. Cannot start scan.")
-                return
-            }
-            print("Scanning")
-            connectionStatus = "Scanning..."
-            // You can filter by the UART service, but if you need the name to parse left vs right,
-            // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
-            centralManager.scanForPeripherals(withServices: nil, options: nil)
-            
-        /*
-            scanTimeout = true
+        guard centralManager.state == .poweredOn else {
+            print("Bluetooth is not powered on. Cannot start scan.")
+            return
         }
+        
+        // --- MODIFICATION START ---
+        // First, retrieve peripherals that are already connected to the system
+        print("Checking for already connected peripherals with service: \(uartServiceUUID.uuidString)")
+        let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceUUID])
+        
+        if !connectedPeripherals.isEmpty {
+            print("Found \(connectedPeripherals.count) already-connected peripheral(s).")
+            for peripheral in connectedPeripherals {
+                print("Handling connected peripheral: \(peripheral.name ?? "Unknown")")
+                // Process this peripheral as if it were just discovered via a scan
+                handleDiscoveredPeripheral(peripheral)
+            }
+        } else {
+            print("No relevant peripherals already connected.")
+        }
+        // --- MODIFICATION END ---
+        
+        print("Scanning for new advertising devices...")
+        connectionStatus = "Scanning..."
+        // You can filter by the UART service, but if you need the name to parse left vs right,
+        // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
+        centralManager.scanForPeripherals(withServices: nil, options: nil)
+        
+        /*
+         scanTimeout = true
+         }
          */
     }
     
@@ -115,7 +124,8 @@ class G1BLEManager: NSObject, ObservableObject{
     
     /// Disconnect from both arms.
     func disconnect() {
-        sendBlank()
+        @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
+
         if let lp = leftPeripheral {
             centralManager.cancelPeripheralConnection(lp)
             leftPeripheral = nil
@@ -134,6 +144,9 @@ class G1BLEManager: NSObject, ObservableObject{
         withAnimation{
             connectionState = .disconnected
         }
+        
+        displayOn = false
+        
         print("Disconnected from G1 glasses.")
     }
     
@@ -210,24 +223,19 @@ class G1BLEManager: NSObject, ObservableObject{
                 print("Created a new pair and right for channel \(channelNumber)")
             }
         }
-        
-        // If both peripherals are connected, stop scanning
-        if let left = leftPeripheral, left.state == .connected,
-           let right = rightPeripheral, right.state == .connected {
-            connectionStatus = "Connected to G1 Glasses (both arms)."
-            withAnimation{
-                connectionState = .connectedBoth
-            }
-            centralManager.stopScan()
-        }
     }
     
     func connectPair(pair: G1DiscoveredPair){
-        print("Connecting pair...")
+        print("\n_________________\n\nConnecting pair...")
+        stopScan()
+        print("\n")
+        
         connectionStatus = ("Connecting to pair (Channel \(pair.channel ?? 0))...")
         if pair.right != nil {
+            print("Connecting right")
             // Connect right peripheral if not already connected or connecting
             if rightPeripheral == nil || (rightPeripheral?.state != .connected && rightPeripheral?.state != .connecting) {
+                print("Right not connected or connecting, moving on")
                 rightPeripheral = pair.right
                 rightPeripheral?.delegate = self
                 withAnimation{
@@ -235,22 +243,30 @@ class G1BLEManager: NSObject, ObservableObject{
                 }
                 centralManager.connect(pair.right!, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
 
+            }else{
+                print("Right already connected/connecting")
             }
         }
         if pair.left != nil {
+            print("Connecting left")
             // Connect left peripheral if not already connected or connecting
             if leftPeripheral == nil || (leftPeripheral?.state != .connected && leftPeripheral?.state != .connecting) {
+                print("Left not connected or connecting, moving on")
+
                 leftPeripheral = pair.left
                 leftPeripheral?.delegate = self
                 withAnimation{
                     connectionState = rightPeripheral == nil ? .connecting : .connectedRightOnly
                 }
                 centralManager.connect(pair.left!, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+            }else{
+                print("Left already connected/connecting")
             }
         }
     }
     
     func sendHeartbeat(counter: Int) {
+        print("sent heartbeat signal \(counter)")
         var packet = [UInt8]()
         
         packet.append(0x25)
@@ -332,6 +348,7 @@ extension G1BLEManager: CBCentralManagerDelegate {
     
     //Called when a device connects to the app
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        print("Connecting device: \(peripheral.name ?? "Unknown")")
         if peripheral == leftPeripheral {
             leftPeripheral?.discoverServices([uartServiceUUID])
         } else if peripheral == rightPeripheral {
@@ -342,10 +359,12 @@ extension G1BLEManager: CBCentralManagerDelegate {
         reconnectAttempts[peripheral.identifier] = 0
         
         // Determine connected states
+        print("setting connected states")
         let leftConnected = leftPeripheral?.state == .connected
         let rightConnected = rightPeripheral?.state == .connected
         
         if leftConnected && rightConnected {
+            print("Glasses connected both\n\n___________________\n\n")
             connectionStatus = "Connected to G1 Glasses (both arms)."
             withAnimation{
                 connectionState = .connectedBoth
@@ -354,16 +373,21 @@ extension G1BLEManager: CBCentralManagerDelegate {
             // Stop scanning once both connected
             centralManager.stopScan()
         } else if leftConnected {
+            print("Glasses connected left")
+
             connectionStatus = "Connected to left arm"
             withAnimation{
                 connectionState = .connectedLeftOnly
             }
         } else if rightConnected {
+            print("Glasses connected right")
+
             connectionStatus = "Connected to right arm"
             withAnimation{
                 connectionState = .connectedRightOnly
             }
         } else {
+            print("Neither side connected")
             withAnimation{
                 connectionState = .connecting
             }

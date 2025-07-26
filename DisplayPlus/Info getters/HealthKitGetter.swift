@@ -30,17 +30,13 @@ class HealthInfoGetter: ObservableObject, @unchecked Sendable {
     // Background task for periodic data updates
     private var updateTask: Task<Void, Never>?
     
-    init() {
-        setupHealthKit()
-    }
-    
     deinit {
         // Cancel any ongoing tasks
         updateTask?.cancel()
         authorizationTask?.cancel()
     }
     
-    private func setupHealthKit() {
+    public func setupHealthKit() {
         // Request authorization immediately when the class is initialized
         authorizationTask = Task {
             do {
@@ -305,6 +301,8 @@ class HealthInfoGetter: ObservableObject, @unchecked Sendable {
     
     // Check authorization status
     func getAuthStatus() -> [Bool] {
+        setupHealthKit()
+        
         let stepAuth = healthStore.authorizationStatus(for: stepCountType) == .sharingAuthorized
         let exerciseAuth = healthStore.authorizationStatus(for: exerciseTimeType) == .sharingAuthorized
         let standAuth = healthStore.authorizationStatus(for: standHourType) == .sharingAuthorized

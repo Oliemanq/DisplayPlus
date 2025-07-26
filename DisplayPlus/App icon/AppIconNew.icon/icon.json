@@ -36,9 +36,13 @@
             }
           ],
           "glass" : true,
+          "hidden" : false,
           "image-name" : "G1_App_Icon.png",
           "name" : "G1_App_Icon",
           "opacity-specializations" : [
+            {
+              "value" : 1
+            },
             {
               "appearance" : "tinted",
               "value" : 1
@@ -47,8 +51,8 @@
           "position" : {
             "scale" : 1,
             "translation-in-points" : [
-              10.378125,
-              -119.7421875
+              0,
+              0
             ]
           }
         }
