@@ -26,6 +26,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     var batteryCounter: Int = 0
     var displayOnCounter: Int = 0
     var weatherCounter: Int = 0
+    var silentTrigger: Bool = true
     
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var autoOff = false
@@ -102,6 +103,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                     let pageText = pageHandler()
                     ble.sendText(text: pageText, counter: counter)
                     info.changed = false
+                    
                 }
                 
                 counter += 1

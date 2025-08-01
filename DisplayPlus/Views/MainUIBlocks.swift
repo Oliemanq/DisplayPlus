@@ -21,6 +21,7 @@ class MainUIBlocks: ObservableObject {
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
     @AppStorage("showingScanPopover", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var showingScanPopover: Bool = false
+    @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
     
     @State private var progressBar: Double = 0.0
     
@@ -32,6 +33,9 @@ class MainUIBlocks: ObservableObject {
     let ble: G1BLEManager
     let page: PageManager
     let bg: BackgroundTaskManager
+    
+    //Holding button vars
+    @Published var holdingSilentButton: Bool = false
     
     init(namespace: Namespace.ID, infoManager: InfoManager, bleManager: G1BLEManager, pageManager: PageManager, bgManager: BackgroundTaskManager) {
         self.namespace = namespace
@@ -284,6 +288,23 @@ class MainUIBlocks: ObservableObject {
                                     }
                                     .frame(width: 150, height: 50)
                                     .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                    
+                                    
+                                    //Silent mode toggle
+                                    Button ("Silent mode: \(silentMode ? "on" : "off")"){
+                                        self.ble.setSilentModeState(on: !self.silentMode)
+                                    }
+                                    .frame(width: 150, height: 50)
+                                    .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                    .onLongPressGesture {
+                                        print("holding silent button")
+                                        self.holdingSilentButton = true
+                                    }
+                                    .overlay {
+                                        if self.holdingSilentButton {
+                                            Text("Controls the silent mode toggle built in to the glasses")
+                                        }
+                                    }
                                     
                                     /*
                                      Hiding buttons for testflight build
@@ -593,3 +614,4 @@ private struct PreviewMainUIBlocks: View {
 #Preview {
     PreviewMainUIBlocks()
 }
+

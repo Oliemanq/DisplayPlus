@@ -70,8 +70,9 @@ class G1BLEManager: NSObject, ObservableObject{
     var glassesBatteryRight: CGFloat = 0.0
     var glassesBatteryAvg: CGFloat = 0.0
     var caseBatteryLevel: CGFloat = 0.0
-    var silentMode: Bool = false
-    
+
+    @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
+
     override init() {
         super.init()
         // Initialize CoreBluetooth central
@@ -304,6 +305,21 @@ class G1BLEManager: NSObject, ObservableObject{
     
     func sendBlank() {
         sendTextCommand(seq: 0, text: "")
+    }
+    
+    func setSilentModeState(on: Bool) {
+        silentMode = on
+
+        var packet = [UInt8]()
+        packet.append(0x03)
+        if on {
+            packet.append(0x0C)
+        }else{
+            packet.append(0x0A)
+        }
+        let data = Data(packet)
+        writeData(data, to: "Both")
+        
     }
     
     func fetchGlassesBattery(){
@@ -644,17 +660,32 @@ extension G1BLEManager: CBPeripheralDelegate {
                 print("Unknown message, header from battery fetch \(byteArray)")
             }
             
-        //Silent mode management
-        case 43: //0x2B
-            if String(format: "%02X", byteArray[2]) == "0C"{
+        case 43: //0x2B return from fetchSilentStatus
+            switch String(format: "%02X", byteArray[2]){
+            case "0C":
                 silentMode = true
-                print("silent mode on")
-            }else if String(format: "%02X", byteArray[2]) == "0A"{
+            case "0A":
                 silentMode = false
-                print("silent mode off")
-            }else{
-                print("Unknown silent mode response")
+            default:
+                print("unknown response from fetchSilentStatus \(String(byteArray[2], radix: 16)) \(byteArray[2]) \(byteArray)")
             }
+            
+        case 3: //0x03 return from setSilentModeStatus
+            switch byteArray[1]{
+                
+            case 201:
+                print("setSilentModeStatus successful: now \(silentMode)")
+            case 203:
+                print("setSilentModeStatus unsuccessful")
+            default:
+                print("unknown response from setSilentModeStatus \(byteArray[1])")
+            }
+            
+        case 241:
+            print("Audio stream info received")
+            
+        case 34:
+            print("response from syncronization signal. To do with getting info about dashboard. Ignore\n")
         default:
             print("unknown message \(byteArray)")
             print("Header: \(String(format: "%02X", byteArray[0])), subcommand: \(String(format: "%02X", byteArray[1]))\n")

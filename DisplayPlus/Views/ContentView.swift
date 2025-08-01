@@ -28,7 +28,6 @@ struct ContentView: View {
         _ble = StateObject(wrappedValue: bleInstance)
         _page = StateObject(wrappedValue: fmInstance)
         _bg = StateObject(wrappedValue: bgmInstance)
-        
     }
     
     var body: some View {
@@ -45,7 +44,6 @@ struct ContentView: View {
                 // Background gradient
                 mainUI.backgroundGrid()
                 
-                
                 //Start Main UI
                 ScrollView(.vertical, showsIndicators: false) {
                     //MARK: - Time, Date, and DoW
@@ -57,7 +55,6 @@ struct ContentView: View {
                     //MARK: - Calendar events
                     mainUI.calendarInfo()
                 
-                    
                     //MARK: - Buttons
                     mainUI.buttons()
                     
