@@ -24,7 +24,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     var HBTriggerCounter: Int = 0
     var HBCounter: Int = 0
     var batteryCounter: Int = 0
-    var displayOnCounter: Int = 0
+    var autoOffCounter: Int = 0
     var weatherCounter: Int = 0
     var silentTrigger: Bool = true
     
@@ -39,9 +39,6 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     }
     
     func startTimer() {
-        if displayOn && !autoOff {
-            displayOnCounter = 0
-        }
         
         // Reset weather ticker when timer starts or restarts
         weatherCounter = 0
@@ -63,6 +60,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                     ble.sendHeartbeat(counter: HBCounter%255)
                     HBCounter += 1
                 }
+                
                 // Determine if it's time to update weather
                 if (weatherCounter == 600) {  // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
                     print("BackgroundTaskManager timer: Triggered weather update.")
@@ -71,9 +69,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 } else {
                     weatherCounter += 1
                 }
-                
-                // Update info's data
-                
+                                
                 if batteryCounter % 15 == 0{
                     ble.fetchGlassesBattery()
                     if (ble.glassesBatteryAvg <= 3.0 || ble.glassesBatteryLeft <= 1 || ble.glassesBatteryRight <= 1) && ble.glassesBatteryAvg != 0.0{
@@ -83,17 +79,13 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                     }
                 }
                 
-                
-                
-                let isAutoOff = autoOff
-                let isDisplayOnInitially = displayOn
-                
-                if isAutoOff {
-                    if isDisplayOnInitially {
-                        displayOnCounter += 1
+                if autoOff {
+                    if displayOn {
+                        autoOffCounter += 1
+                        print("ticked autoOff +1, at \(autoOffCounter)")
                     }
-                    if displayOnCounter >= 10 {
-                        displayOnCounter = 0
+                    if autoOffCounter >= 10 {
+                        autoOffCounter = 0
                         displayOn = false
                     }
                 }

@@ -61,15 +61,23 @@ class G1BLEManager: NSObject, ObservableObject{
     
     @Published public private(set) var discoveredPairs: [String : G1DiscoveredPair] = [:]
     
-    var scanTimeout: Bool = false
-    var scanTimeoutCounter: Int = 5
+    private var scanTimeout: Bool = false
+    private var scanTimeoutCounter: Int = 5
     
-    //Easy access bool for connected status
-    var wearing: Bool = false
-    var glassesBatteryLeft: CGFloat = 0.0
-    var glassesBatteryRight: CGFloat = 0.0
-    var glassesBatteryAvg: CGFloat = 0.0
-    var caseBatteryLevel: CGFloat = 0.0
+    //Vars altered by messages from processIncomingData, easy access throughout app
+    public private(set) var wearing: Bool = false
+    
+    public private(set) var glassesBatteryLeft: CGFloat = 0.0
+    public private(set) var glassesBatteryRight: CGFloat = 0.0
+    public private(set) var glassesBatteryAvg: CGFloat = 0.0
+    public private(set) var glassesCharging: Bool = false
+    
+    public private(set) var caseBatteryLevel: CGFloat = 0.0
+    public private(set) var caseCharging: Bool = false
+    
+    public private(set) var brightnessRaw: Int = 0
+    public private(set) var brightnessFloat: CGFloat = 0.0
+    public private(set) var autoBrightnessEnabled: Bool = false
 
     @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
 
@@ -78,18 +86,16 @@ class G1BLEManager: NSObject, ObservableObject{
         // Initialize CoreBluetooth central
         centralManager = CBCentralManager(delegate: self, queue: nil)
     }
-    // MARK: - Public Methods
-    
     /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
     /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
+
+    //MARK: - Start/stop scan
     func startScan() {
         guard centralManager.state == .poweredOn else {
             print("Bluetooth is not powered on. Cannot start scan.")
             return
         }
         
-        // --- MODIFICATION START ---
-        // First, retrieve peripherals that are already connected to the system
         print("Checking for already connected peripherals with service: \(uartServiceUUID.uuidString)")
         let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceUUID])
         
@@ -123,7 +129,7 @@ class G1BLEManager: NSObject, ObservableObject{
         print("Stopped scanning.")
     }
     
-    /// Disconnect from both arms.
+    //MARK: - Disconnect from both arms.
     func disconnect() {
         @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
 
@@ -155,6 +161,8 @@ class G1BLEManager: NSObject, ObservableObject{
     /// - Parameters:
     ///   - data: The data to send
     ///   - arm: "L", "R", or "Both"
+    ///
+    //MARK: - Main writeData function
     func writeData(_ data: Data, to arm: String = "Both") {
         switch arm {
         case "L":
@@ -180,12 +188,12 @@ class G1BLEManager: NSObject, ObservableObject{
         }
     }
     
-    // Example function: sending a simple '0x4D, 0x01' init command
     func sendInitCommand(arm: String = "Both") {
         let packet = Data([0x4D, 0x01])
         writeData(packet, to: arm)
     }
     
+    //MARK: - handleDiscoveredPeripheral function
     private func handleDiscoveredPeripheral(_ peripheral: CBPeripheral) {
         guard let name = peripheral.name else { return }
         print(name)
@@ -226,10 +234,9 @@ class G1BLEManager: NSObject, ObservableObject{
         }
     }
     
+    //after finding and handling 2 pairs of the same channel, shows button in UI to call function
     func connectPair(pair: G1DiscoveredPair){
-        print("\n_________________\n\nConnecting pair...")
         stopScan()
-        print("\n")
         
         connectionStatus = ("Connecting to pair (Channel \(pair.channel ?? 0))...")
         if pair.right != nil {
@@ -266,6 +273,7 @@ class G1BLEManager: NSObject, ObservableObject{
         }
     }
     
+    //Needed to maintain connection to glasses when not displaying something
     func sendHeartbeat(counter: Int) {
         print("sent heartbeat signal \(counter)")
         var packet = [UInt8]()
@@ -276,13 +284,11 @@ class G1BLEManager: NSObject, ObservableObject{
         let data = Data(packet)
         writeData(data, to: "Both")
     }
-    // Example function: send a text command (for demonstration)
-    // This is a simplified version of the "text sending" approach from earlier,
-    // but calls writeData(_:,to:) for left or right or both.
+
     func sendTextCommand(seq: UInt8, text: String, arm: String = "Both") {
         var packet = [UInt8]()
-        packet.append(0x4E) // command
-        packet.append(seq)
+        packet.append(0x4E) // command (send text)
+        packet.append(seq) //counter
         packet.append(1) // total_package_num
         packet.append(0) // current_package_num
         packet.append(0x71) // newscreen = new content (0x1) + text show (0x70)
@@ -298,15 +304,18 @@ class G1BLEManager: NSObject, ObservableObject{
         writeData(data, to: arm)
     }
     
+    //Sending new text to screen, usually a new page
     func sendText(text: String = "", counter: Int) {
         // Ensure counter is treated as an integer for sequence number
         sendTextCommand(seq: UInt8(Int(counter) % 256), text: text)
     }
     
+    //Send blank text to screen, used to clear screen
     func sendBlank() {
         sendTextCommand(seq: 0, text: "")
     }
     
+    //Sets silent mode on the glasses on/off through the UI (or touchpads in the future)
     func setSilentModeState(on: Bool) {
         silentMode = on
 
@@ -322,6 +331,7 @@ class G1BLEManager: NSObject, ObservableObject{
         
     }
     
+    //MARK: - Fetch info functions
     func fetchGlassesBattery(){
         var packet = [UInt8]()
         packet.append(0x2C)
@@ -337,6 +347,14 @@ class G1BLEManager: NSObject, ObservableObject{
         
         let data = Data(packet)
         writeData(data, to: "Both")
+    }
+    
+    func fetchBrightness(){
+        var packet = [UInt8]()
+        packet.append(0x29)
+        
+        let data = Data(packet)
+        writeData(data, to: "Right")
     }
 }
 
@@ -550,10 +568,10 @@ extension G1BLEManager: CBPeripheralDelegate {
         print("Handling stop command with data: \(data)")
     }
     
-    //processing incomming messages from device_________________________________________________________________________________________________________________________________________________________________________________________________________________
+    //MARK: - Handling incoming messages from glasses ble device
     func processIncomingData(_ byteArray: [UInt8], _ data: Data, _ name: String? = nil) {
         switch byteArray[0]{
-        //System messages
+        //System messages from gryo, touch bars, and other sensors
         case 245 : //0xF5
             switch byteArray[1]{
             case 0: //00
@@ -600,6 +618,7 @@ extension G1BLEManager: CBPeripheralDelegate {
                 print("Not documented 0D")
             case 14: //0E
                 print("Case charging")
+                
             case 15: //0F
                 print("Case battery percentage \(byteArray[2])%")
                 updateBattery(device: "case", batteryLevel: byteArray[2])
@@ -623,7 +642,7 @@ extension G1BLEManager: CBPeripheralDelegate {
                 print("Unknown device event: \(byteArray)")
             }
             
-        //Init messages
+        //Init message response
         case 77: //0x4D
             switch byteArray[1]{
             case 201: //C9
@@ -636,7 +655,7 @@ extension G1BLEManager: CBPeripheralDelegate {
                 print("unknown init response \(byteArray)")
             }
             
-        //Screen updates
+        //sendText response
         case 78: //0x4E
             switch byteArray[1]{
             case 201: //C9
@@ -649,7 +668,7 @@ extension G1BLEManager: CBPeripheralDelegate {
             default: print("Unknown text command: 78 \(byteArray[1])")
             }
         
-        //Battery management
+        //Battery fetch response
         case 44: //0x2C SHOULD BE RECEIVING FROM R
             switch byteArray[1]{
             case 102: //66
@@ -660,6 +679,7 @@ extension G1BLEManager: CBPeripheralDelegate {
                 print("Unknown message, header from battery fetch \(byteArray)")
             }
             
+        //Silent mode fetch response
         case 43: //0x2B return from fetchSilentStatus
             switch String(format: "%02X", byteArray[2]){
             case "0C":
@@ -670,6 +690,7 @@ extension G1BLEManager: CBPeripheralDelegate {
                 print("unknown response from fetchSilentStatus \(String(byteArray[2], radix: 16)) \(byteArray[2]) \(byteArray)")
             }
             
+        //Silent mode set response
         case 3: //0x03 return from setSilentModeStatus
             switch byteArray[1]{
                 
@@ -680,10 +701,23 @@ extension G1BLEManager: CBPeripheralDelegate {
             default:
                 print("unknown response from setSilentModeStatus \(byteArray[1])")
             }
+        
+        //Get brightness response
+        case 41: //0x29
+            let _ = byteArray[1] //unknown data, noting for clarity
             
+            brightnessRaw = Int(byteArray[2])
+            brightnessFloat = CGFloat(byteArray[2])/42
+            
+            autoBrightnessEnabled = (byteArray[3] == 1)
+            
+        //MARK: - Unknown/unused signals from glasses
+            
+        //Audio stream started response (not sure why it would be called outside of the main app, I don't use the mic)
         case 241:
             print("Audio stream info received")
             
+        //Dashboard response (also unknown why it would happen)
         case 34:
             print("response from syncronization signal. To do with getting info about dashboard. Ignore\n")
         default:
@@ -691,8 +725,8 @@ extension G1BLEManager: CBPeripheralDelegate {
             print("Header: \(String(format: "%02X", byteArray[0])), subcommand: \(String(format: "%02X", byteArray[1]))\n")
         }
     }
-    
-    //Event handling, called from processIncomingData
+
+    //Event handling, called from processIncomingData currently
     private func touchBarSingle(side: String){
         print("single tap on \(side) side")
     }

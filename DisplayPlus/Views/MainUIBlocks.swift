@@ -61,7 +61,7 @@ class MainUIBlocks: ObservableObject {
         ] // Floating button init
     }
     
-    //MARK: Header
+    //MARK: - Header
     func headerContent() -> some View {
         if #available(iOS 26, *) {
             return GlassEffectContainer(spacing: 20){
@@ -243,159 +243,89 @@ class MainUIBlocks: ObservableObject {
     }
     
     //MARK: - Buttons
-    func buttons() -> some View {
-        if #available(iOS 26, *){
-            return VStack {
+    func buttons(isPresentingButtons: Binding<Bool>) -> some View {
+        let buttonObjects = buttonObjects()
+        return VStack {
+            HStack{
+                Spacer()
                 HStack{
-                    GlassEffectContainer(spacing: 10.0){
-                        ScrollView(.horizontal) {
-                            
-                            HStack{
-                                Spacer()
-                                if self.ble.connectionState != .connectedBoth{
-                                    Button("Start scan"){
-                                        self.ble.startScan()
-                                        self.showingScanPopover = true
-                                    }
-                                    .frame(width: 100, height: 50)
-                                    .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                }
-                                
-                                
-                                
-                                if self.ble.connectionState == .connectedBoth{
-                                    Button("Disconnect"){
-                                        Task{
-                                            await self.bg.disconnectProper()
-                                        }
-                                    }
-                                    .frame(width: 120, height: 50)
-                                    .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                    
-                                    
-                                    //Display toggle button
-                                    Button(self.displayOn ? "Turn display off" : "Turn display on"){
-                                        self.displayOn.toggle()
-                                        self.ble.sendBlank()
-                                    }
-                                    .frame(width: 150, height: 50)
-                                    .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                    
-                                    
-                                    //Auto off button
-                                    Button ("Auto shut off: \(self.autoOff ? "on" : "off")"){
-                                        self.autoOff.toggle()
-                                    }
-                                    .frame(width: 150, height: 50)
-                                    .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                    
-                                    
-                                    //Silent mode toggle
-                                    Button ("Silent mode: \(silentMode ? "on" : "off")"){
-                                        self.ble.setSilentModeState(on: !self.silentMode)
-                                    }
-                                    .frame(width: 150, height: 50)
-                                    .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                    .onLongPressGesture {
-                                        print("holding silent button")
-                                        self.holdingSilentButton = true
-                                    }
-                                    .overlay {
-                                        if self.holdingSilentButton {
-                                            Text("Controls the silent mode toggle built in to the glasses")
-                                        }
-                                    }
-                                    
-                                    /*
-                                     Hiding buttons for testflight build
-                                     
-                                     Button("Low battery disconnect"){
-                                     Task{
-                                     await bgManager.lowBatteryDisconnect()
-                                     }
-                                     }
-                                     .frame(width: 100, height: 50)
-                                     .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                     
-                                     Button("Fetch glasses battery level"){
-                                     bleManager.fetchGlassesBattery()
-                                     }
-                                     .frame(width: 250, height: 50)
-                                     .background((!darkMode ? primaryColor : secondaryColor))
-                                     .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                     .buttonStyle(.borderless)
-                                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                                     
-                                     Button("Fetch silent mode status"){
-                                     bleManager.fetchSilentMode()
-                                     }
-                                     .frame(width: 250, height: 50)
-                                     .background((!darkMode ? primaryColor : secondaryColor))
-                                     .foregroundColor(darkMode ? primaryColor : secondaryColor)
-                                     .buttonStyle(.borderless)
-                                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                                     */
-                                }
-                                Spacer()
-                                
-                            }
-                            
-                        }
-                        .scrollIndicators(.hidden)
+                    if self.ble.connectionState != .connectedBoth{
+                        buttonObjects[0]
                     }
-                }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                
-            }
-            .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-        }else{
-            return HStack{
-                VStack{
-                    ScrollView(.horizontal) {
-                        HStack{
-                            if self.ble.connectionState != .connectedBoth{
-                                Button("Start scan"){
-                                    self.ble.startScan()
-                                    self.showingScanPopover = true
-                                }
-                                .frame(width: 100, height: 50)
-                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                            }
-                            
-                            
-                            
-                            if self.ble.connectionState == .connectedBoth{
-                                Button("Disconnect"){
-                                    Task{
-                                        await self.bg.disconnectProper()
-                                    }
-                                }
-                                .frame(width: 120, height: 50)
-                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                
-                                
-                                //Display toggle button
-                                Button(self.displayOn ? "Turn display off" : "Turn display on"){
-                                    self.displayOn.toggle()
-                                    self.ble.sendBlank()
-                                }
-                                .frame(width: 150, height: 50)
-                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                                
-                                
-                                //Auto off button
-                                Button ("Auto shut off: \(self.autoOff ? "on" : "off")"){
-                                    self.autoOff.toggle()
-                                }
-                                .frame(width: 150, height: 50)
-                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                            }
+                    
+                    
+                    
+                    if self.ble.connectionState == .connectedBoth {
+                        buttonObjects[1]
+                        
+                        Button("Device settings"){
+                            isPresentingButtons.wrappedValue = true
+                        }
+                        .frame(width: 160, height: 50)
+                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                    }
+                }
+                .popover(isPresented: isPresentingButtons){
+                    VStack(spacing: 45){
+                        ForEach(buttonObjects.indices.dropFirst(2), id: \ .self) { index in
+                            buttonObjects[index]
                         }
                     }
                 }
-                .glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-            }
-            .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+                Spacer()
+                
+            }.glassListBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+            
         }
+        .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+    }
+    
+    func buttonObjects(debug: Bool = false) -> [AnyView] {
+        var buttons: [AnyView] = []
+        
+        buttons.append(AnyView(
+            Button("Start scan"){
+                self.ble.startScan()
+                self.showingScanPopover = true
+            }
+            .frame(width: 100, height: 50)
+            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+        ))
+        
+        buttons.append(AnyView(
+            Button("Disconnect"){
+                Task{
+                    await self.bg.disconnectProper()
+                }
+            }
+            .frame(width: 120, height: 50)
+            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+        ))
+        
+        buttons.append(AnyView(
+            Button(self.displayOn ? "Turn display off" : "Turn display on"){
+                self.displayOn.toggle()
+                self.ble.sendBlank()
+            }
+            .frame(width: 150, height: 50)
+            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+        ))
+        buttons.append(AnyView(
+            Button ("Auto shut off: \(self.autoOff ? "on" : "off")"){
+                self.autoOff.toggle()
+            }
+            .frame(width: 150, height: 50)
+            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+        ))
+        buttons.append(AnyView(
+            Button ("Silent mode: \(silentMode ? "on" : "off")"){
+                self.ble.setSilentModeState(on: !self.silentMode)
+            }
+            .frame(width: 150, height: 50)
+            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+        ))
+                       
+        return buttons
     }
     
     //MARK: - Mirror
@@ -581,6 +511,8 @@ private struct PreviewMainUIBlocks: View {
     @StateObject private var page: PageManager
     @StateObject private var bg: BackgroundTaskManager
     
+    @State private var presentingButtons: Bool = false
+    
     init() {
         let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
         let bleInstance = G1BLEManager()
@@ -602,7 +534,7 @@ private struct PreviewMainUIBlocks: View {
                 ui.headerContent()
                 ui.songInfo()
                 ui.calendarInfo()
-                ui.buttons()
+                ui.buttons(isPresentingButtons: $presentingButtons)
                 ui.glassesMirror()
                 ui.connectionDisplay()
             }
@@ -614,4 +546,3 @@ private struct PreviewMainUIBlocks: View {
 #Preview {
     PreviewMainUIBlocks()
 }
-

@@ -17,6 +17,8 @@ struct ContentView: View {
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     
     @Namespace private var namespace
+    
+    @State private var presentingButtons: Bool = false
 
     init() {
         let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
@@ -56,7 +58,7 @@ struct ContentView: View {
                     mainUI.calendarInfo()
                 
                     //MARK: - Buttons
-                    mainUI.buttons()
+                    mainUI.buttons(isPresentingButtons: $presentingButtons)
                     
                     //MARK: - Glasses mirror
                     mainUI.glassesMirror()
