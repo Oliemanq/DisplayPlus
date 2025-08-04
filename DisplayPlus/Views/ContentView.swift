@@ -19,6 +19,7 @@ struct ContentView: View {
     @Namespace private var namespace
     
     @State private var presentingButtons: Bool = false
+    @State private var presentingScanView: Bool = false
 
     init() {
         let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
@@ -38,7 +39,9 @@ struct ContentView: View {
             infoManager: info,
             bleManager: ble,
             pageManager: page,
-            bgManager: bg
+            bgManager: bg,
+            scanBool: $presentingScanView,
+            buttonBool: $presentingButtons
         )
         
         NavigationStack {
@@ -58,7 +61,7 @@ struct ContentView: View {
                     mainUI.calendarInfo()
                 
                     //MARK: - Buttons
-                    mainUI.buttons(isPresentingButtons: $presentingButtons)
+                    mainUI.buttons()
                     
                     //MARK: - Glasses mirror
                     mainUI.glassesMirror()
@@ -71,14 +74,7 @@ struct ContentView: View {
                 
                 //MARK: - Bottom buttons
                 mainUI.floatingButtons()
-                    
             }
-            
-            //MARK: - Device connection popover
-            .popover(isPresented: $showingScanPopover) {
-                mainUI.scanDevicesPopup()
-            }
-             
         }
         
         .scrollContentBackground(.hidden)

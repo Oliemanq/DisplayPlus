@@ -15,19 +15,34 @@ class MainUIBlocks: ObservableObject {
     let namespace: Namespace.ID
     
     let theme = ThemeColors()
+        
+    var isPresentingButtons: Binding<Bool>
+    var isPresentingScan: Binding<Bool>
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var displayOn = false
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
-    @AppStorage("showingScanPopover", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var showingScanPopover: Bool = false
     @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
     
     @State private var progressBar: Double = 0.0
     
     let formatter = DateFormatter()
     
-    var floatingButtonItems: [FloatingButtonItem] = []
+    lazy var floatingButtonItems: [FloatingButtonItem] = [
+        .init(iconSystemName: "clock", extraText: "Default screen", action: {
+            print("Default button pushed")
+            self.currentPage = "Default"
+        }),
+        .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {
+            print("Music button pushed")
+            self.currentPage = "Music"
+        }),
+        .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
+            print("Calendar button pushed")
+            self.currentPage = "Calendar"
+        })
+    ]
     
     let info: InfoManager
     let ble: G1BLEManager
@@ -36,8 +51,8 @@ class MainUIBlocks: ObservableObject {
     
     //Holding button vars
     @Published var holdingSilentButton: Bool = false
-    
-    init(namespace: Namespace.ID, infoManager: InfoManager, bleManager: G1BLEManager, pageManager: PageManager, bgManager: BackgroundTaskManager) {
+        
+    init(namespace: Namespace.ID, infoManager: InfoManager, bleManager: G1BLEManager, pageManager: PageManager, bgManager: BackgroundTaskManager, scanBool: Binding<Bool>, buttonBool: Binding<Bool>) {
         self.namespace = namespace
         
         self.info = infoManager
@@ -45,20 +60,8 @@ class MainUIBlocks: ObservableObject {
         self.page = pageManager
         self.bg = bgManager
         
-        self.floatingButtonItems = [
-            .init(iconSystemName: "clock", extraText: "Default screen", action: {
-                print("Default button pushed")
-                self.currentPage = "Default"
-            }),
-            .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {
-                print("Music button pushed")
-                self.currentPage = "Music"
-            }),
-            .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
-                print("Calendar button pushed")
-                self.currentPage = "Calendar"
-            })
-        ] // Floating button init
+        isPresentingScan = scanBool
+        isPresentingButtons = buttonBool
     }
     
     //MARK: - Header
@@ -243,7 +246,7 @@ class MainUIBlocks: ObservableObject {
     }
     
     //MARK: - Buttons
-    func buttons(isPresentingButtons: Binding<Bool>) -> some View {
+    func buttons() -> some View {
         let buttonObjects = buttonObjects()
         return VStack {
             HStack{
@@ -253,24 +256,43 @@ class MainUIBlocks: ObservableObject {
                         buttonObjects[0]
                     }
                     
-                    
-                    
                     if self.ble.connectionState == .connectedBoth {
                         buttonObjects[1]
                         
                         Button("Device settings"){
-                            isPresentingButtons.wrappedValue = true
+                            self.isPresentingButtons.wrappedValue = true
                         }
                         .frame(width: 160, height: 50)
                         .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                     }
                 }
                 .popover(isPresented: isPresentingButtons){
-                    VStack(spacing: 45){
-                        ForEach(buttonObjects.indices.dropFirst(2), id: \ .self) { index in
-                            buttonObjects[index]
+                    ZStack{
+                        (self.darkMode ? self.primaryColor.opacity(0.5) : self.secondaryColor.opacity(0.75))
+                            .ignoresSafeArea()
+                        
+                        VStack(spacing: 25){
+                            ForEach(buttonObjects.indices.dropFirst(2), id: \ .self) { index in
+                                buttonObjects[index]
+                                    .padding(.horizontal, 50)
+                                    .padding(.vertical, 12)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 24)
+                                            .fill(!self.darkMode ? Color(self.primaryColor).opacity(0.05) : Color(self.secondaryColor).opacity(0.1))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 24)
+                                                    .stroke(
+                                                        (!self.darkMode ? self.primaryColor : self.secondaryColor).opacity(0.3),
+                                                        lineWidth: 0.5
+                                                    )
+                                            )
+                                    )
+                            }
                         }
                     }
+                }
+                .popover(isPresented: isPresentingScan) {
+                    self.scanDevicesPopup()
                 }
                 Spacer()
                 
@@ -286,7 +308,7 @@ class MainUIBlocks: ObservableObject {
         buttons.append(AnyView(
             Button("Start scan"){
                 self.ble.startScan()
-                self.showingScanPopover = true
+                self.isPresentingScan.wrappedValue = true
             }
             .frame(width: 100, height: 50)
             .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
@@ -375,8 +397,8 @@ class MainUIBlocks: ObservableObject {
             (self.darkMode ? self.primaryColor.opacity(0.5) : self.secondaryColor.opacity(0.75))
                 .ignoresSafeArea()
             VStack {
-                ForEach(Array(ble.discoveredPairs).indices, id: \.self) { index in
-                    let pair = Array(self.ble.discoveredPairs.values)[index]
+                let pairs = Array(ble.discoveredPairs.values)
+                ForEach(pairs, id: \.channel) { pair in
                     VStack{
                         Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
                             .foregroundStyle(!self.darkMode ? self.primaryColor : self.secondaryColor)
@@ -384,39 +406,33 @@ class MainUIBlocks: ObservableObject {
                             if pair.left != nil {
                                 HStack{
                                     Image(systemName: "checkmark.circle")
-                                        .foregroundStyle(!self.darkMode ? self.primaryColor : self.secondaryColor)
                                     Text("Left found")
-                                        .foregroundStyle(!self.darkMode ? self.primaryColor : self.secondaryColor)
                                 }
                             } else {
                                 HStack {
                                     Image(systemName: "x.circle")
-                                        .foregroundStyle(!self.darkMode ? self.primaryColor : self.secondaryColor)
                                     Text("No left")
-                                        .foregroundStyle(!self.darkMode ? self.primaryColor : self.secondaryColor)
                                 }
                             }
                             if pair.right != nil {
                                 HStack{
                                     Image(systemName: "checkmark.circle")
-                                        .foregroundStyle(!self.darkMode ? self.primaryColor : self.secondaryColor)
                                     Text("Right found")
-                                        .foregroundStyle(!self.darkMode ? self.primaryColor : self.secondaryColor)
                                 }
                             } else {
                                 HStack {
                                     Image(systemName: "x.circle")
-                                        .foregroundStyle(!self.darkMode ? self.primaryColor : self.secondaryColor)
                                     Text("No right")
-                                        .foregroundStyle(!self.darkMode ? self.primaryColor : self.secondaryColor)
                                 }
                             }
                         }
+                        .foregroundStyle(!self.darkMode ? self.primaryColor : self.secondaryColor)
+
                         if pair.left != nil && pair.right != nil {
                             withAnimation{
                                 Button("Connect to pair"){
                                     self.ble.connectPair(pair: pair)
-                                    self.showingScanPopover = false
+                                    self.isPresentingScan.wrappedValue = false
                                 }
                                 .frame(width: 150, height: 50)
                                 .mainButtonStyle(pri: self.primaryColor, sec: self.secondaryColor, darkMode: self.darkMode)
@@ -511,7 +527,8 @@ private struct PreviewMainUIBlocks: View {
     @StateObject private var page: PageManager
     @StateObject private var bg: BackgroundTaskManager
     
-    @State private var presentingButtons: Bool = false
+    @State var scanBoolPreview = false
+    @State var buttonBoolPreview = false
     
     init() {
         let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
@@ -526,7 +543,9 @@ private struct PreviewMainUIBlocks: View {
         _bg = StateObject(wrappedValue: bgmInstance)
     }
     var body: some View {
-        let ui = MainUIBlocks(namespace: namespace, infoManager: info, bleManager: ble, pageManager: page, bgManager: bg)
+        
+        
+        let ui = MainUIBlocks(namespace: namespace, infoManager: info, bleManager: ble, pageManager: page, bgManager: bg, scanBool: $scanBoolPreview, buttonBool: $buttonBoolPreview)
         
         ZStack {
             ui.backgroundGrid()
@@ -534,7 +553,7 @@ private struct PreviewMainUIBlocks: View {
                 ui.headerContent()
                 ui.songInfo()
                 ui.calendarInfo()
-                ui.buttons(isPresentingButtons: $presentingButtons)
+                ui.buttons()
                 ui.glassesMirror()
                 ui.connectionDisplay()
             }
@@ -546,3 +565,4 @@ private struct PreviewMainUIBlocks: View {
 #Preview {
     PreviewMainUIBlocks()
 }
+
