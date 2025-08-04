@@ -46,7 +46,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         
     }
     
-    public func update(updateWeatherBool: Bool) {        
+    public func update(updateWeatherBool: Bool = false) {        
         let newTime = Date().formatted(date: .omitted, time: .shortened)
         if time != newTime {
             time = newTime
@@ -65,20 +65,21 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         
         //check calendar auth then update events
         if getCalendarAuthStatus() {
-            let tempEventHolder = eventsFormatted
+            let tempEventHolder = eventsFormatted.count
             loadEvents {
-                if tempEventHolder != self.eventsFormatted {
-                    print("Events changed")
+                if tempEventHolder != self.eventsFormatted.count {
                     self.changed = true
+                    print("Calendar changed \(tempEventHolder) -> \(self.eventsFormatted.count)")
                 }
+                
             }
         }
          
         //Update weather only when needed (every 5 minutes or so)
-        Task{
-            if updateWeatherBool {
+        if updateWeatherBool {
+            Task{
                 if getLocationAuthStatus() {
-                    await updateWeather() // updateWeather will now update @Published properties
+                    await updateWeather()
                 }
             }
         }

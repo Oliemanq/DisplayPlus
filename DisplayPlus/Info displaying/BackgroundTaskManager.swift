@@ -54,6 +54,9 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
                 print("BackgroundTaskManager timer: self is nil, timer cannot continue.") // Log if self is nil
                 return
             }
+            
+            info.update()
+            
             if ble.connectionState == .connectedBoth {
                 HBTriggerCounter += 1
                 if HBTriggerCounter%56 == 0 || HBTriggerCounter == 1{ //Sending heartbeat command every ~28 seconds to maintain connection
