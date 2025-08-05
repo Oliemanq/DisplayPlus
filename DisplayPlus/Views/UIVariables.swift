@@ -78,6 +78,7 @@ struct FloatingTextStyle: ViewModifier {
         }
     }
 }
+
 extension Text {
     func floatingTextStyle(prim: Color, sec: Color, text: String, namespace: Namespace.ID, scale: CGFloat?) -> some View {
         modifier(FloatingTextStyle(primaryColor: prim, secondaryColor: sec, text: text, namespace: namespace, scale: scale))
@@ -240,7 +241,7 @@ extension View {
 //Extension for applying glass to items
 extension View {
     @ViewBuilder
-    func glassListBG(pri: Color, sec: Color, darkMode: Bool, bg: Bool = false) -> some View {
+    func ContextualBG(pri: Color, sec: Color, darkMode: Bool, bg: Bool = false) -> some View {
         if #available(iOS 26, *) {
             
             if bg{
@@ -258,6 +259,7 @@ extension View {
                 let rounding: CGFloat = 12
 
                 self
+                    .foregroundStyle(!darkMode ? pri : sec)
                     .padding(8)
                     .background(
                         RoundedRectangle(cornerRadius: rounding)
@@ -291,6 +293,7 @@ extension View {
                 let rounding: CGFloat = 12
 
                 self
+                    .foregroundStyle(!darkMode ? pri : sec)
                     .padding(8)
                     .background(
                         RoundedRectangle(cornerRadius: rounding)
@@ -322,6 +325,7 @@ struct RoundedCorner: Shape {
     }
 }
 
+//MARK: - Background
 //Grid function
 struct Grid: Shape {
     let spacing: CGFloat
@@ -351,6 +355,60 @@ struct Grid: Shape {
     }
 }
 
+func backgroundGrid() -> some View {
+    let theme = ThemeColors()
+    var primaryColor: Color { theme.primaryColor }
+    var secondaryColor: Color { theme.secondaryColor }
+    var darkMode: Bool { theme.darkMode }
+    
+    
+    // State variables to hold the customizable properties of the grid.
+    @State var lineColor: Color = darkMode ? primaryColor : secondaryColor
+    @State var lineWidth: CGFloat = 1
+    @State var spacing: CGFloat = 10
+    
+    
+    return ZStack{
+        if darkMode {
+            LinearGradient(
+                gradient: Gradient(stops: [
+                    .init(color: secondaryColor, location: 0.0), // Lighter color at top-left
+                    .init(color: primaryColor, location: 0.5),  // Transition to darker
+                    .init(color: primaryColor, location: 1.0)   // Darker color for the rest
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        } else {
+            LinearGradient(
+                gradient: Gradient(stops: [
+                    .init(color: primaryColor, location: 0.0), // Darker color at top-left
+                    .init(color: secondaryColor, location: 0.5),  // Transition to lighter
+                    .init(color: secondaryColor, location: 1.0)   // Lighter color for the rest
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        
+        Grid(spacing: spacing)
+            .stroke(lineColor, lineWidth: lineWidth)
+            .offset(x: -300, y: 25)
+            .rotationEffect(.degrees(45))
+        
+        LinearGradient(
+            gradient: Gradient(stops: [
+                .init(color: darkMode ? primaryColor.opacity(0.95) : secondaryColor.opacity(0.95), location: 0.05),
+                .init(color: Color.clear, location: 0.1)
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+
+    .edgesIgnoringSafeArea(.all)
+}
+
 //Quick modifier for colors that desaturates them by "amount" percentage
 extension Color {
     func desaturated(amount: CGFloat = 1) -> Color {
@@ -362,6 +420,20 @@ extension Color {
         return Color(hue: Double(hue), saturation: Double(sat * (1 - amount)), brightness: Double(bri), opacity: Double(alpha))
     }
 }
+
+//Main modifications for main ui
+extension View {
+    func mainUIMods(pri: Color, sec: Color, darkMode: Bool, bg: Bool = false) -> some View {
+        self
+            .frame(maxWidth: .infinity)
+            .foregroundStyle(!darkMode ? pri : sec)
+            .padding(2)
+            .ContextualBG(pri: pri, sec: sec, darkMode: darkMode, bg: bg)
+            .padding(.horizontal, 6)
+    }
+}
+
+
 
 //MARK: - Preview
 struct PreviewVars: View {
@@ -391,7 +463,7 @@ struct PreviewVars: View {
                     )
                 Text("Background glass")
                     .foregroundStyle(sec)
-                    .glassListBG(pri: pri, sec: sec, darkMode: darkMode, bg: true)
+                    .ContextualBG(pri: pri, sec: sec, darkMode: darkMode, bg: true)
                 
                 Button("Toggle UI colors"){
                     toggled.toggle()

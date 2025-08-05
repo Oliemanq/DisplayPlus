@@ -18,7 +18,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     @Published var changed: Bool = false
     
     //Time vars
-    @Published var time: String // Mark with @Published
+    @Published var time: String
     
     //Event vars
     @Published var eventsFormatted: [event] = []
@@ -101,6 +101,34 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         */
     }
     
+    //MARK: - Music functions
+    public func getCurSong() -> Song {
+        return currentSong // Return the @Published property
+    }
+    
+    //MARK: - Time functions
+    public func getTime() -> String {
+        return time
+    }
+    
+    //MARK: - Weather functions
+    func updateWeather() async{
+        do{
+            try await weather.fetchWeatherData()
+            // Update @Published properties after fetching
+            print("Weather fetch successful, InfoManager updated: Temp=\(weather.currentTemp)")
+        }catch {
+            print("failed weather fetch \(error)")
+        }
+    }
+    func getCurrentTemp() -> Int {
+        return weather.currentTemp
+    }
+    func getCurrentWind() -> Int {
+        return weather.currentWind
+    }
+    
+    //MARK: - Cal functions
     private func loadEvents(completion: (() -> Void)? = nil) {
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "h:mm a"
@@ -151,35 +179,9 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
             }
         }
     }
-    
-    public func getCurSong() -> Song {
-        return currentSong // Return the @Published property
-    }
-    
-    public func getTime() -> String {
-        return time
-    }
-    
-    func updateWeather() async{
-        do{
-            try await weather.fetchWeatherData()
-            // Update @Published properties after fetching
-            print("Weather fetch successful, InfoManager updated: Temp=\(weather.currentTemp)")
-        }catch {
-            print("failed weather fetch \(error)")
-        }
-    }
-    func getCurrentTemp() -> Int {
-        return weather.currentTemp
-    }
-    func getCurrentWind() -> Int {
-        return weather.currentWind
-    }
-    
     func getEvents() -> [event] {
         return self.eventsFormatted
     }
-    
     func getTodayDate()-> String{
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "EEE"
@@ -195,18 +197,18 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         return "\(weekDay), \(month) \(day)"
     }
     
+    //MARK: - Getting PHONE battery
     func getBattery() -> Int {
-        return batteryLevelFormatted // Return the @Published property
+        return batteryLevelFormatted
     }
     
     
-    
+    //MARK: - HealthKit Functions - Unused
     func getHealthData() -> RingData {
         // Simply return the current value - no async operations
         print("Steps \(healthData.steps), Exercise \(healthData.exercise), Stand Hours \(healthData.standHours)")
         return healthData
     }
-    
     // Separate function to handle fetching health data asynchronously
     func fetchHealthData() async {
         do {
@@ -221,12 +223,16 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     }
     
     
-    //AUTH FUNCS _____________________________________________________________________________________________________________________________________________________________________________________
+    //MARK: - Auth funcs
+    
+    
     /* Removing until I implement it fully
     func getHealthAuthStatus() -> Bool {
         return (health.getAuthStatus()[0] == true && health.getAuthStatus()[1] == true && health.getAuthStatus()[2] == true) //return true if all health data is authorized, otherwise returns false
     }
      */
+    
+    
     func getMusicAuthStatus() -> Bool {
         return music.getAuthStatus() // Return the music authorization status
     }

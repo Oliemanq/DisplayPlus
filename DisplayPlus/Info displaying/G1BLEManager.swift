@@ -284,7 +284,8 @@ class G1BLEManager: NSObject, ObservableObject{
         let data = Data(packet)
         writeData(data, to: "Both")
     }
-
+    
+    //MARK: - Glasses communication functions
     func sendTextCommand(seq: UInt8, text: String, arm: String = "Both") {
         var packet = [UInt8]()
         packet.append(0x4E) // command (send text)
@@ -315,22 +316,6 @@ class G1BLEManager: NSObject, ObservableObject{
         sendTextCommand(seq: 0, text: "")
     }
     
-    //Sets silent mode on the glasses on/off through the UI (or touchpads in the future)
-    func setSilentModeState(on: Bool) {
-        silentMode = on
-
-        var packet = [UInt8]()
-        packet.append(0x03)
-        if on {
-            packet.append(0x0C)
-        }else{
-            packet.append(0x0A)
-        }
-        let data = Data(packet)
-        writeData(data, to: "Both")
-        
-    }
-    
     //MARK: - Fetch info functions
     func fetchGlassesBattery(){
         var packet = [UInt8]()
@@ -352,6 +337,36 @@ class G1BLEManager: NSObject, ObservableObject{
     func fetchBrightness(){
         var packet = [UInt8]()
         packet.append(0x29)
+        
+        let data = Data(packet)
+        writeData(data, to: "Right")
+    }
+    
+    //MARK: - Set Info functions
+    //Sets silent mode on the glasses on/off through the UI (or touchpads in the future)
+    func setSilentModeState(on: Bool) {
+        silentMode = on
+
+        var packet = [UInt8]()
+        packet.append(0x03)
+        if on {
+            packet.append(0x0C)
+        }else{
+            packet.append(0x0A)
+        }
+        let data = Data(packet)
+        writeData(data, to: "Both")
+    }
+    
+    func setBrightness(value: CGFloat, auto: Bool) {
+        
+        let valueHex = UInt8(value)
+        
+        var packet = [UInt8]()
+        
+        packet.append(0x01) //Brightness command
+        packet.append(valueHex) //Desired brightness from param
+        packet.append(auto ? 0x00 : 0x01)
         
         let data = Data(packet)
         writeData(data, to: "Right")
