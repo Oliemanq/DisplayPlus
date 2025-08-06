@@ -24,7 +24,7 @@ struct ContentView: View {
     
     @Namespace private var namespace
     
-    @State private var isPresentingScanView: Bool = false
+    @AppStorage("isPresentingScanView", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var isPresentingScanView: Bool = false
     
     @State var brightnessSlider: Double = 0.01
     @State private var isSliderDragging = false
@@ -49,85 +49,85 @@ struct ContentView: View {
                 
                 ScrollView(.vertical) {
                     VStack {
-                        //MARK: - Glasses mirror
-                        if ble.connectionState == .connectedBoth {
-                            VStack(alignment: .center){
-                                if ble.connectionState == .connectedBoth {
-                                    //Glasses mirror on app UI
-                                    Text(bg.textOutput)
-                                        .lineLimit(
-                                            currentPage == "Default" ? 1 :
-                                                currentPage == "Music" ? 3 :
-                                                currentPage == "Calendar" ? (info.numOfEvents == 1 ? 3 : 4) :
-                                                3 //Default if currentPage is none of the options
-                                        )
-                                        .minimumScaleFactor(0.5)
-                                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                }else{
-                                    Text("Waiting for glasses to connect...")
-                                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                        .font(.caption)
+                        if ble.connectionState == .connectedBoth || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+                            //MARK: - Glasses mirror
+                            if displayOn {
+                                ZStack{
+                                    VStack(alignment: .center){
+                                        Text(bg.textOutput)
+                                            .lineLimit(
+                                                currentPage == "Default" ? 1 :
+                                                    currentPage == "Music" ? 3 :
+                                                    currentPage == "Calendar" ? (info.numOfEvents == 1 ? 3 : 4) :
+                                                    3 //Default if currentPage is none of the options
+                                            )
+                                            .minimumScaleFactor(0.5)
+                                            .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                    }
+                                    VStack{
+                                        HStack{
+                                            Image(systemName: "eyeglasses")
+                                                .foregroundStyle(Color.black)
+                                            Spacer()
+                                        }
+                                        Spacer()
+                                    }
+                                    .padding(.top, 10)
+                                    .padding(.horizontal, 12)
                                 }
+                                .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                             }
-                            .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
-                        }
                         
                         //MARK: - buttons
-                        HStack (spacing: 10){
-                            VStack(alignment: .center){
-                                VStack{
-                                    if ble.connectionState == .connectedBoth || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
-                                        VStack{
-                                            Button {
-                                                withAnimation{
-                                                    ble.setSilentModeState(on: !silentMode)
-                                                }
-                                            } label: {
-                                                HStack(alignment: .center){
-                                                    Text("Silent mode")
-                                                    Spacer()
-                                                    Text("\(Image(systemName: silentMode ? "checkmark.circle" : "x.circle"))")
-                                                }.padding(.horizontal, buttonPadding)
-                                            }
-                                            .frame(width: buttonWidth, height: (silentMode ? 90 : 35))
-                                            .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                            
-                                            if !silentMode {
-                                                Button {
-                                                    withAnimation{
-                                                        displayOn.toggle()
-                                                    }
-                                                } label: {
-                                                    HStack(alignment: .center){
-                                                        Text("Display")
-                                                        Spacer()
-                                                        Text("\(Image(systemName: displayOn ? "checkmark.circle" : "x.circle"))")
-                                                    }.padding(.horizontal, buttonPadding)
-                                                }
-                                                .frame(width: buttonWidth, height: 50)
-                                                .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                            }
+                            HStack (spacing: 10){
+                                VStack(alignment: .center){
+                                    Button {
+                                        withAnimation{
+                                            ble.setSilentModeState(on: !silentMode)
                                         }
-                                    }else{
-                                        Button("Start scan"){
-                                            ble.startScan()
-                                            isPresentingScanView = true
+                                    } label: {
+                                        HStack(alignment: .center){
+                                            Text("Silent mode")
+                                            Spacer()
+                                            Text("\(Image(systemName: silentMode ? "checkmark.circle" : "x.circle"))")
+                                        }.padding(.horizontal, buttonPadding)
+                                    }
+                                    .frame(width: buttonWidth, height: (silentMode ? 90 : 35))
+                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                    
+                                    if !silentMode {
+                                        Button {
+                                            withAnimation{
+                                                displayOn.toggle()
+                                            }
+                                        } label: {
+                                            HStack(alignment: .center){
+                                                Text("Display")
+                                                Spacer()
+                                                Text("\(Image(systemName: displayOn ? "checkmark.circle" : "x.circle"))")
+                                            }.padding(.horizontal, buttonPadding)
                                         }
-                                        .frame(width: 100, height: 65)
+                                        .frame(width: buttonWidth, height: 50)
                                         .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                     }
                                 }
                                 .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                            }
-                            
-                            VStack {
+                                
+                                
+                                //ADD BATTERY HERE
+                                //ADD BATTERY HERE
+                                //ADD BATTERY HERE
+                                //ADD BATTERY HERE
+                                //ADD BATTERY HERE
+                                //ADD BATTERY HERE
+
                                 
                             }
-                        }
-                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
+                            .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
+                            
+                            
 
-                        HStack{
-                            if ble.connectionState == .connectedBoth || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+                            HStack{
                                 //MARK: - brightnessControl
                                 VStack(alignment: .center){
                                     VStack{
@@ -179,24 +179,37 @@ struct ContentView: View {
                                                 }
                                                 .accentColor(theme.darkMode ? theme.sec : theme.pri)
                                             }
-                                            
-                                            Button("\(Image(systemName: ble.autoBrightnessEnabled ? "environments.fill" : "environments.slash")) Auto"){
-                                                withAnimation{
-                                                    ble.autoBrightnessEnabled.toggle()
-                                                    // Also send an update when auto-brightness is toggled
-                                                    print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
-                                                    ble.setBrightness(value: brightnessSlider)
+                                            if #available(iOS 26, *){
+                                                Button("\(Image(systemName: ble.autoBrightnessEnabled ? "environments.fill" : "environments.slash")) Auto"){
+                                                    withAnimation{
+                                                        ble.autoBrightnessEnabled.toggle()
+                                                        // Also send an update when auto-brightness is toggled
+                                                        print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
+                                                        ble.setBrightness(value: brightnessSlider)
+                                                    }
                                                 }
+                                                .frame(width: 100,height: 30)
+                                                .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                            }else{
+                                                Button("\(Image(systemName: ble.autoBrightnessEnabled ? "sun.max.fill" : "sun.min")) Auto"){
+                                                    withAnimation(.easeInOut){
+                                                        ble.autoBrightnessEnabled.toggle()
+                                                        // Also send an update when auto-brightness is toggled
+                                                        print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
+                                                        ble.setBrightness(value: brightnessSlider)
+                                                    }
+                                                }
+                                                .frame(width: 100,height: 30)
+                                                .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                                .animation(.easeInOut, value: ble.autoBrightnessEnabled)
                                             }
-                                            .frame(width: 100,height: 30)
-                                            .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                         }
                                     }
                                 }.ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                             }
+                            .padding(.horizontal, 12)
+                            .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                         }
-                        .padding(.horizontal, 12)
-                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                     }
                     .padding(.top, 50)
                 }

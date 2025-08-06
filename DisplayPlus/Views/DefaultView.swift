@@ -18,10 +18,9 @@ struct DefaultView: View {
     @StateObject private var bg: BackgroundTaskManager
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
+    @AppStorage("isPresentingScanView", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var isPresentingScanView: Bool = false
     
     @Namespace private var namespace
-
-
     
     init(){
         let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
@@ -42,9 +41,10 @@ struct DefaultView: View {
             Tab("Info", systemImage: "info.square") {
                 InfoView(infoIn: info, bleIn: ble, themeIn: theme)
             }
-            Tab("Settings", systemImage: "gear") {
-                SettingsView(bleIn: ble, themeIn: theme)
-            }
+            // Will re-add later, not really being used but will add more settings in the future
+//            Tab("Settings", systemImage: "gear") {
+//                SettingsView(bleIn: ble, themeIn: theme)
+//            }
         }
         .safeAreaInset(edge: .bottom) {
             if #available (iOS 26, *){
@@ -56,6 +56,11 @@ struct DefaultView: View {
                                     Task{
                                         await bg.disconnectProper()
                                     }
+                                }
+                            }else{
+                                Button("Start Scan"){
+                                    ble.startScan()
+                                    isPresentingScanView = true
                                 }
                             }
                         }
@@ -100,10 +105,13 @@ struct DefaultView: View {
                     .frame(width: 120)
                     .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                 }
+                .offset(y: -50)
             }
         }
         .accentColor(!theme.darkMode ? theme.pri : theme.sec)
         .onAppear(){
+            ble.connectionStatus = "Disconnected"
+            ble.connectionState = .disconnected
             theme.darkMode = colorScheme == .dark
             
             info.update(updateWeatherBool: true) // Initial update

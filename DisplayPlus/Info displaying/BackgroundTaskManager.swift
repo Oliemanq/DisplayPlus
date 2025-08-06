@@ -26,11 +26,11 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     var batteryCounter: Int = 0
     var autoOffCounter: Int = 0
     var weatherCounter: Int = 0
-    var silentTrigger: Bool = true
     
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var autoOff = false
-    @AppStorage("showingCalibration", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var showingCalibration = false
+    @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var currentPage = ""
+
      
     init(ble: G1BLEManager, info: InfoManager, page: PageManager) {
         self.ble = ble
@@ -120,14 +120,10 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
     }
     
     func pageHandler() -> String {
-        @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var currentPage = ""
         textOutput = page.header()
         
         if currentPage == "Default" { // DEFAULT PAGE HANDLER
-            let displayLines = page.defaultDisplay()
-            
-            textOutput.append(displayLines.joined(separator: "\n"))
-            
+            let _ = 1 //placeholder cause this is stupid and shouldn't have to exist
             
         } else if currentPage == "Music" { // MUSIC PAGE HANDLER
             let displayLines = page.musicDisplay()

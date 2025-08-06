@@ -36,8 +36,9 @@ class PageManager: ObservableObject {
     
     func header() -> String {
         currentDisplayLines.removeAll()
+        currentDisplayLines.append("")
 
-        return centerText(text: ("\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())% \(info.getCurrentTemp() != 0 ? ("| \(info.getCurrentTemp())°F") : "")\n"))
+        return centerText(text: ("\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())% \(info.getCurrentTemp() != 0 ? ("| \(info.getCurrentTemp())°F") : "")"))
     }
     
     func defaultDisplay() -> [String] {
