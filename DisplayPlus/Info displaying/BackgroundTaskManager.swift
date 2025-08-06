@@ -55,6 +55,10 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
             info.update()
             
             if ble.connectionState == .connectedBoth {
+                
+                ble.fetchBrightness()
+    
+                
                 HBTriggerCounter += 1
                 if HBTriggerCounter%56 == 0 || HBTriggerCounter == 1{ //Sending heartbeat command every ~28 seconds to maintain connection
                     ble.sendHeartbeat(counter: HBCounter%255)

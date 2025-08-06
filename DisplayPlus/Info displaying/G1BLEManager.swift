@@ -75,9 +75,9 @@ class G1BLEManager: NSObject, ObservableObject{
     public private(set) var caseBatteryLevel: CGFloat = 0.0
     public private(set) var caseCharging: Bool = false
     
-    public private(set) var brightnessRaw: Int = 0
+    @Published public var brightnessRaw: Int = 0
     public private(set) var brightnessFloat: CGFloat = 0.0
-    public private(set) var autoBrightnessEnabled: Bool = false
+    @Published public var autoBrightnessEnabled: Bool = false
 
     @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
 
@@ -358,7 +358,7 @@ class G1BLEManager: NSObject, ObservableObject{
         writeData(data, to: "Both")
     }
     
-    func setBrightness(value: CGFloat, auto: Bool) {
+    func setBrightness(value: CGFloat) {
         
         let valueHex = UInt8(value)
         
@@ -366,7 +366,8 @@ class G1BLEManager: NSObject, ObservableObject{
         
         packet.append(0x01) //Brightness command
         packet.append(valueHex) //Desired brightness from param
-        packet.append(auto ? 0x00 : 0x01)
+        print("appending \(autoBrightnessEnabled ? "0x01" : "0x00")")
+        packet.append(autoBrightnessEnabled ? 0x01 : 0x00)
         
         let data = Data(packet)
         writeData(data, to: "Right")
@@ -693,7 +694,8 @@ extension G1BLEManager: CBPeripheralDelegate {
             default:
                 print("Unknown message, header from battery fetch \(byteArray)")
             }
-            
+        
+        //MARK: - Silent mode
         //Silent mode fetch response
         case 43: //0x2B return from fetchSilentStatus
             switch String(format: "%02X", byteArray[2]){
@@ -717,14 +719,25 @@ extension G1BLEManager: CBPeripheralDelegate {
                 print("unknown response from setSilentModeStatus \(byteArray[1])")
             }
         
+        //MARK: - Brightness
         //Get brightness response
         case 41: //0x29
             let _ = byteArray[1] //unknown data, noting for clarity
             
             brightnessRaw = Int(byteArray[2])
-            brightnessFloat = CGFloat(byteArray[2])/42
+            brightnessFloat = CGFloat(byteArray[2])/42 //Percentage of brightness level
             
             autoBrightnessEnabled = (byteArray[3] == 1)
+        //setBrightness response
+        case 1: //0x01
+            switch byteArray[1]{
+            case 201:
+                print("setBrightness successful")
+            case 203:
+                print("setBrightness unsuccessful")
+            default:
+                print("unknown response from setBrightness \(byteArray[1])")
+            }
             
         //MARK: - Unknown/unused signals from glasses
             

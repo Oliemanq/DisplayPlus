@@ -2,6 +2,12 @@ import SwiftUI
 import EventKit
 import AppIntents
 
+extension Comparable {
+    func clamped(to limits: ClosedRange<Self>) -> Self {
+        return min(max(self, limits.lowerBound), limits.upperBound)
+    }
+}
+
 struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme
     
@@ -45,12 +51,9 @@ struct ContentView: View {
     @State private var isPresentingButtons: Bool = false
     @State private var isPresentingScanView: Bool = false
     
-    @State private var brightnessSlider: Double = 0 // initialize in your View's init/body
-
-    // Additional states/properties from MainUIBlocks
-    
-    @State private var autoBrightness: Bool = false
-    @State private var debounceTask: DispatchWorkItem?
+    @State var brightnessSlider: Double = 0.0
+    @State private var isSliderDragging = false
+    @State private var brightnessUpdateTimer: Timer?
     
     init() {
         let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
@@ -95,9 +98,9 @@ struct ContentView: View {
                             Spacer()
                             
                             VStack{
-                                Text("Glasses - \(ble.glassesBatteryAvg)%")
+                                Text("Glasses - \(Int(ble.glassesBatteryAvg))%")
                                 
-                                Text("Case - \(ble.caseBatteryLevel)%")
+                                Text("Case - \(Int(ble.caseBatteryLevel))%")
                             }
                             .ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                             
@@ -179,7 +182,7 @@ struct ContentView: View {
                                                 
                                             }.padding(.horizontal, 8)
                                         }
-                                        .ContextualBG(pri: self.primaryColor, sec: self.secondaryColor, darkMode: self.darkMode)
+                                        .ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                     }
                                     
                                     
@@ -193,62 +196,75 @@ struct ContentView: View {
                     
                     
                     //MARK: - buttons
-                    VStack(alignment: .center){
-                        HStack{
-                            if ble.connectionState == .connectedBoth {
-                                Button("Disconnect"){
-                                    Task{
-                                        await bg.disconnectProper()
-                                    }
-                                }
-                                .frame(width: 120, height: 50)
-                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                            }else{
-                                Button("Start scan"){
-                                    ble.startScan()
-                                    isPresentingScanView = true
-                                }
-                                .frame(width: 100, height: 50)
-                                .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                            }
-                        }.ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                        
-                    }
-                    .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
-                    
-                    
-                    
-                    //MARK: - When connected ->
-                    if ble.connectionState == .connectedBoth {
-                        //MARK: - brightnessControl
+                    HStack (spacing: 10){
                         VStack(alignment: .center){
                             VStack{
-                                Text("Brightness")
-                                HStack{
-                                    Slider(value: Binding(
-                                        get: { self.brightnessSlider },
-                                        set: { self.brightnessSlider = $0 }
-                                    ), in: 0...42)
-                                    .onChange(of: brightnessSlider) { newValue, _ in
-                                        self.debounceTask?.cancel()
-                                        let task = DispatchWorkItem {
-                                            self.ble.setBrightness(value: newValue, auto: self.autoBrightness)
-                                            print("changed brightness to \(self.brightnessSlider)")
+                                if ble.connectionState == .connectedBoth {
+                                    Button("Disconnect"){
+                                        Task{
+                                            await bg.disconnectProper()
                                         }
-                                        self.debounceTask = task
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: task)
                                     }
-                                    
-                                    Button("Auto brightness \(autoBrightness ? "on" : "off" )"){
-                                        autoBrightness.toggle()
+                                    .frame(width: 120, height: 50)
+                                    .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                }else{
+                                    Button("Start scan"){
+                                        ble.startScan()
+                                        isPresentingScanView = true
                                     }
-                                    .frame(width: 100,height: 30)
+                                    .frame(width: 100, height: 50)
                                     .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                 }
-                            }.ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                            }
+                            .ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                            
                         }
-                        .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
                         
+                        if ble.connectionState == .connectedBoth || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+                            //MARK: - brightnessControl
+                            VStack(alignment: .center){
+                                VStack{
+                                    Text("Brightness")
+
+                                    VStack{
+                                        if !ble.autoBrightnessEnabled{
+                                            Slider(
+                                                value: $brightnessSlider,
+                                                in: 0...42,
+                                                step: 6
+                                            ) { editing in
+                                                // This closure tells us when the user starts or stops dragging.
+                                                isSliderDragging = editing
+                                                if !editing {
+                                                    // USER HAS FINISHED DRAGGING.
+                                                    // Send the final brightness value to the glasses ONLY now.
+                                                    print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
+                                                    ble.setBrightness(value: brightnessSlider)
+                                                }
+                                            }
+                                            .accentColor(primaryColor)
+                                        }
+                                        
+                                        Button("\(Image(systemName: ble.autoBrightnessEnabled ? "sun.max.fill" : "sun.min")) Auto"){
+                                            withAnimation{
+                                                ble.autoBrightnessEnabled.toggle()
+                                                // Also send an update when auto-brightness is toggled
+                                                print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
+                                                ble.setBrightness(value: brightnessSlider)
+                                            }
+                                        }
+                                        .frame(width: 100,height: 30)
+                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                    }
+                                }.ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                            }
+                            
+                        }
+                    }.mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+                    
+                    
+                    //MARK: - When connected
+                    if ble.connectionState == .connectedBoth {
                         //MARK: - Glasses mirror
                         VStack(alignment: .center){
                             if ble.connectionState == .connectedBoth {
@@ -282,7 +298,7 @@ struct ContentView: View {
                 .padding(.horizontal, 16)
                 
                 //MARK: - Floating buttons
-//                FloatingButtons(items: self.floatingButtonItems)
+//                FloatingButtons(items: floatingButtonItems)
 //                    .environmentObject(theme)
             }
             
@@ -299,6 +315,8 @@ struct ContentView: View {
         .onAppear {
             info.update(updateWeatherBool: true) // Initial update
             bg.startTimer() // Start the background task timer
+            
+            self.brightnessSlider = Double(ble.brightnessRaw)
         }
         .onDisappear {
             bg.stopTimer() // Stop the timer when view disappears
@@ -319,71 +337,67 @@ struct ContentView: View {
             info.changed = true
             ble.sendText(text: bg.pageHandler(), counter: 0)
         }
+        .onReceive(ble.$brightnessRaw) { newBrightness in
+            // Only update the slider's visual position if the user is NOT dragging it.
+            // This prevents the slider from jumping back to its old value during a drag.
+            if !isSliderDragging {
+                brightnessSlider = Double(newBrightness)
+            }
+        }
         //MARK: - popovers
-//        .popover(isPresented: isPresentingScanView) {
-//            ZStack {
-//                (self.darkMode ? self.primaryColor.opacity(0.5) : self.secondaryColor.opacity(0.75))
-//                    .ignoresSafeArea()
-//                VStack {
-//                    let pairs = Array(ble.discoveredPairs.values)
-//                    ForEach(pairs, id: \.channel) { pair in
-//                        VStack{
-//                            Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
-//                                .foregroundStyle(!self.darkMode ? self.primaryColor : self.secondaryColor)
-//                            HStack {
-//                                if pair.left != nil {
-//                                    HStack{
-//                                        Image(systemName: "checkmark.circle")
-//                                        Text("Left found")
-//                                    }
-//                                } else {
-//                                    HStack {
-//                                        Image(systemName: "x.circle")
-//                                        Text("No left")
-//                                    }
-//                                }
-//                                if pair.right != nil {
-//                                    HStack{
-//                                        Image(systemName: "checkmark.circle")
-//                                        Text("Right found")
-//                                    }
-//                                } else {
-//                                    HStack {
-//                                        Image(systemName: "x.circle")
-//                                        Text("No right")
-//                                    }
-//                                }
-//                            }
-//                            .foregroundStyle(!self.darkMode ? self.primaryColor : self.secondaryColor)
-//
-//                            if pair.left != nil && pair.right != nil {
-//                                withAnimation{
-//                                    Button("Connect to pair"){
-//                                        self.ble.connectPair(pair: pair)
-//                                        self.isPresentingScan.wrappedValue = false
-//                                    }
-//                                    .frame(width: 150, height: 50)
-//                                    .mainButtonStyle(pri: self.primaryColor, sec: self.secondaryColor, darkMode: self.darkMode)
-//                                }
-//                            }
-//                        }
-//                        .padding(.horizontal, 50)
-//                        .padding(.vertical, 12)
-//                        .background(
-//                            RoundedRectangle(cornerRadius: 24)
-//                                .fill(!self.darkMode ? Color(self.primaryColor).opacity(0.05) : Color(self.secondaryColor).opacity(0.1))
-//                                .overlay(
-//                                    RoundedRectangle(cornerRadius: 24)
-//                                        .stroke(
-//                                            (!self.darkMode ? self.primaryColor : self.secondaryColor).opacity(0.3),
-//                                            lineWidth: 0.5
-//                                        )
-//                                )
-//                        )
-//                    }
-//                }
-//            }
-//        }
+        .popover(isPresented: $isPresentingScanView) {
+            
+            ZStack {
+                darkMode ? primaryColor.opacity(0.5).ignoresSafeArea() : secondaryColor.opacity(0.75).ignoresSafeArea()
+
+                VStack {
+                    let pairs = Array(ble.discoveredPairs.values)
+                    ForEach(pairs, id: \.channel) { pair in
+                        let hasLeft = (pair.left != nil)
+                        let hasRight = (pair.right != nil)
+                        
+                        VStack{
+                            Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
+                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                            HStack {
+                                HStack{
+                                    Image(systemName: hasLeft ? "checkmark.circle" : "x.circle")
+                                    Text(hasLeft ? "Left found" : "No left")
+                                }
+                                HStack{
+                                    Image(systemName: hasRight ? "checkmark.circle" : "x.circle")
+                                    Text(hasRight ? "Right found" : "No right")
+                                }
+                            }
+                            
+                            if hasRight && hasLeft {
+                                withAnimation{
+                                    Button("Connect to pair"){
+                                        ble.connectPair(pair: pair)
+                                        isPresentingScanView = false
+                                    }
+                                    .frame(width: 150, height: 50)
+                                    .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 50)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 24)
+                                .fill(!darkMode ? Color(primaryColor).opacity(0.05) : Color(secondaryColor).opacity(0.1))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .stroke(
+                                            (!darkMode ? primaryColor : secondaryColor).opacity(0.3),
+                                            lineWidth: 0.5
+                                        )
+                                )
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -398,3 +412,4 @@ class ThemeColors: ObservableObject {
 #Preview {
     ContentView()
 }
+
