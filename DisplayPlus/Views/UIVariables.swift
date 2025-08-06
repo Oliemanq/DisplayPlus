@@ -104,8 +104,6 @@ struct FloatingButtons: View {
     @Namespace private var namespace
     
     var body: some View {
-        let primaryColor = theme.primaryColor
-        let secondaryColor  = theme.secondaryColor
         
         ZStack {
             //Custon popup menu and buttons
@@ -130,11 +128,11 @@ struct FloatingButtons: View {
                                 ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                                     HStack(spacing: 0){
                                         Image(systemName: item.iconSystemName)
-                                            .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                            .floatingButtonStyle(prim: theme.pri, sec: theme.sec, namespace: namespace)
                                             .font(.system(size: 28))
                                         
                                         Text(item.extraText ?? "")
-                                            .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
+                                            .floatingTextStyle(prim: theme.pri, sec: theme.sec, text: item.extraText ?? "", namespace: namespace, scale: 1)
                                             .offset(x: -5)
                                     }
                                     .onTapGesture {
@@ -147,7 +145,7 @@ struct FloatingButtons: View {
                                 }.offset(x: -10)
                             }
                             Image(systemName: !isExpanded ? "folder.badge.plus" : "folder.fill.badge.plus")
-                                .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                .floatingButtonStyle(prim: theme.pri, sec: theme.sec, namespace: namespace)
                                 .font(.system(size: !isPressed ? 28 : 34))
                                 .onTapGesture {
                                     withAnimation {
@@ -181,9 +179,9 @@ struct FloatingButtons: View {
                             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                                 HStack(){
                                     Image(systemName: item.iconSystemName)
-                                        .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                        .floatingButtonStyle(prim: theme.pri, sec: theme.sec, namespace: namespace)
                                     Text(item.extraText ?? "")
-                                        .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
+                                        .floatingTextStyle(prim: theme.pri, sec: theme.sec, text: item.extraText ?? "", namespace: namespace, scale: 1)
                                     Spacer()
                                 }
                                 .onTapGesture {
@@ -200,11 +198,11 @@ struct FloatingButtons: View {
                         }
                         HStack{
                             Image(systemName: "plus")
-                                .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                .floatingButtonStyle(prim: theme.pri, sec: theme.sec, namespace: namespace)
                                 .animation(.easeInOut, value: isExpanded)
                                 .rotationEffect(.degrees(isExpanded ? 45 : 0))
                             Text("Other screens")
-                                .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Other screens", namespace: namespace, scale: 1)
+                                .floatingTextStyle(prim: theme.pri, sec: theme.sec, text: "Other screens", namespace: namespace, scale: 1)
                         }.onTapGesture {
                             withAnimation{
                                 isExpanded.toggle()
@@ -355,26 +353,22 @@ struct Grid: Shape {
     }
 }
 
-func backgroundGrid() -> some View {
-    let theme = ThemeColors()
-    var primaryColor: Color { theme.primaryColor }
-    var secondaryColor: Color { theme.secondaryColor }
-    var darkMode: Bool { theme.darkMode }
-    
+func backgroundGrid(themeIn: ThemeColors) -> some View {
+    let theme: ThemeColors = themeIn
     
     // State variables to hold the customizable properties of the grid.
-    @State var lineColor: Color = darkMode ? primaryColor : secondaryColor
+    @State var lineColor: Color = theme.darkMode ? theme.pri : theme.sec
     @State var lineWidth: CGFloat = 1
     @State var spacing: CGFloat = 10
     
     
     return ZStack{
-        if darkMode {
+        if theme.darkMode {
             LinearGradient(
                 gradient: Gradient(stops: [
-                    .init(color: secondaryColor, location: 0.0), // Lighter color at top-left
-                    .init(color: primaryColor, location: 0.5),  // Transition to darker
-                    .init(color: primaryColor, location: 1.0)   // Darker color for the rest
+                    .init(color: theme.sec, location: 0.0), // Lighter color at top-left
+                    .init(color: theme.pri, location: 0.5),  // Transition to darker
+                    .init(color: theme.pri, location: 1.0)   // Darker color for the rest
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -382,9 +376,9 @@ func backgroundGrid() -> some View {
         } else {
             LinearGradient(
                 gradient: Gradient(stops: [
-                    .init(color: primaryColor, location: 0.0), // Darker color at top-left
-                    .init(color: secondaryColor, location: 0.5),  // Transition to lighter
-                    .init(color: secondaryColor, location: 1.0)   // Lighter color for the rest
+                    .init(color: theme.pri, location: 0.0), // Darker color at top-left
+                    .init(color: theme.sec, location: 0.5),  // Transition to lighter
+                    .init(color: theme.sec, location: 1.0)   // Lighter color for the rest
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -398,7 +392,7 @@ func backgroundGrid() -> some View {
         
         LinearGradient(
             gradient: Gradient(stops: [
-                .init(color: darkMode ? primaryColor.opacity(0.95) : secondaryColor.opacity(0.95), location: 0.05),
+                .init(color: theme.darkMode ? theme.pri.opacity(0.95) : theme.sec.opacity(0.95), location: 0.05),
                 .init(color: Color.clear, location: 0.1)
             ]),
             startPoint: .top,
@@ -440,34 +434,30 @@ struct PreviewVars: View {
     var body: some View {
         let theme = ThemeColors()
         
-        let pri = theme.primaryColor
-        let sec = theme.secondaryColor
-        let darkMode = theme.darkMode
-        
         var toggled: Bool = false
-        
+
         ZStack{
             Grid(spacing: 20)
-                .stroke(toggled ? sec : pri)
-                .background(toggled ? pri : sec)
+                .stroke(toggled ? theme.sec : theme.pri)
+                .background(toggled ? theme.pri : theme.sec)
                 .ignoresSafeArea(edges: .all)
             VStack{
                 Text("Main button style")
                     .frame(width: 150, height: 40)
-                    .mainButtonStyle(pri: pri, sec: sec, darkMode: darkMode)
+                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                 Text("Rounded corner style")
                     .frame(width: 200, height: 40)
-                    .foregroundStyle(sec)
+                    .foregroundStyle(theme.sec)
                     .background(
                         RoundedCorner(radius: 24 ,corners: [.topLeft, .bottomRight])
                     )
                 Text("Background glass")
-                    .foregroundStyle(sec)
-                    .ContextualBG(pri: pri, sec: sec, darkMode: darkMode, bg: true)
+                    .foregroundStyle(theme.sec)
+                    .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                 
                 Button("Toggle UI colors"){
                     toggled.toggle()
-                }.mainButtonStyle(pri: pri, sec: sec, darkMode: darkMode)
+                }.mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
             }
         }
     }

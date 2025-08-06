@@ -7,10 +7,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    let theme = ThemeColors()
-    var primaryColor: Color { theme.primaryColor }
-    var secondaryColor: Color { theme.secondaryColor }
-    var darkMode: Bool { theme.darkMode }
+    let theme: ThemeColors
     
     @StateObject private var ble: G1BLEManager
     
@@ -20,8 +17,10 @@ struct SettingsView: View {
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
     @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
     
-    init(bleIn: G1BLEManager){
+    init(bleIn: G1BLEManager, themeIn: ThemeColors){
         _ble = StateObject(wrappedValue: bleIn)
+        
+        theme = themeIn
     }
     func buttonObjects() -> [AnyView] {
         return [
@@ -29,12 +28,12 @@ struct SettingsView: View {
                 self.autoOff.toggle()
             }
             .frame(width: 150, height: 50)
-            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)),
+            .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)),
             AnyView(Button ("Silent mode: \(silentMode ? "on" : "off")"){
                 self.ble.setSilentModeState(on: !self.silentMode)
             }
             .frame(width: 150, height: 50)
-            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode))
+            .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode))
         ]
     }
 
@@ -52,5 +51,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView(bleIn: G1BLEManager())
+    SettingsView(bleIn: G1BLEManager(), themeIn: ThemeColors())
 }

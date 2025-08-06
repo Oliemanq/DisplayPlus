@@ -12,9 +12,6 @@ struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme
     
     let theme = ThemeColors()
-    var primaryColor: Color { theme.primaryColor }
-    var secondaryColor: Color { theme.secondaryColor }
-    var darkMode: Bool { theme.darkMode }
     
     @State var showingDeviceSelectionPopup: Bool = false
     
@@ -72,7 +69,7 @@ struct ContentView: View {
             
             ZStack(alignment: .top){
                 //MARK: - Background
-                backgroundGrid()
+                backgroundGrid(themeIn: theme)
                 VStack {
                     //MARK: - headerContent
                     HStack{
@@ -90,7 +87,7 @@ struct ContentView: View {
                             }
                         }
                         
-                        .ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                        .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                         
                         Spacer()
                         
@@ -102,12 +99,12 @@ struct ContentView: View {
                                 
                                 Text("Case - \(Int(ble.caseBatteryLevel))%")
                             }
-                            .ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                            .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                             
                             Spacer()
                         }
                     }
-                    .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+                    .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                     .padding(.top, 40) //Giving the entire scrollview some extra padding at the top
                     
                     //MARK: - songInfo
@@ -117,11 +114,11 @@ struct ContentView: View {
                             Spacer()
                             Text("No music playing")
                                 .font(.headline)
-                                .ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                             
                             Spacer()
                         }
-                        .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                     }else{
                         // Current playing music
                         HStack{
@@ -143,10 +140,10 @@ struct ContentView: View {
                                     .font(.caption)
                                 
                             }
-                            .ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                            .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                             Spacer()
                         }
-                        .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                         
                     }
                     
@@ -158,7 +155,7 @@ struct ContentView: View {
                                 Text("No events today")
                                     .font(.headline)
                                 
-                                    .ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                    .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                 Spacer()
                             }
                         }else{
@@ -168,7 +165,7 @@ struct ContentView: View {
                                         .font(.headline)
                                         .padding(.horizontal, 8)
                                     
-                                        .ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                        .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                     
                                     // Use infoManager.eventsFormatted for ForEach
                                     ForEach(info.eventsFormatted) { event in
@@ -182,7 +179,7 @@ struct ContentView: View {
                                                 
                                             }.padding(.horizontal, 8)
                                         }
-                                        .ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                        .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                     }
                                     
                                     
@@ -192,7 +189,7 @@ struct ContentView: View {
                         }
                         Spacer()
                     }
-                    .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+                    .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                     
                     
                     //MARK: - buttons
@@ -207,7 +204,7 @@ struct ContentView: View {
                                             }
                                         }
                                         .frame(width: 120, height: 50)
-                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                         if !silentMode {
                                             Button(displayOn ? "Turn off \(Image(systemName: "folder.badge.minus"))" : "Turn on \(Image(systemName: "folder.badge.plus"))"){
                                                 withAnimation{
@@ -215,13 +212,15 @@ struct ContentView: View {
                                                 }
                                             }
                                             .frame(width: 120, height: 50)
-                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                            .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                         }else{
-                                            Text("Silent mode is on \(Image(systemName: "bell.slash"))")
+                                            Button("Silent mode is on \(Image(systemName: "bell.slash"))"){
+                                                ble.setSilentModeState(on: false)
+                                            }
                                                 .multilineTextAlignment(.center)
                                                 .frame(width: 120, height: 60)
-                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                                                .mainButtonStyle(pri: secondaryColor, sec: primaryColor, darkMode: darkMode)
+                                                .foregroundStyle(!theme.darkMode ? theme.pri : theme.sec)
+                                                .mainButtonStyle(pri: theme.sec, sec: theme.pri, darkMode: theme.darkMode)
                                         }
                                     }
                                 }else{
@@ -230,10 +229,10 @@ struct ContentView: View {
                                         isPresentingScanView = true
                                     }
                                     .frame(width: 100, height: 50)
-                                    .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                 }
                             }
-                            .ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                            .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                             
                         }
                         
@@ -242,7 +241,8 @@ struct ContentView: View {
                             VStack(alignment: .center){
                                 VStack{
                                     Text("Brightness")
-
+                                        .frame(width: 120, height: 30)
+                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: !theme.darkMode)
                                     VStack{
                                         if !ble.autoBrightnessEnabled{
                                             Slider(
@@ -259,7 +259,7 @@ struct ContentView: View {
                                                     ble.setBrightness(value: brightnessSlider)
                                                 }
                                             }
-                                            .accentColor(primaryColor)
+                                            .accentColor(theme.darkMode ? theme.sec : theme.pri)
                                         }
                                         
                                         Button("\(Image(systemName: ble.autoBrightnessEnabled ? "environments.fill" : "environments.slash")) Auto"){
@@ -271,13 +271,13 @@ struct ContentView: View {
                                             }
                                         }
                                         .frame(width: 100,height: 30)
-                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                     }
-                                }.ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                }.ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                             }
                             
                         }
-                    }.mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+                    }.mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                     
                     
                     //MARK: - When connected
@@ -294,35 +294,41 @@ struct ContentView: View {
                                             3 //Default if currentPage is none of the options
                                     )
                                     .minimumScaleFactor(0.5)
-                                    .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                    .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                             }else{
                                 Text("Waiting for glasses to connect...")
-                                    .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                    .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                     .font(.caption)
                             }
                         }
-                        .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
+                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                     }
-                    
-                    //MARK: - Connection status
-                    VStack(alignment: .center){
-                        Text("Connection status: \(ble.connectionStatus)")
-                            .font(.headline)
-                            .ContextualBG(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
-                    }
-                    .mainUIMods(pri: primaryColor, sec: secondaryColor, darkMode: darkMode, bg: true)
                 }
                 .padding(.horizontal, 16)
                 
                 //MARK: - Floating buttons
 //                FloatingButtons(items: floatingButtonItems)
 //                    .environmentObject(theme)
+                
             }
             
         }
+        .safeAreaInset(edge: .bottom, spacing: 0){
+            //MARK: - Connection status
+            VStack(alignment: .center){
+                Text("Connection status: \(ble.connectionStatus)")
+                    .font(.headline)
+                    .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+            }
+            .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
+            .offset(y: -10)
+            .padding(.horizontal, 28)
+
+        }
+        //MARK: - Toolbar
         .toolbar(content: {
             ToolbarItem(placement: .bottomBar) {
-                NavigationLink(destination: SettingsView(bleIn: ble)) {
+                NavigationLink(destination: SettingsView(bleIn: ble, themeIn: theme)) {
                     Image(systemName: "gearshape")
                 }
             }
@@ -334,6 +340,7 @@ struct ContentView: View {
             bg.startTimer() // Start the background task timer
             
             self.brightnessSlider = Double(ble.brightnessRaw)
+            theme.darkMode = colorScheme == .dark
         }
         .onDisappear {
             bg.stopTimer() // Stop the timer when view disappears
@@ -376,11 +383,15 @@ struct ContentView: View {
                 brightnessSlider = Double(newBrightness)
             }
         }
+        .onChange(of: colorScheme) { newScheme, _ in
+            // Update the theme whenever the color scheme changes
+            theme.darkMode = !(newScheme == .dark)
+        }
         //MARK: - popovers
         .popover(isPresented: $isPresentingScanView) {
             
             ZStack {
-                darkMode ? primaryColor.opacity(0.5).ignoresSafeArea() : secondaryColor.opacity(0.75).ignoresSafeArea()
+                theme.darkMode ? theme.pri.opacity(0.5).ignoresSafeArea() : theme.sec.opacity(0.75).ignoresSafeArea()
 
                 VStack {
                     let pairs = Array(ble.discoveredPairs.values)
@@ -390,7 +401,7 @@ struct ContentView: View {
                         
                         VStack{
                             Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
-                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                .foregroundStyle(!theme.darkMode ? theme.pri : theme.sec)
                             HStack {
                                 HStack{
                                     Image(systemName: hasLeft ? "checkmark.circle" : "x.circle")
@@ -409,7 +420,7 @@ struct ContentView: View {
                                         isPresentingScanView = false
                                     }
                                     .frame(width: 150, height: 50)
-                                    .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                 }
                             }
                         }
@@ -417,11 +428,11 @@ struct ContentView: View {
                         .padding(.vertical, 12)
                         .background(
                             RoundedRectangle(cornerRadius: 24)
-                                .fill(!darkMode ? Color(primaryColor).opacity(0.05) : Color(secondaryColor).opacity(0.1))
+                                .fill(!theme.darkMode ? Color(theme.pri).opacity(0.05) : Color(theme.sec).opacity(0.1))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 24)
                                         .stroke(
-                                            (!darkMode ? primaryColor : secondaryColor).opacity(0.3),
+                                            (!theme.darkMode ? theme.pri : theme.sec).opacity(0.3),
                                             lineWidth: 0.5
                                         )
                                 )
@@ -434,9 +445,9 @@ struct ContentView: View {
 }
 
 class ThemeColors: ObservableObject {
-    @Published var primaryColor: Color = Color(red: 10/255, green: 25/255, blue: 10/255)
-    @Published var secondaryColor: Color = Color(red: 175/255, green: 220/255, blue: 175/255)
-    @Published var darkMode: Bool = (({ UITraitCollection.current.userInterfaceStyle == .dark })() == true)
+    @Published var pri: Color = Color(red: 10/255, green: 25/255, blue: 10/255)
+    @Published var sec: Color = Color(red: 175/255, green: 220/255, blue: 175/255)
+    @Published var darkMode: Bool = false
 }
 
 
