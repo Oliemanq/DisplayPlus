@@ -9,33 +9,12 @@ extension Comparable {
 }
 
 struct ContentView: View {
-    @Environment(\.colorScheme) private var colorScheme
-    
-    let theme = ThemeColors()
-    
     @State var showingDeviceSelectionPopup: Bool = false
     
     @StateObject private var info: InfoManager
     @StateObject private var ble: G1BLEManager
-    @StateObject private var page: PageManager
     @StateObject private var bg: BackgroundTaskManager
-
-    var floatingButtonItems: [FloatingButtonItem] {
-        [
-            .init(iconSystemName: "clock", extraText: "Default screen", action: {
-                print("Default button pushed")
-                currentPage = "Default"
-            }),
-            .init(iconSystemName: "music.note.list", extraText: "Music screen", action: {
-                print("Music button pushed")
-                currentPage = "Music"
-            }),
-            .init(iconSystemName: "calendar", extraText: "Calendar screen", action: {
-                print("Calendar button pushed")
-                currentPage = "Calendar"
-            })
-        ]
-    }
+    var theme: ThemeColors
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var displayOn = false
@@ -45,398 +24,279 @@ struct ContentView: View {
     
     @Namespace private var namespace
     
-    @State private var isPresentingButtons: Bool = false
     @State private var isPresentingScanView: Bool = false
     
-    @State var brightnessSlider: Double = 0.0
+    @State var brightnessSlider: Double = 0.01
     @State private var isSliderDragging = false
     @State private var brightnessUpdateTimer: Timer?
     
-    init() {
-        let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
-        let bleInstance = G1BLEManager()
-        let pageInstance = PageManager(info: infoInstance)
-        let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
-        
+    init(infoInstance: InfoManager, bleInstance: G1BLEManager, bgInstance: BackgroundTaskManager, themeIn: ThemeColors) {
         _info = StateObject(wrappedValue: infoInstance)
         _ble = StateObject(wrappedValue: bleInstance)
-        _page = StateObject(wrappedValue: pageInstance)
         _bg = StateObject(wrappedValue: bgInstance)
+        
+        theme = themeIn
     }
     
     var body: some View {
+        let buttonPadding = 12.0
+        let buttonWidth = 200.0
+        
         NavigationStack {
-            
-            ZStack(alignment: .top){
+            ZStack(alignment: .bottom){
                 //MARK: - Background
                 backgroundGrid(themeIn: theme)
-                VStack {
-                    //MARK: - headerContent
-                    HStack{
-                        Spacer()
-                        VStack {
-                            //Display glasses battery level if it has been updated
-                            if ble.glassesBatteryAvg != 0.0 {
-                                Text("\(info.time)")
-                            }else{
-                                Text("\(info.time)")
-                            }
-                            
-                            HStack {
-                                Text(info.getTodayDate())
-                            }
-                        }
-                        
-                        .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                        
-                        Spacer()
-                        
+                
+                ScrollView(.vertical) {
+                    VStack {
+                        //MARK: - Glasses mirror
                         if ble.connectionState == .connectedBoth {
-                            Spacer()
-                            
-                            VStack{
-                                Text("Glasses - \(Int(ble.glassesBatteryAvg))%")
-                                
-                                Text("Case - \(Int(ble.caseBatteryLevel))%")
-                            }
-                            .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                            
-                            Spacer()
-                        }
-                    }
-                    .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
-                    .padding(.top, 40) //Giving the entire scrollview some extra padding at the top
-                    
-                    //MARK: - songInfo
-                    
-                    if info.currentSong.title == "" {
-                        HStack{
-                            Spacer()
-                            Text("No music playing")
-                                .font(.headline)
-                                .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                            
-                            Spacer()
-                        }
-                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
-                    }else{
-                        // Current playing music
-                        HStack{
-                            Spacer()
-                            VStack(alignment: .center) {
-                                // Use infoManager.currentSong properties
-                                Text("\(info.currentSong.title)")
-                                
-                                    .font(.headline)
-                                Text("\(info.currentSong.album) - \(info.currentSong.artist)")
-                                
-                                    .font(.subheadline)
-                                    .multilineTextAlignment(.center)
-                                
-                                let formattedCurrentTime = Duration.seconds(info.currentSong.currentTime).formatted(.time(pattern: .minuteSecond))
-                                let formattedduration = Duration.seconds(info.currentSong.duration).formatted(.time(pattern: .minuteSecond))
-                                
-                                Text("\(formattedCurrentTime) - \(formattedduration)")
-                                    .font(.caption)
-                                
-                            }
-                            .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                            Spacer()
-                        }
-                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
-                        
-                    }
-                    
-                    //MARK: - calendarInfo
-                    HStack{
-                        if info.eventsFormatted.isEmpty {
-                            HStack{
-                                Spacer()
-                                Text("No events today")
-                                    .font(.headline)
-                                
-                                    .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                Spacer()
-                            }
-                        }else{
-                            HStack{
-                                VStack{
-                                    Text("Calendar events (\(info.numOfEvents)): ")
-                                        .font(.headline)
-                                        .padding(.horizontal, 8)
-                                    
-                                        .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                    
-                                    // Use infoManager.eventsFormatted for ForEach
-                                    ForEach(info.eventsFormatted) { event in
-                                        HStack{
-                                            VStack(alignment: .leading) {
-                                                Text(" - \(event.titleLine)")
-                                                    .font(.caption)
-                                                
-                                                Text("    \(event.subtitleLine)")
-                                                    .font(.footnote)
-                                                
-                                            }.padding(.horizontal, 8)
-                                        }
-                                        .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                    }
-                                    
-                                    
-                                }
-                                Spacer()
-                            }
-                        }
-                        Spacer()
-                    }
-                    .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
-                    
-                    
-                    //MARK: - buttons
-                    HStack (spacing: 10){
-                        VStack(alignment: .center){
-                            VStack{
+                            VStack(alignment: .center){
                                 if ble.connectionState == .connectedBoth {
-                                    VStack{
-                                        Button("Disconnect"){
-                                            Task{
-                                                await bg.disconnectProper()
-                                            }
-                                        }
-                                        .frame(width: 120, height: 50)
-                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                        if !silentMode {
-                                            Button(displayOn ? "Turn off \(Image(systemName: "folder.badge.minus"))" : "Turn on \(Image(systemName: "folder.badge.plus"))"){
-                                                withAnimation{
-                                                    displayOn.toggle()
-                                                }
-                                            }
-                                            .frame(width: 120, height: 50)
-                                            .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                        }else{
-                                            Button("Silent mode is on \(Image(systemName: "bell.slash"))"){
-                                                ble.setSilentModeState(on: false)
-                                            }
-                                                .multilineTextAlignment(.center)
-                                                .frame(width: 120, height: 60)
-                                                .foregroundStyle(!theme.darkMode ? theme.pri : theme.sec)
-                                                .mainButtonStyle(pri: theme.sec, sec: theme.pri, darkMode: theme.darkMode)
-                                        }
-                                    }
+                                    //Glasses mirror on app UI
+                                    Text(bg.textOutput)
+                                        .lineLimit(
+                                            currentPage == "Default" ? 1 :
+                                                currentPage == "Music" ? 3 :
+                                                currentPage == "Calendar" ? (info.numOfEvents == 1 ? 3 : 4) :
+                                                3 //Default if currentPage is none of the options
+                                        )
+                                        .minimumScaleFactor(0.5)
+                                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                 }else{
-                                    Button("Start scan"){
-                                        ble.startScan()
-                                        isPresentingScanView = true
-                                    }
-                                    .frame(width: 100, height: 50)
-                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                    Text("Waiting for glasses to connect...")
+                                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                        .font(.caption)
                                 }
                             }
-                            .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                            
+                            .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                         }
                         
-                        if ble.connectionState == .connectedBoth || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
-                            //MARK: - brightnessControl
+                        //MARK: - buttons
+                        HStack (spacing: 10){
                             VStack(alignment: .center){
                                 VStack{
-                                    Text("Brightness")
-                                        .frame(width: 120, height: 30)
-                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: !theme.darkMode)
+                                    if ble.connectionState == .connectedBoth || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+                                        VStack{
+                                            Button {
+                                                withAnimation{
+                                                    ble.setSilentModeState(on: !silentMode)
+                                                }
+                                            } label: {
+                                                HStack(alignment: .center){
+                                                    Text("Silent mode")
+                                                    Spacer()
+                                                    Text("\(Image(systemName: silentMode ? "checkmark.circle" : "x.circle"))")
+                                                }.padding(.horizontal, buttonPadding)
+                                            }
+                                            .frame(width: buttonWidth, height: (silentMode ? 90 : 35))
+                                            .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                            
+                                            if !silentMode {
+                                                Button {
+                                                    withAnimation{
+                                                        displayOn.toggle()
+                                                    }
+                                                } label: {
+                                                    HStack(alignment: .center){
+                                                        Text("Display")
+                                                        Spacer()
+                                                        Text("\(Image(systemName: displayOn ? "checkmark.circle" : "x.circle"))")
+                                                    }.padding(.horizontal, buttonPadding)
+                                                }
+                                                .frame(width: buttonWidth, height: 50)
+                                                .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                            }
+                                        }
+                                    }else{
+                                        Button("Start scan"){
+                                            ble.startScan()
+                                            isPresentingScanView = true
+                                        }
+                                        .frame(width: 100, height: 65)
+                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                    }
+                                }
+                                .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                            }
+                            
+                            VStack {
+                                
+                            }
+                        }
+                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
+
+                        HStack{
+                            if ble.connectionState == .connectedBoth || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+                                //MARK: - brightnessControl
+                                VStack(alignment: .center){
                                     VStack{
-                                        if !ble.autoBrightnessEnabled{
-                                            Slider(
-                                                value: $brightnessSlider,
-                                                in: 0...42,
-                                                step: 6
-                                            ) { editing in
-                                                // This closure tells us when the user starts or stops dragging.
-                                                isSliderDragging = editing
-                                                if !editing {
-                                                    // USER HAS FINISHED DRAGGING.
-                                                    // Send the final brightness value to the glasses ONLY now.
+                                        if #available (iOS 26, *) {
+                                            GlassEffectContainer(spacing: 15) {
+                                                HStack(spacing: 1){
+                                                    Text("Brightness")
+                                                        .frame(width: 120, height: 30)
+                                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                                        .glassEffectID("BrightnessDisplay", in: namespace)
+                                                        .animation(.spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0.1), value: brightnessSlider)
+                                                    if !ble.autoBrightnessEnabled{
+                                                        Text("\(Int(ceil(brightnessSlider/6)))")
+                                                            .font(.system(size: 12 + CGFloat(brightnessSlider/6)*1.25))
+                                                            .frame(width: CGFloat(brightnessSlider/6*15 + 30), height: 30)
+                                                            .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                                            .glassEffectID("BrightnessDisplay", in: namespace)
+                                                            .animation(.spring(response: 0.5, dampingFraction: 0.6, blendDuration: 0.1), value: brightnessSlider)
+                                                    }
+                                                }
+                                            }
+                                        }else{
+                                            HStack{
+                                                Text("Brightness")
+                                                    .frame(width: 120, height: 30)
+                                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                                
+                                                Text("\(Int(ceil(brightnessSlider/6)))")
+                                                    .font(.system(size: 12 + CGFloat(brightnessSlider/6)*1.25))
+                                                    .frame(width: CGFloat(brightnessSlider/6*15 + 30), height: 30)
+                                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                            }
+                                        }
+                                        
+                                        VStack{
+                                            if !ble.autoBrightnessEnabled{
+                                                Slider(
+                                                    value: $brightnessSlider,
+                                                    in: 0.01...42,
+                                                    step: 6
+                                                ) { editing in
+                                                    isSliderDragging = editing
+                                                    if !editing {
+                                                        // USER HAS FINISHED DRAGGING.
+                                                        print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
+                                                        ble.setBrightness(value: brightnessSlider)
+                                                        
+                                                    }
+                                                }
+                                                .accentColor(theme.darkMode ? theme.sec : theme.pri)
+                                            }
+                                            
+                                            Button("\(Image(systemName: ble.autoBrightnessEnabled ? "environments.fill" : "environments.slash")) Auto"){
+                                                withAnimation{
+                                                    ble.autoBrightnessEnabled.toggle()
+                                                    // Also send an update when auto-brightness is toggled
                                                     print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
                                                     ble.setBrightness(value: brightnessSlider)
                                                 }
                                             }
-                                            .accentColor(theme.darkMode ? theme.sec : theme.pri)
+                                            .frame(width: 100,height: 30)
+                                            .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                         }
-                                        
-                                        Button("\(Image(systemName: ble.autoBrightnessEnabled ? "environments.fill" : "environments.slash")) Auto"){
-                                            withAnimation{
-                                                ble.autoBrightnessEnabled.toggle()
-                                                // Also send an update when auto-brightness is toggled
-                                                print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
-                                                ble.setBrightness(value: brightnessSlider)
-                                            }
-                                        }
-                                        .frame(width: 100,height: 30)
-                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                     }
                                 }.ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                             }
-                            
                         }
-                    }.mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
-                    
-                    
-                    //MARK: - When connected
-                    if ble.connectionState == .connectedBoth {
-                        //MARK: - Glasses mirror
-                        VStack(alignment: .center){
-                            if ble.connectionState == .connectedBoth {
-                                //Glasses mirror on app UI
-                                Text(bg.textOutput)
-                                    .lineLimit(
-                                        currentPage == "Default" ? 1 :
-                                            currentPage == "Music" ? 3 :
-                                            currentPage == "Calendar" ? (info.numOfEvents == 1 ? 3 : 4) :
-                                            3 //Default if currentPage is none of the options
-                                    )
-                                    .minimumScaleFactor(0.5)
-                                    .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                            }else{
-                                Text("Waiting for glasses to connect...")
-                                    .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                    .font(.caption)
-                            }
-                        }
+                        .padding(.horizontal, 12)
                         .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                     }
+                    .padding(.top, 50)
                 }
                 .padding(.horizontal, 16)
-                
-                //MARK: - Floating buttons
-//                FloatingButtons(items: floatingButtonItems)
-//                    .environmentObject(theme)
-                
             }
-            
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0){
             //MARK: - Connection status
-            VStack(alignment: .center){
-                Text("Connection status: \(ble.connectionStatus)")
-                    .font(.headline)
-                    .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-            }
-            .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
-            .offset(y: -10)
-            .padding(.horizontal, 28)
-
-        }
-        //MARK: - Toolbar
-        .toolbar(content: {
-            ToolbarItem(placement: .bottomBar) {
-                NavigationLink(destination: SettingsView(bleIn: ble, themeIn: theme)) {
-                    Image(systemName: "gearshape")
-                }
-            }
-        })
-        
-        //MARK: - appear/disappear
-        .onAppear {
-            info.update(updateWeatherBool: true) // Initial update
-            bg.startTimer() // Start the background task timer
             
-            self.brightnessSlider = Double(ble.brightnessRaw)
-            theme.darkMode = colorScheme == .dark
-        }
-        .onDisappear {
-            bg.stopTimer() // Stop the timer when view disappears
-            ble.disconnect()
-            displayOn = false
-        }
-        
-        //MARK: - onChange
-        .onChange(of: displayOn) {
-            print("display \(displayOn ? "on" : "off")")
-            if !displayOn {
-                ble.sendBlank()
-            } else {
+            
+            .onAppear() {
+                self.brightnessSlider = Double(ble.brightnessRaw)
+            }
+            
+            //MARK: - onChange
+            .onChange(of: displayOn) {
+                print("display \(displayOn ? "on" : "off")")
+                if !displayOn {
+                    ble.sendBlank()
+                } else {
+                    info.changed = true
+                }
+            } //Preventing delays from waiting for bg timer when changing pages
+            .onChange(of: currentPage) {
                 info.changed = true
-            }
-        }
-        .onChange(of: currentPage) {
-            // Just send update if page changes
-            info.changed = true
-            ble.sendText(text: bg.pageHandler(), counter: 0)
-        }
-        .onChange(of: silentMode) {
-            Task{
-                print("silent mode changed")
-                try? await Task.sleep(nanoseconds: 2_000_000_000)
-                if !silentMode {
-                    print("silent mode turned off, turning on display")
-                    displayOn = true
-                    
-                }else{
-                    print("silent mode turned on, turning off display")
-                    displayOn = false
-                }
-            }
-        }
-        .onReceive(ble.$brightnessRaw) { newBrightness in
-            // Only update the slider's visual position if the user is NOT dragging it.
-            // This prevents the slider from jumping back to its old value during a drag.
-            if !isSliderDragging {
-                brightnessSlider = Double(newBrightness)
-            }
-        }
-        .onChange(of: colorScheme) { newScheme, _ in
-            // Update the theme whenever the color scheme changes
-            theme.darkMode = !(newScheme == .dark)
-        }
-        //MARK: - popovers
-        .popover(isPresented: $isPresentingScanView) {
-            
-            ZStack {
-                theme.darkMode ? theme.pri.opacity(0.5).ignoresSafeArea() : theme.sec.opacity(0.75).ignoresSafeArea()
-
-                VStack {
-                    let pairs = Array(ble.discoveredPairs.values)
-                    ForEach(pairs, id: \.channel) { pair in
-                        let hasLeft = (pair.left != nil)
-                        let hasRight = (pair.right != nil)
-                        
-                        VStack{
-                            Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
-                                .foregroundStyle(!theme.darkMode ? theme.pri : theme.sec)
-                            HStack {
-                                HStack{
-                                    Image(systemName: hasLeft ? "checkmark.circle" : "x.circle")
-                                    Text(hasLeft ? "Left found" : "No left")
-                                }
-                                HStack{
-                                    Image(systemName: hasRight ? "checkmark.circle" : "x.circle")
-                                    Text(hasRight ? "Right found" : "No right")
-                                }
-                            }
-                            
-                            if hasRight && hasLeft {
-                                withAnimation{
-                                    Button("Connect to pair"){
-                                        ble.connectPair(pair: pair)
-                                        isPresentingScanView = false
-                                    }
-                                    .frame(width: 150, height: 50)
-                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                }
-                            }
+                ble.sendText(text: bg.pageHandler(), counter: 0)
+            } //^^^
+            .onChange(of: silentMode) {
+                Task{
+                    print("silent mode changed")
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    if !silentMode {
+                        print("silent mode turned off, turning on display")
+                        withAnimation{
+                            displayOn = true
                         }
-                        .padding(.horizontal, 50)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 24)
-                                .fill(!theme.darkMode ? Color(theme.pri).opacity(0.05) : Color(theme.sec).opacity(0.1))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 24)
-                                        .stroke(
-                                            (!theme.darkMode ? theme.pri : theme.sec).opacity(0.3),
-                                            lineWidth: 0.5
-                                        )
-                                )
-                        )
+                    }else{
+                        print("silent mode turned on, turning off display")
+                        withAnimation{
+                            displayOn = false
+                        }
+                    }
+                }
+            } //Turning display on and off with silent mode
+            .onReceive(ble.$brightnessRaw) { newBrightness in
+                // Only update the slider's visual position if the user is NOT dragging it.
+                // This prevents the slider from jumping back to its old value during a drag.
+                if !isSliderDragging {
+                    brightnessSlider = Double(newBrightness)
+                }
+            } //Preventing weird updates with brightness slider
+            //MARK: - popovers
+            .popover(isPresented: $isPresentingScanView) {
+                
+                ZStack {
+                    theme.darkMode ? theme.pri.opacity(0.5).ignoresSafeArea() : theme.sec.opacity(0.75).ignoresSafeArea()
+                    
+                    VStack {
+                        let pairs = Array(ble.discoveredPairs.values)
+                        ForEach(pairs, id: \.channel) { pair in
+                            let hasLeft = (pair.left != nil)
+                            let hasRight = (pair.right != nil)
+                            
+                            VStack{
+                                Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
+                                    .foregroundStyle(!theme.darkMode ? theme.pri : theme.sec)
+                                HStack {
+                                    HStack{
+                                        Image(systemName: hasLeft ? "checkmark.circle" : "x.circle")
+                                        Text(hasLeft ? "Left found" : "No left")
+                                    }
+                                    HStack{
+                                        Image(systemName: hasRight ? "checkmark.circle" : "x.circle")
+                                        Text(hasRight ? "Right found" : "No right")
+                                    }
+                                }
+                                
+                                if hasRight && hasLeft {
+                                    withAnimation{
+                                        Button("Connect to pair"){
+                                            ble.connectPair(pair: pair)
+                                            isPresentingScanView = false
+                                        }
+                                        .frame(width: 150, height: 50)
+                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 50)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 24)
+                                    .fill(!theme.darkMode ? Color(theme.pri).opacity(0.05) : Color(theme.sec).opacity(0.1))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 24)
+                                            .stroke(
+                                                (!theme.darkMode ? theme.pri : theme.sec).opacity(0.3),
+                                                lineWidth: 0.5
+                                            )
+                                    )
+                            )
+                        }
                     }
                 }
             }
@@ -453,6 +313,11 @@ class ThemeColors: ObservableObject {
 
 
 #Preview {
-    ContentView()
+    let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
+    let bleInstance = G1BLEManager()
+    let pageInstance = PageManager(info: infoInstance)
+    let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
+    
+    ContentView(infoInstance: infoInstance, bleInstance: bleInstance, bgInstance: bgInstance, themeIn: ThemeColors())
 }
 

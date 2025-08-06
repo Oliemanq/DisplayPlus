@@ -238,12 +238,10 @@ class G1BLEManager: NSObject, ObservableObject{
     func connectPair(pair: G1DiscoveredPair){
         stopScan()
         
-        connectionStatus = ("Connecting to pair (Channel \(pair.channel ?? 0))...")
+        connectionStatus = ("Connecting pair \(pair.channel ?? 0)...")
         if pair.right != nil {
-            print("Connecting right")
             // Connect right peripheral if not already connected or connecting
             if rightPeripheral == nil || (rightPeripheral?.state != .connected && rightPeripheral?.state != .connecting) {
-                print("Right not connected or connecting, moving on")
                 rightPeripheral = pair.right
                 rightPeripheral?.delegate = self
                 withAnimation{
@@ -251,24 +249,17 @@ class G1BLEManager: NSObject, ObservableObject{
                 }
                 centralManager.connect(pair.right!, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
 
-            }else{
-                print("Right already connected/connecting")
             }
         }
         if pair.left != nil {
-            print("Connecting left")
             // Connect left peripheral if not already connected or connecting
             if leftPeripheral == nil || (leftPeripheral?.state != .connected && leftPeripheral?.state != .connecting) {
-                print("Left not connected or connecting, moving on")
-
                 leftPeripheral = pair.left
                 leftPeripheral?.delegate = self
                 withAnimation{
                     connectionState = rightPeripheral == nil ? .connecting : .connectedRightOnly
                 }
                 centralManager.connect(pair.left!, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
-            }else{
-                print("Left already connected/connecting")
             }
         }
     }
@@ -345,7 +336,9 @@ class G1BLEManager: NSObject, ObservableObject{
     //MARK: - Set Info functions
     //Sets silent mode on the glasses on/off through the UI (or touchpads in the future)
     func setSilentModeState(on: Bool) {
-        silentMode = on
+        withAnimation{
+            silentMode = on
+        }
 
         var packet = [UInt8]()
         packet.append(0x03)
@@ -414,8 +407,7 @@ extension G1BLEManager: CBCentralManagerDelegate {
         let rightConnected = rightPeripheral?.state == .connected
         
         if leftConnected && rightConnected {
-            print("Glasses connected both\n\n___________________\n\n")
-            connectionStatus = "Connected to G1 Glasses (both arms)."
+            connectionStatus = "Connected"
             withAnimation{
                 connectionState = .connectedBoth
             }
@@ -423,21 +415,17 @@ extension G1BLEManager: CBCentralManagerDelegate {
             // Stop scanning once both connected
             centralManager.stopScan()
         } else if leftConnected {
-            print("Glasses connected left")
-
-            connectionStatus = "Connected to left arm"
+            connectionStatus = "Connected (Left)"
             withAnimation{
                 connectionState = .connectedLeftOnly
             }
         } else if rightConnected {
-            print("Glasses connected right")
 
-            connectionStatus = "Connected to right arm"
+            connectionStatus = "Connected (Right)"
             withAnimation{
                 connectionState = .connectedRightOnly
             }
         } else {
-            print("Neither side connected")
             withAnimation{
                 connectionState = .connecting
             }
@@ -446,8 +434,6 @@ extension G1BLEManager: CBCentralManagerDelegate {
     
     // Called if a peripheral (left or right) disconnects unexpectedly
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-        print("Disconnected from peripheral: \(peripheral.name ?? peripheral.identifier.uuidString)")
-        
         // Remove the characteristic references if any
         if peripheral == leftPeripheral {
             leftWChar = nil
@@ -476,12 +462,12 @@ extension G1BLEManager: CBCentralManagerDelegate {
             withAnimation{
                 connectionState = .connectedLeftOnly
             }
-            connectionStatus = "Connected to left arm"
+            connectionStatus = "Connected (Left)"
         } else if rightConnected {
             withAnimation{
                 connectionState = .connectedRightOnly
             }
-            connectionStatus = "Connected to right arm"
+            connectionStatus = "Connected (Right)"
         }
 
         // If retry attempts exceeded, stop

@@ -5,7 +5,7 @@ import BackgroundTasks // Import BackgroundTasks
 struct DisplayPlusApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            DefaultView()
         }
     }
 }

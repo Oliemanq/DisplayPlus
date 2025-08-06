@@ -252,7 +252,6 @@ extension View {
                             .foregroundStyle(Color.clear)
                             .glassEffect(darkMode ?  .clear : .clear.tint(Color.black.opacity(0.5)), in: RoundedRectangle(cornerRadius: rounding)) //.tint(sec.desaturated(amount: 0.75))
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: rounding))
             }else{
                 let rounding: CGFloat = 12
 
@@ -303,6 +302,34 @@ extension View {
                     )
                     .clipShape(RoundedRectangle(cornerRadius: rounding))
             }
+        }
+    }
+    
+}//Extension for applying glass to items
+extension View {
+    @ViewBuilder
+    func ToolBarBG(pri: Color, sec: Color, darkMode: Bool) -> some View {
+        if #available(iOS 26, *) {
+            
+            self
+                .foregroundStyle(!darkMode ? pri : sec)
+                .padding(8)
+                .glassEffect(.clear.interactive())
+        }else{
+            let rounding: CGFloat = 12
+            
+            self
+                .foregroundStyle(!darkMode ? pri : sec)
+                .padding(8)
+                .background(
+                    RoundedRectangle(cornerRadius: rounding)
+                        .foregroundStyle(darkMode ? pri.opacity(0.6) : sec.opacity(0.85))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: rounding)
+                                .stroke(!darkMode ? pri : sec, lineWidth: 0.5)
+                        )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: rounding))
         }
     }
     
@@ -434,30 +461,33 @@ struct PreviewVars: View {
     var body: some View {
         let theme = ThemeColors()
         
-        var toggled: Bool = false
-
         ZStack{
-            Grid(spacing: 20)
-                .stroke(toggled ? theme.sec : theme.pri)
-                .background(toggled ? theme.pri : theme.sec)
-                .ignoresSafeArea(edges: .all)
-            VStack{
-                Text("Main button style")
+            backgroundGrid(themeIn: theme)
+            ScrollView(.vertical){
+                VStack{
+                    Text("Main button style")
+                        .frame(width: 150, height: 40)
+                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                    Text("Rounded corner style")
+                        .frame(width: 200, height: 40)
+                        .foregroundStyle(theme.sec)
+                        .background(
+                            RoundedCorner(radius: 24 ,corners: [.topLeft, .bottomRight])
+                        )
+                    Text("Background glass")
+                        .foregroundStyle(theme.sec)
+                        .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
+                    
+                    Button("Toggle UI colors"){
+                        theme.darkMode.toggle()
+                    }
                     .frame(width: 150, height: 40)
                     .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                Text("Rounded corner style")
-                    .frame(width: 200, height: 40)
-                    .foregroundStyle(theme.sec)
-                    .background(
-                        RoundedCorner(radius: 24 ,corners: [.topLeft, .bottomRight])
-                    )
-                Text("Background glass")
-                    .foregroundStyle(theme.sec)
-                    .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
-                
-                Button("Toggle UI colors"){
-                    toggled.toggle()
-                }.mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                    
+                    Text("Toolbar background")
+                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                }
+                .padding(.top, 250)
             }
         }
     }

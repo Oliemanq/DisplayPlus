@@ -28,11 +28,6 @@ struct SettingsView: View {
                 self.autoOff.toggle()
             }
             .frame(width: 150, height: 50)
-            .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)),
-            AnyView(Button ("Silent mode: \(silentMode ? "on" : "off")"){
-                self.ble.setSilentModeState(on: !self.silentMode)
-            }
-            .frame(width: 150, height: 50)
             .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode))
         ]
     }
@@ -46,6 +41,7 @@ struct SettingsView: View {
                     buttons[index]
                 }
             }
+            
         }
     }
 }
