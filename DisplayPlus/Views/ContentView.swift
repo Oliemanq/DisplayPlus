@@ -200,13 +200,30 @@ struct ContentView: View {
                         VStack(alignment: .center){
                             VStack{
                                 if ble.connectionState == .connectedBoth {
-                                    Button("Disconnect"){
-                                        Task{
-                                            await bg.disconnectProper()
+                                    VStack{
+                                        Button("Disconnect"){
+                                            Task{
+                                                await bg.disconnectProper()
+                                            }
+                                        }
+                                        .frame(width: 120, height: 50)
+                                        .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                        if !silentMode {
+                                            Button(displayOn ? "Turn off \(Image(systemName: "folder.badge.minus"))" : "Turn on \(Image(systemName: "folder.badge.plus"))"){
+                                                withAnimation{
+                                                    displayOn.toggle()
+                                                }
+                                            }
+                                            .frame(width: 120, height: 50)
+                                            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
+                                        }else{
+                                            Text("Silent mode is on \(Image(systemName: "bell.slash"))")
+                                                .multilineTextAlignment(.center)
+                                                .frame(width: 120, height: 60)
+                                                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
+                                                .mainButtonStyle(pri: secondaryColor, sec: primaryColor, darkMode: darkMode)
                                         }
                                     }
-                                    .frame(width: 120, height: 50)
-                                    .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)
                                 }else{
                                     Button("Start scan"){
                                         ble.startScan()
@@ -245,7 +262,7 @@ struct ContentView: View {
                                             .accentColor(primaryColor)
                                         }
                                         
-                                        Button("\(Image(systemName: ble.autoBrightnessEnabled ? "sun.max.fill" : "sun.min")) Auto"){
+                                        Button("\(Image(systemName: ble.autoBrightnessEnabled ? "environments.fill" : "environments.slash")) Auto"){
                                             withAnimation{
                                                 ble.autoBrightnessEnabled.toggle()
                                                 // Also send an update when auto-brightness is toggled
@@ -321,21 +338,36 @@ struct ContentView: View {
         .onDisappear {
             bg.stopTimer() // Stop the timer when view disappears
             ble.disconnect()
-            displayOn.toggle()
+            displayOn = false
         }
         
         //MARK: - onChange
-        .onChange(of: displayOn) { newValue, _ in
-            if !newValue {
+        .onChange(of: displayOn) {
+            print("display \(displayOn ? "on" : "off")")
+            if !displayOn {
                 ble.sendBlank()
             } else {
-                ble.sendText(text: bg.pageHandler(), counter: 0)
+                info.changed = true
             }
         }
-        .onChange(of: currentPage) { newValue, _ in
+        .onChange(of: currentPage) {
             // Just send update if page changes
             info.changed = true
             ble.sendText(text: bg.pageHandler(), counter: 0)
+        }
+        .onChange(of: silentMode) {
+            Task{
+                print("silent mode changed")
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                if !silentMode {
+                    print("silent mode turned off, turning on display")
+                    displayOn = true
+                    
+                }else{
+                    print("silent mode turned on, turning off display")
+                    displayOn = false
+                }
+            }
         }
         .onReceive(ble.$brightnessRaw) { newBrightness in
             // Only update the slider's visual position if the user is NOT dragging it.

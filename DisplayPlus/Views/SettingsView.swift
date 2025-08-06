@@ -25,13 +25,6 @@ struct SettingsView: View {
     }
     func buttonObjects() -> [AnyView] {
         return [
-            AnyView(Button(self.displayOn ? "Turn display off" : "Turn display on"){
-                self.displayOn.toggle()
-                self.ble.sendBlank()
-            }
-            .frame(width: 150, height: 50)
-            .mainButtonStyle(pri: primaryColor, sec: secondaryColor, darkMode: darkMode)),
-            
             AnyView(Button ("Auto shut off: \(autoOff ? "on" : "off")"){
                 self.autoOff.toggle()
             }

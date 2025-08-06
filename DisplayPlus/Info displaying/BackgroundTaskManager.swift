@@ -57,6 +57,7 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
             if ble.connectionState == .connectedBoth {
                 
                 ble.fetchBrightness()
+                ble.fetchSilentMode()
     
                 
                 HBTriggerCounter += 1

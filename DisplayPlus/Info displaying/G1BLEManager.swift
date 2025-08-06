@@ -700,9 +700,13 @@ extension G1BLEManager: CBPeripheralDelegate {
         case 43: //0x2B return from fetchSilentStatus
             switch String(format: "%02X", byteArray[2]){
             case "0C":
-                silentMode = true
+                withAnimation{
+                    silentMode = true
+                }
             case "0A":
-                silentMode = false
+                withAnimation{
+                    silentMode = false
+                }
             default:
                 print("unknown response from fetchSilentStatus \(String(byteArray[2], radix: 16)) \(byteArray[2]) \(byteArray)")
             }
@@ -726,8 +730,9 @@ extension G1BLEManager: CBPeripheralDelegate {
             
             brightnessRaw = Int(byteArray[2])
             brightnessFloat = CGFloat(byteArray[2])/42 //Percentage of brightness level
-            
-            autoBrightnessEnabled = (byteArray[3] == 1)
+            withAnimation{
+                autoBrightnessEnabled = (byteArray[3] == 1)
+            }
         //setBrightness response
         case 1: //0x01
             switch byteArray[1]{
