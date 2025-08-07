@@ -51,36 +51,40 @@ struct ContentView: View {
                     VStack {
                         if ble.connectionState == .connectedBoth || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
                             //MARK: - Glasses mirror
-                            if displayOn {
-                                ZStack{
-                                    VStack(alignment: .center){
-                                        Text(bg.textOutput)
-                                            .lineLimit(
-                                                currentPage == "Default" ? 1 :
-                                                    currentPage == "Music" ? 3 :
-                                                    currentPage == "Calendar" ? (info.numOfEvents == 1 ? 3 : 4) :
-                                                    3 //Default if currentPage is none of the options
-                                            )
-                                            .minimumScaleFactor(0.5)
-                                            .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                    }
-                                    VStack{
-                                        HStack{
-                                            Image(systemName: "eyeglasses")
-                                                .foregroundStyle(Color.black)
+                            VStack{
+                                if displayOn {
+                                    ZStack{
+                                        VStack(alignment: .center){
+                                            Text(bg.textOutput)
+                                                .lineLimit(
+                                                    currentPage == "Default" ? 1 :
+                                                        currentPage == "Music" ? 3 :
+                                                        currentPage == "Calendar" ? (info.numOfEvents == 1 ? 3 : 4) :
+                                                        3 //Default if currentPage is none of the options
+                                                )
+                                                .minimumScaleFactor(0.5)
+                                                .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                        }
+                                        VStack{
+                                            HStack{
+                                                Image(systemName: "eyeglasses")
+                                                    .foregroundStyle(Color.black)
+                                                Spacer()
+                                            }
                                             Spacer()
                                         }
-                                        Spacer()
+                                        .padding(.top, 10)
+                                        .padding(.horizontal, 12)
                                     }
-                                    .padding(.top, 10)
-                                    .padding(.horizontal, 12)
+                                    .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                                 }
-                                .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
-                            }
+                            }.animation(.bouncy, value: displayOn)
+                            
                         
-                        //MARK: - buttons
+                            //MARK: - buttons
                             HStack (spacing: 10){
                                 VStack(alignment: .center){
+                                    //Silent mode button
                                     Button {
                                         withAnimation{
                                             ble.setSilentModeState(on: !silentMode)
@@ -95,6 +99,7 @@ struct ContentView: View {
                                     .frame(width: buttonWidth, height: (silentMode ? 90 : 35))
                                     .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                     
+                                    //Display on button
                                     if !silentMode {
                                         Button {
                                             withAnimation{
