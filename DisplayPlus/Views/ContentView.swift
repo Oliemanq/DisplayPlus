@@ -22,6 +22,7 @@ struct ContentView: View {
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
     @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
     
+    
     @Namespace private var namespace
     
     @AppStorage("isPresentingScanView", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var isPresentingScanView: Bool = false
@@ -63,12 +64,11 @@ struct ContentView: View {
                                                         3 //Default if currentPage is none of the options
                                                 )
                                                 .minimumScaleFactor(0.5)
-                                                .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                         }
                                         VStack{
                                             HStack{
                                                 Image(systemName: "eyeglasses")
-                                                    .foregroundStyle(Color.black)
+                                                    .foregroundStyle(!theme.darkMode ? theme.pri : theme.sec)
                                                 Spacer()
                                             }
                                             Spacer()
@@ -76,13 +76,13 @@ struct ContentView: View {
                                         .padding(.top, 10)
                                         .padding(.horizontal, 12)
                                     }
-                                    .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
+                                    .homeItem(themeIn: theme)
                                 }
                             }.animation(.bouncy, value: displayOn)
                             
                         
                             //MARK: - buttons
-                            HStack (spacing: 10){
+                            HStack{
                                 VStack(alignment: .center){
                                     //Silent mode button
                                     Button {
@@ -116,24 +116,18 @@ struct ContentView: View {
                                         .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                     }
                                 }
-                                .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                
-                                
-                                //ADD BATTERY HERE
-                                //ADD BATTERY HERE
-                                //ADD BATTERY HERE
-                                //ADD BATTERY HERE
-                                //ADD BATTERY HERE
-                                //ADD BATTERY HERE
-
-                                
+                                Spacer()
+                                VStack{
+                                    Text("Battery")
+                                    Text("\(Image(systemName: "eyeglasses")) - \(Int(ble.glassesBatteryAvg))%")
+                                    Text("\(Image(systemName: "earbuds.case")) - \(Int(ble.caseBatteryLevel))%")
+                                }
                             }
-                            .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
+                            .homeItem(themeIn: theme)
                             
                             
-
+                            //MARK: - brightnessControl
                             HStack{
-                                //MARK: - brightnessControl
                                 VStack(alignment: .center){
                                     VStack{
                                         if #available (iOS 26, *) {
@@ -146,11 +140,10 @@ struct ContentView: View {
                                                         .animation(.spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0.1), value: brightnessSlider)
                                                     if !ble.autoBrightnessEnabled{
                                                         Text("\(Int(ceil(brightnessSlider/6)))")
-                                                            .font(.system(size: 12 + CGFloat(brightnessSlider/6)*1.25))
                                                             .frame(width: CGFloat(brightnessSlider/6*15 + 30), height: 30)
+                                                            .font(.system(size: CGFloat(brightnessSlider/6)*1.25 + 12))
                                                             .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                                                             .glassEffectID("BrightnessDisplay", in: namespace)
-                                                            .animation(.spring(response: 0.5, dampingFraction: 0.6, blendDuration: 0.1), value: brightnessSlider)
                                                     }
                                                 }
                                             }
@@ -210,32 +203,21 @@ struct ContentView: View {
                                             }
                                         }
                                     }
-                                }.ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                }
                             }
-                            .padding(.horizontal, 12)
-                            .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
+                            .homeItem(themeIn: theme)
                         }
                     }
                     .padding(.top, 50)
                 }
                 .padding(.horizontal, 16)
             }
-            //MARK: - Connection status
-            
             
             .onAppear() {
                 self.brightnessSlider = Double(ble.brightnessRaw)
             }
             
             //MARK: - onChange
-            .onChange(of: displayOn) {
-                print("display \(displayOn ? "on" : "off")")
-                if !displayOn {
-                    ble.sendBlank()
-                } else {
-                    info.changed = true
-                }
-            } //Preventing delays from waiting for bg timer when changing pages
             .onChange(of: currentPage) {
                 info.changed = true
                 ble.sendText(text: bg.pageHandler(), counter: 0)
@@ -278,7 +260,6 @@ struct ContentView: View {
                             
                             VStack{
                                 Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
-                                    .foregroundStyle(!theme.darkMode ? theme.pri : theme.sec)
                                 HStack {
                                     HStack{
                                         Image(systemName: hasLeft ? "checkmark.circle" : "x.circle")
@@ -301,6 +282,7 @@ struct ContentView: View {
                                     }
                                 }
                             }
+                            .foregroundStyle(!theme.darkMode ? theme.pri : theme.sec)
                             .padding(.horizontal, 50)
                             .padding(.vertical, 12)
                             .background(

@@ -22,66 +22,32 @@ struct InfoView: View {
         NavigationStack {
             ZStack{
                 backgroundGrid(themeIn: theme)
-                //MARK: - headerContent
-                VStack{
-                    HStack{
-                        Spacer()
+                ScrollView(.vertical){
+                    VStack{
+                        Spacer(minLength: 60)
+                        
                         VStack {
-                            //Display glasses battery level if it has been updated
-                            if ble.glassesBatteryAvg != 0.0 {
-                                Text("\(info.time)")
-                            }else{
-                                Text("\(info.time)")
-                            }
-                            
-                            HStack {
-                                Text(info.getTodayDate())
-                            }
+                            Text("\(info.time)")
+                            Text(info.getTodayDate())
                         }
+                        .infoItem(themeIn: theme)
                         
-                        .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                        //MARK: - songInfo
                         
-                        Spacer()
-                        
-                        if ble.connectionState == .connectedBoth {
-                            Spacer()
-                            
-                            VStack{
-                                Text("Glasses - \(Int(ble.glassesBatteryAvg))%")
-                                
-                                Text("Case - \(Int(ble.caseBatteryLevel))%")
+                        if info.currentSong.title == "" {
+                            HStack{
+                                Text("No music playing")
+                                    .font(.headline)
                             }
-                            .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                            
-                            Spacer()
-                        }
-                    }
-                    .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
-                    .padding(.top, 40) //Giving the entire scrollview some extra padding at the top
-                    
-                    //MARK: - songInfo
-                    
-                    if info.currentSong.title == "" {
-                        HStack{
-                            Spacer()
-                            Text("No music playing")
-                                .font(.headline)
-                                .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                            
-                            Spacer()
-                        }
-                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
-                    }else{
-                        // Current playing music
-                        HStack{
-                            Spacer()
+                            .infoItem(themeIn: theme)
+                        }else{
+                            // Current playing music
                             VStack(alignment: .center) {
                                 // Use infoManager.currentSong properties
                                 Text("\(info.currentSong.title)")
                                 
                                     .font(.headline)
                                 Text("\(info.currentSong.album) - \(info.currentSong.artist)")
-                                
                                     .font(.subheadline)
                                     .multilineTextAlignment(.center)
                                 
@@ -92,62 +58,54 @@ struct InfoView: View {
                                     .font(.caption)
                                 
                             }
-                            .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                            Spacer()
+                            .infoItem(themeIn: theme)
                         }
-                        .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
                         
-                    }
-                    
-                    //MARK: - calendarInfo
-                    HStack{
+                        //MARK: - calendarInfo
                         if info.eventsFormatted.isEmpty {
                             HStack{
-                                Spacer()
                                 Text("No events today")
                                     .font(.headline)
-                                
-                                    .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                Spacer()
                             }
+                            .infoItem(themeIn: theme)
                         }else{
                             HStack{
                                 VStack{
-                                    Text("Calendar events (\(info.numOfEvents)): ")
-                                        .font(.headline)
-                                        .padding(.horizontal, 8)
-                                    
-                                        .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                                    
+                                    HStack{
+                                        Text("Calendar events (\(info.numOfEvents)): ")
+                                        Spacer()
+                                    }
+                                    .infoItem(themeIn: theme)
+
                                     // Use infoManager.eventsFormatted for ForEach
                                     ForEach(info.eventsFormatted) { event in
                                         HStack{
-                                            VStack(alignment: .leading) {
+                                            VStack() {
                                                 Text(" - \(event.titleLine)")
                                                     .font(.caption)
                                                 
                                                 Text("    \(event.subtitleLine)")
                                                     .font(.footnote)
-                                                
-                                            }.padding(.horizontal, 8)
+                                            }
+                                            Spacer()
                                         }
-                                        .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                        .infoItem(themeIn: theme, subItem: true)
+
                                     }
                                     
-                                    
                                 }
-                                Spacer()
+                                
+                                
                             }
                         }
-                        Spacer()
                     }
-                    .mainUIMods(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
+                    
                 }
-                
             }
         }
     }
 }
+
 
 #Preview {
     InfoView(infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter()), bleIn: G1BLEManager(), themeIn: ThemeColors())

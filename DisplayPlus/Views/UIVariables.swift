@@ -236,9 +236,11 @@ extension View {
     }
 }
 
-//Extension for applying glass to items
+//MARK: - General background modifiers
 extension View {
     @ViewBuilder
+    //Modifier for contextual background of items
+    //If bg is true, it will just be a glass effect background without foreground color
     func ContextualBG(pri: Color, sec: Color, darkMode: Bool, bg: Bool = false) -> some View {
         if #available(iOS 26, *) {
             
@@ -260,14 +262,13 @@ extension View {
                     .padding(8)
                     .background(
                         RoundedRectangle(cornerRadius: rounding)
-                            .foregroundStyle(darkMode ? pri.opacity(0.6) : sec.opacity(0.85))
-                            //.glassEffect(.regular.tint(darkMode ? pri : sec),in: RoundedRectangle(cornerRadius: rounding))
+                            .foregroundStyle(darkMode ? pri.opacity(0.85) : sec.opacity(0.85))
+                            .glassEffect(.regular.tint(darkMode ? pri : sec),in: RoundedRectangle(cornerRadius: rounding))
                             .overlay(
                                 RoundedRectangle(cornerRadius: rounding)
                                     .stroke(darkMode ? pri : sec, lineWidth: 1)
                             )
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: rounding))
             }
         }else{
             
@@ -305,8 +306,7 @@ extension View {
         }
     }
     
-}//Extension for applying glass to items
-extension View {
+    //Modifier for custom toolbar background and sizing
     @ViewBuilder
     func ToolBarBG(pri: Color, sec: Color, darkMode: Bool) -> some View {
         if #available(iOS 26, *) {
@@ -333,6 +333,56 @@ extension View {
         }
     }
     
+    //Modifier for items in settings view
+    @ViewBuilder
+    func settingsItem(themeIn: ThemeColors) -> some View {
+        let screenWidth = UIScreen.main.bounds.width
+        //let screenHeight = UIScreen.main.bounds.height
+        
+        HStack{
+            VStack(alignment: .leading){
+                self
+                    .tint(!themeIn.darkMode ? themeIn.sec.moreSaturated(amount: 0.75) : themeIn.sec)
+            }
+            .foregroundStyle(!themeIn.darkMode ? themeIn.pri : themeIn.sec)
+            .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode)
+        }
+        .frame(width: screenWidth * 0.9, height: 50)
+        .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, bg: true)
+    }
+    
+    @ViewBuilder
+    func homeItem(themeIn: ThemeColors) -> some View {
+        let screenWidth = UIScreen.main.bounds.width
+        //let screenHeight = UIScreen.main.bounds.height
+        
+        HStack{
+            VStack(alignment: .leading){
+                self
+            }
+            .padding(.horizontal, 4)
+            .frame(width: screenWidth * 0.825, height: 110)
+            .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode)
+        }
+        .frame(width: screenWidth * 0.9, height: 135)
+        .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, bg: true)
+    }
+    @ViewBuilder
+    func infoItem(themeIn: ThemeColors, subItem: Bool = false) -> some View {
+        let screenWidth = UIScreen.main.bounds.width
+        //let screenHeight = UIScreen.main.bounds.height
+        
+        HStack{
+            VStack(alignment: .center){
+                self
+            }
+            .padding(.horizontal, 4)
+            .frame(width: screenWidth * 0.825, height: subItem ?  35 : 55)
+            .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode)
+        }
+        .frame(width: screenWidth * 0.9, height: subItem ? 45 : 75)
+        .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, bg: true)
+    }
 }
 
 //Specific corner radius on each individual corner
@@ -350,7 +400,7 @@ struct RoundedCorner: Shape {
     }
 }
 
-//MARK: - Background
+//MARK: - Background grid
 //Grid function
 struct Grid: Shape {
     let spacing: CGFloat
@@ -440,21 +490,24 @@ extension Color {
         // Reduce saturation by the given amount
         return Color(hue: Double(hue), saturation: Double(sat * (1 - amount)), brightness: Double(bri), opacity: Double(alpha))
     }
-}
-
-//Main modifications for main ui
-extension View {
-    func mainUIMods(pri: Color, sec: Color, darkMode: Bool, bg: Bool = false) -> some View {
-        self
-            .frame(maxWidth: .infinity)
-            .foregroundStyle(!darkMode ? pri : sec)
-            .padding(2)
-            .ContextualBG(pri: pri, sec: sec, darkMode: darkMode, bg: bg)
-            .padding(.horizontal, 6)
+    func moreSaturated(amount: CGFloat = 1) -> Color {
+        // Convert to UIColor
+        let uiColor = UIColor(self)
+        var hue: CGFloat = 0, sat: CGFloat = 0, bri: CGFloat = 0, alpha: CGFloat = 0
+        uiColor.getHue(&hue, saturation: &sat, brightness: &bri, alpha: &alpha)
+        // Reduce saturation by the given amount
+        return Color(hue: Double(hue), saturation: Double(sat * (1 + amount)), brightness: Double(bri), opacity: Double(alpha))
+    }
+    
+    func darker(by percentage: CGFloat = 0.2) -> Color {
+        let uiColor = UIColor(self)
+        var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
+        if uiColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha) {
+            return Color(UIColor(hue: hue, saturation: saturation, brightness: brightness * (1 - percentage), alpha: alpha))
+        }
+        return self
     }
 }
-
-
 
 //MARK: - Preview
 struct PreviewVars: View {

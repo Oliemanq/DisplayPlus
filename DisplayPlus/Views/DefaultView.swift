@@ -19,6 +19,12 @@ struct DefaultView: View {
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     @AppStorage("isPresentingScanView", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var isPresentingScanView: Bool = false
+    @AppStorage("FTUEFinished", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var FTUEFinished: Bool = false //First Time User Experience checker
+    @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
+    
+    
+    @State private var FTUEConnection: Bool = false
+    @State private var FTUEPages: Bool = false
     
     @Namespace private var namespace
     
@@ -41,10 +47,9 @@ struct DefaultView: View {
             Tab("Info", systemImage: "info.square") {
                 InfoView(infoIn: info, bleIn: ble, themeIn: theme)
             }
-            // Will re-add later, not really being used but will add more settings in the future
-//            Tab("Settings", systemImage: "gear") {
-//                SettingsView(bleIn: ble, themeIn: theme)
-//            }
+            Tab("Settings", systemImage: "gear") {
+                SettingsView(bleIn: ble, themeIn: theme)
+            }
         }
         .safeAreaInset(edge: .bottom) {
             if #available (iOS 26, *){
@@ -59,6 +64,9 @@ struct DefaultView: View {
                                 }
                             }else{
                                 Button("Start Scan"){
+                                    withAnimation{
+                                        FTUEConnection = true
+                                    }
                                     ble.startScan()
                                     isPresentingScanView = true
                                 }
@@ -72,40 +80,146 @@ struct DefaultView: View {
                             if currentPage == "Calendar"{
                                 Text("Calendar")
                             }else{
-                                Button("Calendar") {currentPage = "Calendar"}
+                                Button("\(Image(systemName: "calendar")) Calendar") {
+                                    withAnimation {
+                                        FTUEPages = true
+                                    }
+                                    currentPage = "Calendar"
+                                }
                             }
                             if currentPage == "Music"{
                                 Text("Music")
                             }else{
-                                Button("Music") {currentPage = "Music"}
+                                Button("\(Image(systemName: "music.note.list")) Music") {
+                                    withAnimation {
+                                        FTUEPages = true
+                                    }
+                                    currentPage = "Music"
+                                }
                             }
                             if currentPage == "Default"{
                                 Text("Default")
                             }else{
-                                Button("Default") {currentPage = "Default"}
+                                Button("\(Image(systemName: "house.fill")) Default") {
+                                    withAnimation {
+                                        FTUEPages = true
+                                    }
+                                    currentPage = "Default"
+                                }
                             }
                         }
                         .frame(width: 80)
                         .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                         .glassEffectID("toolbar", in: namespace)
                     }
+                    
+                    if !FTUEFinished {
+                        HStack(spacing: -3){
+                            if !FTUEConnection {
+                                VStack{
+                                    Text("Click the 'Disconnected' button to pair glasses")
+                                        .multilineTextAlignment(.center)
+                                    Image(systemName: "arrow.down")
+                                }
+                                .offset(x: -55, y: -55)
+                                .frame(width: 200)
+                                .foregroundStyle(theme.darkMode ? theme.sec : theme.pri)
+                            }
+                            if !FTUEPages && ble.connectionState == .connectedBoth {
+                                VStack{
+                                    Text("Click 'Pages' to change the active screen on the glasses")
+                                        .multilineTextAlignment(.center)
+                                    Image(systemName: "arrow.down")
+                                }
+                                .foregroundStyle(theme.darkMode ? theme.sec : theme.pri)
+                                .offset(x: 70, y: -55)
+                                .frame(width: 225)
+                            }
+                        }
+                    }
                 }
                 .offset(y: -55)
                 
             }else{
-                HStack(spacing: 10){
-                    Text("\(ble.connectionStatus)")
-                        .frame(width: 200)
+                ZStack{
+                    HStack(spacing: 10){
+//                        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+//                            Button("Toggle FTUEFinished"){
+//                                FTUEFinished.toggle()
+//                            }
+//                            .frame(width: 200)
+//                            .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+//                        }
+                        
+                        Menu("\(ble.connectionStatus)") {
+                            if ble.connectionState == .connectedBoth{
+                                Button("Disconnect"){
+                                    Task{
+                                        await bg.disconnectProper()
+                                    }
+                                }
+                            }else{
+                                Button("Start Scan"){
+                                    withAnimation{
+                                        FTUEConnection = true
+                                    }
+                                    ble.startScan()
+                                    isPresentingScanView = true
+                                }
+                            }
+                        }
+                        .frame(width: 110)
                         .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                    Menu("Pages \(Image(systemName: "folder.badge.gear"))") {
-                        Button("\(Image(systemName: "house.fill")) Default") {currentPage = "Default"}
-                        Button("\(Image(systemName: "music.note.list")) Music") {currentPage = "Music"}
-                        Button("\(Image(systemName: "calendar")) Calendar") {currentPage = "Calendar"}
+                        
+                        Menu("Pages \(Image(systemName: "folder.badge.gear"))") {
+                            Button("\(Image(systemName: "house.fill")) Default") {
+                                withAnimation {
+                                    FTUEPages = true
+                                }
+                                currentPage = "Default"
+                            }
+                            Button("\(Image(systemName: "music.note.list")) Music") {
+                                withAnimation {
+                                    FTUEPages = true
+                                }
+                                currentPage = "Music"
+                            }
+                            Button("\(Image(systemName: "calendar")) Calendar") {
+                                withAnimation {
+                                    FTUEPages = true
+                                }
+                                currentPage = "Calendar"
+                            }
+                        }
+                        .frame(width: 120)
+                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                     }
-                    .frame(width: 120)
-                    .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                    
+                    if !FTUEFinished {
+                        HStack(spacing: -3){
+                            if !FTUEConnection {
+                                VStack{
+                                    Text("Click the 'Disconnected' button to pair glasses")
+                                        .multilineTextAlignment(.center)
+                                    Image(systemName: "arrow.down")
+                                }
+                                .offset(x: -75, y: -55)
+                                .frame(width: 200)
+                            }
+                            if !FTUEPages && ble.connectionState == .connectedBoth {
+                                VStack{
+                                    Text("Click 'Pages' to change the active screen on the glasses")
+                                        .multilineTextAlignment(.center)
+                                    Image(systemName: "arrow.down")
+                                }
+                                .offset(x: 70, y: -55)
+                                .frame(width: 225)
+                            }
+                        }
+                    }
                 }
                 .offset(y: -50)
+
             }
         }
         .accentColor(!theme.darkMode ? theme.pri : theme.sec)
@@ -117,10 +231,25 @@ struct DefaultView: View {
             info.update(updateWeatherBool: true) // Initial update
             bg.startTimer() // Start the background task timer
         }
+        //Managing dark mode updates
         .onChange(of: colorScheme) { newScheme, _ in
             // Update the theme whenever the color scheme changes
             theme.darkMode = !(newScheme == .dark)
-        } //Managing dark mode updates
+        }
+        //Toggling main FTUE flag when completing final page
+        .onChange(of: FTUEPages) { newScheme, _ in
+            FTUEFinished = true
+        }
+        
+        //Preventing delays from waiting for bg timer when changing pages
+        .onChange(of: displayOn) {
+            print("display \(displayOn ? "on" : "off")")
+            if !displayOn {
+                ble.sendBlank()
+            } else {
+                info.changed = true
+            }
+        }
     }
 }
 

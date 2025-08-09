@@ -32,6 +32,10 @@ enum G1ConnectionState {
 class G1BLEManager: NSObject, ObservableObject{
     @Published var connectionState: G1ConnectionState = .disconnected
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
+    @AppStorage("headsUpEnabled", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var headsUp: Bool = false
+    @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
+
+
     
     private var reconnectAttempts: [UUID: Int] = [:]
     private let maxReconnectAttempts = 5
@@ -756,10 +760,20 @@ extension G1BLEManager: CBPeripheralDelegate {
         print("Triple tap on \(side) side")
     }
     private func headUp(){
-        print("Head up")
+        if headsUp {
+            print("Head up - headsUp enabled, turning display on")
+            withAnimation{
+                displayOn = true
+            }
+        }
     }
     private func headDown(){
-        print("Head down")
+        if headsUp {
+            print("Head down - headsUp enabled, turning display off")
+            withAnimation{
+                displayOn = false
+            }
+        }
     }
     private func glassesOff(){
         wearing = false
