@@ -75,31 +75,26 @@ struct InfoView: View {
                                         Text("Calendar events (\(info.numOfEvents)): ")
                                         Spacer()
                                     }
-                                    .infoItem(themeIn: theme)
-
-                                    // Use infoManager.eventsFormatted for ForEach
-                                    ForEach(info.eventsFormatted) { event in
-                                        HStack{
-                                            VStack() {
-                                                Text(" - \(event.titleLine)")
+                                    .infoItem(themeIn: theme, subItem: true)
+                                    
+                                    // Use infoManager.eventsFormatted for ForEach{
+                                    ForEach(Array(info.eventsFormatted.enumerated()), id: \ .element.id) { index, event in
+                                        HStack {
+                                            VStack(alignment: .leading) {
+                                                Text("\(String(repeating: "    ", count: index%2)) - \(event.titleLine)")
                                                     .font(.caption)
-                                                
-                                                Text("    \(event.subtitleLine)")
+                                                Text("\(String(repeating: "    ", count: index%2))    \(event.subtitleLine)")
                                                     .font(.footnote)
                                             }
                                             Spacer()
                                         }
-                                        .infoItem(themeIn: theme, subItem: true)
-
+                                        .infoItem(themeIn: theme, subItem: true, items: info.eventsFormatted.count, itemNum: index + 1)
+                                        .padding(.vertical, -5) //NEED TO ADD THIS FOR COMBINING ITEMS IN MULTI-ITEM GROUPS
                                     }
-                                    
                                 }
-                                
-                                
                             }
                         }
                     }
-                    
                 }
             }
         }

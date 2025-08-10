@@ -241,67 +241,86 @@ extension View {
     @ViewBuilder
     //Modifier for contextual background of items
     //If bg is true, it will just be a glass effect background without foreground color
-    func ContextualBG(pri: Color, sec: Color, darkMode: Bool, bg: Bool = false) -> some View {
+    func ContextualBG(pri: Color, sec: Color, darkMode: Bool, bg: Bool = false, items: Int = 1, itemNum: Int = 1) -> some View {
+        let rounding: CGFloat = 12
+        
+        let top = items > 1 && itemNum == 1
+        let bottom = items > 1 && itemNum == items
+        //let middle = items > 1 && (!top && !bottom)
+        let alone = items == 1
+        
+        //Custom shape that allows the liquid glass to render properly
+        //Allows items in the same "set" to look more seemless
+        let shape: RoundedCorner = {
+            if items > 1 {
+                if top {
+                    return RoundedCorner(radius: rounding, corners: [.topLeft, .topRight])
+                } else if bottom {
+                    return RoundedCorner(radius: rounding, corners: [.bottomLeft, .bottomRight])
+                } else {
+                    return RoundedCorner(radius: 0, corners: [])
+                }
+            } else {
+                return RoundedCorner(radius: rounding, corners: .allCorners)
+            }
+        }()
+        
         if #available(iOS 26, *) {
-            
-            if bg{
-                let rounding: CGFloat = 12
-
+            if bg {
                 self
                     .padding(8)
                     .background(
-                        RoundedRectangle(cornerRadius: rounding)
+                        Rectangle()
                             .foregroundStyle(Color.clear)
-                            .glassEffect(darkMode ?  .clear : .clear.tint(Color.black.opacity(0.5)), in: RoundedRectangle(cornerRadius: rounding)) //.tint(sec.desaturated(amount: 0.75))
+                            .glassEffect(darkMode ? .clear : .clear.tint(Color.black.opacity(0.5)), in: shape)
                     )
-            }else{
-                let rounding: CGFloat = 12
-
+                    .clipShape(shape)
+            } else {
                 self
-                    .foregroundStyle(!darkMode ? pri : sec)
-                    .padding(8)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, alone ? 8 : 16)
                     .background(
-                        RoundedRectangle(cornerRadius: rounding)
-                            .foregroundStyle(darkMode ? pri.opacity(0.85) : sec.opacity(0.85))
-                            .glassEffect(.regular.tint(darkMode ? pri : sec),in: RoundedRectangle(cornerRadius: rounding))
+                        Rectangle()
+                            .foregroundStyle(darkMode ? pri.opacity(alone ? 0.85 : 1) : sec.opacity(alone ? 0.85 : 1))
+                            //.glassEffect(.regular.tint(darkMode ? pri : sec), in: shape)
                             .overlay(
-                                RoundedRectangle(cornerRadius: rounding)
-                                    .stroke(darkMode ? pri : sec, lineWidth: 1)
+                                shape
+                                    .stroke(alone ? (darkMode ? pri : sec) : Color.clear, lineWidth: 1)
                             )
                     )
+                    .clipShape(shape)
+                    .foregroundStyle(!darkMode ? pri : sec)
+                    .offset(x: 0, y: alone ? 0 : (bottom ? -10 : (top ? 10 : 0))) //Offset for multiple items
             }
-        }else{
-            
-            if bg{
-                let rounding: CGFloat = 12
-
+        } else {
+            if bg {
                 self
                     .padding(8)
                     .background(
-                        RoundedRectangle(cornerRadius: rounding)
+                        Rectangle()
                             .foregroundStyle(.ultraThinMaterial)
                             .opacity(0.9)
                             .overlay(
-                                RoundedRectangle(cornerRadius: rounding)
+                                shape
                                     .stroke(darkMode ? pri : sec, lineWidth: 1)
                             )
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: rounding))
-            }else{
-                let rounding: CGFloat = 12
-
+                    .clipShape(shape)
+            } else {
                 self
-                    .foregroundStyle(!darkMode ? pri : sec)
-                    .padding(8)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, alone ? 8 : 16)
                     .background(
-                        RoundedRectangle(cornerRadius: rounding)
-                            .foregroundStyle(darkMode ? pri.opacity(0.6) : sec.opacity(0.85))
+                        Rectangle()
+                            .foregroundStyle(darkMode ? pri.opacity(0.85) : sec.opacity(0.85))
                             .overlay(
-                                RoundedRectangle(cornerRadius: rounding)
-                                    .stroke(!darkMode ? pri : sec, lineWidth: 0.5)
+                                shape
+                                    .stroke(alone ? (darkMode ? pri : sec) : Color.clear, lineWidth: 1)
                             )
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: rounding))
+                    .clipShape(shape)
+                    .foregroundStyle(!darkMode ? pri : sec)
+                    .offset(x: 0, y: alone ? 0 : (bottom ? -10 : (top ? 10 : 0))) //Offset for multiple items
             }
         }
     }
@@ -368,7 +387,7 @@ extension View {
         .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, bg: true)
     }
     @ViewBuilder
-    func infoItem(themeIn: ThemeColors, subItem: Bool = false) -> some View {
+    func infoItem(themeIn: ThemeColors, subItem: Bool = false, items: Int = 1, itemNum: Int = 1) -> some View {
         let screenWidth = UIScreen.main.bounds.width
         //let screenHeight = UIScreen.main.bounds.height
         
@@ -377,11 +396,12 @@ extension View {
                 self
             }
             .padding(.horizontal, 4)
-            .frame(width: screenWidth * 0.825, height: subItem ?  35 : 55)
-            .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode)
+            .frame(width: screenWidth * 0.825, height: subItem ?  30 : 55)
+            .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, items: items, itemNum: itemNum)
         }
         .frame(width: screenWidth * 0.9, height: subItem ? 45 : 75)
-        .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, bg: true)
+        .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, bg: true, items: items, itemNum: itemNum)
+        
     }
 }
 
@@ -549,3 +569,4 @@ struct PreviewVars: View {
 #Preview {
     PreviewVars()
 }
+

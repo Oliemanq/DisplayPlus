@@ -237,7 +237,15 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         return music.getAuthStatus() // Return the music authorization status
     }
     func getCalendarAuthStatus() -> Bool {
-        return cal.getAuthStatus() // Return the calendar authorization status
+        if cal.getAuthStatus() {
+            return true
+        } else {
+            // If calendar access is denied, run this func to force request
+            cal.fetchEventsForNextDay { result in
+                let _ = result // just need to trigger function to force request access
+            }
+            return false
+        }
     }
     func getLocationAuthStatus() -> Bool {
         return weather.getAuthStatus() // Return the location authorization status

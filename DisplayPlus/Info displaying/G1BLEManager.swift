@@ -580,7 +580,7 @@ extension G1BLEManager: CBPeripheralDelegate {
         //System messages from gryo, touch bars, and other sensors
         case 245 : //0xF5
             switch byteArray[1]{
-            case 0: //00
+            case 00: //00
                 print(byteArray)
                 if name != nil && name!.contains("R"){
                     touchBarDouble(side: "R")
