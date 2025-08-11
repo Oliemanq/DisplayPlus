@@ -46,10 +46,14 @@ struct ContentView: View {
         NavigationStack {
             ZStack(alignment: .bottom){
                 //MARK: - Background
-                backgroundGrid(themeIn: theme)
+                //backgroundGrid(themeIn: theme)
+                (theme.darkMode ? theme.pri : theme.sec)
+                    .ignoresSafeArea()
+                    
                 
                 ScrollView(.vertical) {
                     VStack {
+                        Spacer(minLength: 16)
                         if ble.connectionState == .connectedBoth || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
                             //MARK: - Glasses mirror
                             VStack{
@@ -60,7 +64,7 @@ struct ContentView: View {
                                                 .lineLimit(
                                                     currentPage == "Default" ? 1 :
                                                         currentPage == "Music" ? 3 :
-                                                        currentPage == "Calendar" ? (info.numOfEvents == 1 ? 3 : 4) :
+                                                        currentPage == "Calendar" ? 3 :
                                                         3 //Default if currentPage is none of the options
                                                 )
                                                 .minimumScaleFactor(0.5)
@@ -68,13 +72,12 @@ struct ContentView: View {
                                         VStack{
                                             HStack{
                                                 Image(systemName: "eyeglasses")
-                                                    .foregroundStyle(!theme.darkMode ? theme.pri : theme.sec)
+                                                    .foregroundStyle(!theme.darkMode ? theme.pri : theme.accent)
                                                 Spacer()
                                             }
                                             Spacer()
                                         }
-                                        .padding(.top, 10)
-                                        .padding(.horizontal, 12)
+                                        .padding(.top, 4)
                                     }
                                     .homeItem(themeIn: theme)
                                 }
@@ -97,7 +100,7 @@ struct ContentView: View {
                                         }.padding(.horizontal, buttonPadding)
                                     }
                                     .frame(width: buttonWidth, height: (silentMode ? 90 : 35))
-                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
                                     
                                     //Display on button
                                     if !silentMode {
@@ -113,7 +116,7 @@ struct ContentView: View {
                                             }.padding(.horizontal, buttonPadding)
                                         }
                                         .frame(width: buttonWidth, height: 50)
-                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
                                     }
                                 }
                                 Spacer()
@@ -135,14 +138,14 @@ struct ContentView: View {
                                                 HStack(spacing: 1){
                                                     Text("Brightness")
                                                         .frame(width: 120, height: 30)
-                                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
                                                         .glassEffectID("BrightnessDisplay", in: namespace)
                                                         .animation(.spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0.1), value: brightnessSlider)
                                                     if !ble.autoBrightnessEnabled{
                                                         Text("\(Int(ceil(brightnessSlider/6)))")
                                                             .frame(width: CGFloat(brightnessSlider/6*15 + 30), height: 30)
                                                             .font(.system(size: CGFloat(brightnessSlider/6)*1.25 + 12))
-                                                            .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                                            .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
                                                             .glassEffectID("BrightnessDisplay", in: namespace)
                                                     }
                                                 }
@@ -151,12 +154,12 @@ struct ContentView: View {
                                             HStack{
                                                 Text("Brightness")
                                                     .frame(width: 120, height: 30)
-                                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
                                                 
                                                 Text("\(Int(ceil(brightnessSlider/6)))")
                                                     .font(.system(size: 12 + CGFloat(brightnessSlider/6)*1.25))
                                                     .frame(width: CGFloat(brightnessSlider/6*15 + 30), height: 30)
-                                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
                                             }
                                         }
                                         
@@ -187,7 +190,7 @@ struct ContentView: View {
                                                     }
                                                 }
                                                 .frame(width: 100,height: 30)
-                                                .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                                .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
                                             }else{
                                                 Button("\(Image(systemName: ble.autoBrightnessEnabled ? "sun.max.fill" : "sun.min")) Auto"){
                                                     withAnimation(.easeInOut){
@@ -198,7 +201,7 @@ struct ContentView: View {
                                                     }
                                                 }
                                                 .frame(width: 100,height: 30)
-                                                .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                                .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
                                                 .animation(.easeInOut, value: ble.autoBrightnessEnabled)
                                             }
                                         }
@@ -208,10 +211,10 @@ struct ContentView: View {
                             .homeItem(themeIn: theme)
                         }
                     }
-                    .padding(.top, 50)
                 }
                 .padding(.horizontal, 16)
             }
+            .navigationTitle("Home")
             
             .onAppear() {
                 self.brightnessSlider = Double(ble.brightnessRaw)
@@ -278,7 +281,7 @@ struct ContentView: View {
                                             isPresentingScanView = false
                                         }
                                         .frame(width: 150, height: 50)
-                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
                                     }
                                 }
                             }
@@ -304,11 +307,7 @@ struct ContentView: View {
     }
 }
 
-class ThemeColors: ObservableObject {
-    @Published var pri: Color = Color(red: 10/255, green: 25/255, blue: 10/255)
-    @Published var sec: Color = Color(red: 175/255, green: 220/255, blue: 175/255)
-    @Published var darkMode: Bool = false
-}
+
 
 
 

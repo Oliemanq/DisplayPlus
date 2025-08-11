@@ -111,6 +111,13 @@ struct DefaultView: View {
                         .frame(width: 80)
                         .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                         .glassEffectID("toolbar", in: namespace)
+                        
+                        Button("Force") {
+                            bg.forceUpdateInfo = true
+                        }
+                        .frame(width: 70)
+                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                        .glassEffectID("toolbar", in: namespace)
                     }
                     
                     if !FTUEFinished {
@@ -228,7 +235,6 @@ struct DefaultView: View {
             ble.connectionState = .disconnected
             theme.darkMode = colorScheme == .dark
             
-            info.update(updateWeatherBool: true) // Initial update
             bg.startTimer() // Start the background task timer
         }
         //Managing dark mode updates
@@ -251,6 +257,15 @@ struct DefaultView: View {
             }
         }
     }
+}
+
+class ThemeColors: ObservableObject {
+//    @Published var pri: Color = Color(red: 10/255, green: 25/255, blue: 10/255)
+//    @Published var sec: Color = Color(red: 175/255, green: 220/255, blue: 175/255)
+    @Published var pri: Color = Color(red: 15/255, green: 20/255, blue: 15/255)
+    @Published var sec: Color = Color(red: 225/255, green: 255/255, blue: 225/255)
+    @Published var accent: Color = Color(red: 175/255, green: 255/255, blue: 175/255)
+    @Published var darkMode: Bool = false
 }
 
 #Preview {

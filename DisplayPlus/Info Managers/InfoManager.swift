@@ -46,24 +46,29 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         
     }
     
-    public func update(updateWeatherBool: Bool = false) {        
+    public func updateTime() {
         let newTime = Date().formatted(date: .omitted, time: .shortened)
         if time != newTime {
             time = newTime
             changed = true
         }
-        
-        //Update battery level var
+    }
+    
+    public func updateBattery() {
         if UIDevice.current.isBatteryMonitoringEnabled && UIDevice.current.batteryLevel >= 0.0 {
             if batteryLevelFormatted != (Int)(UIDevice.current.batteryLevel * 100){
                 batteryLevelFormatted = (Int)(UIDevice.current.batteryLevel * 100)
                 changed = true
             }
         } else {
-            batteryLevelFormatted = 0
+            if batteryLevelFormatted != 0 {
+                batteryLevelFormatted = 0
+                changed = true
+            }
         }
-        
-        //check calendar auth then update events
+    }
+    
+    public func updateCalendar() {
         if getCalendarAuthStatus() {
             let tempEventHolder = eventsFormatted.count
             loadEvents {
@@ -71,35 +76,28 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
                     self.changed = true
                     print("Calendar changed \(tempEventHolder) -> \(self.eventsFormatted.count)")
                 }
-                
             }
         }
-         
-        //Update weather only when needed (every 5 minutes or so)
-        if updateWeatherBool {
-            Task{
-                if getLocationAuthStatus() {
-                    await updateWeather()
-                }
-            }
-        }
-        
-        //Check if music auth is granted and update current song
+    }
+    
+    public func updateMusic() {
         if getMusicAuthStatus() {
             music.updateCurrentSong()
-            if currentSong.title != music.curSong.title || currentSong.duration != music.curSong.duration || currentSong.currentTime != music.curSong.currentTime {
+            if currentSong.title != music.curSong.title || currentSong.isPaused != music.curSong.isPaused || currentSong.currentTime != music.curSong.currentTime {
                 currentSong = music.curSong
                 changed = true
             }
         }
-        
-        // Fetch health data asynchronously
-        /* DISABLING FOR TESTFLIGHT BUILD, NOT IMPLEMENTED YET
-        Task{
-            await fetchHealthData() // Fetch health data asynchronously
-        }
-        */
     }
+    public func updateWeather() async{
+        do{
+            try await weather.fetchWeatherData()
+            print("Weather fetch successful, InfoManager updated: Temp=\(weather.currentTemp)")
+        }catch {
+            print("failed weather fetch \(error)")
+        }
+    }
+    
     
     //MARK: - Music functions
     public func getCurSong() -> Song {
@@ -112,15 +110,6 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     }
     
     //MARK: - Weather functions
-    func updateWeather() async{
-        do{
-            try await weather.fetchWeatherData()
-            // Update @Published properties after fetching
-            print("Weather fetch successful, InfoManager updated: Temp=\(weather.currentTemp)")
-        }catch {
-            print("failed weather fetch \(error)")
-        }
-    }
     func getCurrentTemp() -> Int {
         return weather.currentTemp
     }
@@ -271,4 +260,3 @@ struct event: Identifiable, Hashable{
     var titleLine: String
     var subtitleLine: String
 }
-

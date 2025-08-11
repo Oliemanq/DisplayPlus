@@ -6,6 +6,11 @@
 //
 import SwiftUI
 
+let smallBGHeight: CGFloat = 55
+let smallFGHeight: CGFloat = 35
+let bigBGHeight: CGFloat = 75
+let bigFGHeight: CGFloat = 55
+
 struct VisualEffectView: UIViewRepresentable {
     var effect: UIVisualEffect?
     func makeUIView(context: UIViewRepresentableContext<Self>) -> UIVisualEffectView { UIVisualEffectView() }
@@ -217,24 +222,6 @@ struct FloatingButtons: View {
 }
 
 //MARK: - General use view modifiers
-//Main style for custon buttons throughout the app
-extension View {
-    @ViewBuilder
-    func mainButtonStyle(pri: Color, sec: Color, darkMode: Bool) -> some View {
-        if #available(iOS 26, *) {
-            self
-                .glassEffect(.regular.tint(!darkMode ? pri.opacity(0.95) : sec.opacity(0.95)).interactive(true)) //, in: Rectangle()
-                .foregroundColor(darkMode ? pri : sec)
-
-        } else {
-            self
-                .background(!darkMode ? pri : sec)
-                .foregroundColor(darkMode ? pri : sec)
-                .buttonStyle(.borderless)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-    }
-}
 
 //MARK: - General background modifiers
 extension View {
@@ -265,63 +252,51 @@ extension View {
             }
         }()
         
-        if #available(iOS 26, *) {
-            if bg {
-                self
-                    .padding(8)
-                    .background(
-                        Rectangle()
-                            .foregroundStyle(Color.clear)
-                            .glassEffect(darkMode ? .clear : .clear.tint(Color.black.opacity(0.5)), in: shape)
-                    )
-                    .clipShape(shape)
-            } else {
-                self
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, alone ? 8 : 16)
-                    .background(
-                        Rectangle()
-                            .foregroundStyle(darkMode ? pri.opacity(alone ? 0.85 : 1) : sec.opacity(alone ? 0.85 : 1))
-                            //.glassEffect(.regular.tint(darkMode ? pri : sec), in: shape)
-                            .overlay(
-                                shape
-                                    .stroke(alone ? (darkMode ? pri : sec) : Color.clear, lineWidth: 1)
-                            )
-                    )
-                    .clipShape(shape)
-                    .foregroundStyle(!darkMode ? pri : sec)
-                    .offset(x: 0, y: alone ? 0 : (bottom ? -10 : (top ? 10 : 0))) //Offset for multiple items
-            }
+        if bg {
+            self
+                .padding(2)
+                .background(
+                    Rectangle()
+                        .foregroundStyle(!darkMode ? pri.opacity(0.45) : sec.opacity(0.45))
+                )
+                .overlay(
+                    shape
+                        .stroke(darkMode ? pri : sec, lineWidth: (alone ? 1 : 0))
+                )
+                .clipShape(shape)
         } else {
-            if bg {
-                self
-                    .padding(8)
-                    .background(
-                        Rectangle()
-                            .foregroundStyle(.ultraThinMaterial)
-                            .opacity(0.9)
-                            .overlay(
-                                shape
-                                    .stroke(darkMode ? pri : sec, lineWidth: 1)
-                            )
-                    )
-                    .clipShape(shape)
-            } else {
-                self
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, alone ? 8 : 16)
-                    .background(
-                        Rectangle()
-                            .foregroundStyle(darkMode ? pri.opacity(0.85) : sec.opacity(0.85))
-                            .overlay(
-                                shape
-                                    .stroke(alone ? (darkMode ? pri : sec) : Color.clear, lineWidth: 1)
-                            )
-                    )
-                    .clipShape(shape)
-                    .foregroundStyle(!darkMode ? pri : sec)
-                    .offset(x: 0, y: alone ? 0 : (bottom ? -10 : (top ? 10 : 0))) //Offset for multiple items
-            }
+            self
+                .padding(.horizontal, 6)
+                .padding(.vertical, alone ? 6 : 12)
+                .background(
+                    Rectangle()
+                        .foregroundStyle(darkMode ? pri.opacity(alone ? 0.85 : 1) : sec.opacity(alone ? 0.85 : 1))
+                    //.glassEffect(.regular.tint(darkMode ? pri : sec), in: shape)
+                        .overlay(
+                            shape
+                                .stroke(alone ? (darkMode ? pri : sec) : Color.clear, lineWidth: 1)
+                        )
+                )
+                .clipShape(shape)
+                .foregroundStyle(!darkMode ? pri : sec)
+                .offset(x: 0, y: alone ? 0 : (bottom ? -10 : (top ? 10 : 0))) //Offset for multiple items
+        }
+    }
+    
+    //Main style for custon buttons throughout the app
+    @ViewBuilder
+    func mainButtonStyle(pri: Color, sec: Color, accent: Color, darkMode: Bool) -> some View {
+        if #available(iOS 26, *) {
+            self
+                .glassEffect(darkMode ? .regular.interactive(true) : .regular.tint(pri).interactive(true))
+                .foregroundColor(accent)
+
+        } else {
+            self
+                .background(!darkMode ? pri : sec)
+                .foregroundColor(darkMode ? pri : sec)
+                .buttonStyle(.borderless)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
     
@@ -361,12 +336,12 @@ extension View {
         HStack{
             VStack(alignment: .leading){
                 self
-                    .tint(!themeIn.darkMode ? themeIn.sec.moreSaturated(amount: 0.75) : themeIn.sec)
+                    .tint(themeIn.accent)
             }
-            .foregroundStyle(!themeIn.darkMode ? themeIn.pri : themeIn.sec)
+            .frame(width: screenWidth * 0.825, height: 35)
             .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode)
         }
-        .frame(width: screenWidth * 0.9, height: 50)
+        .frame(width: screenWidth * 0.9, height: 55)
         .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, bg: true)
     }
     
@@ -379,11 +354,10 @@ extension View {
             VStack(alignment: .leading){
                 self
             }
-            .padding(.horizontal, 4)
-            .frame(width: screenWidth * 0.825, height: 110)
+            .frame(width: screenWidth * 0.825, height: bigFGHeight*2)
             .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode)
         }
-        .frame(width: screenWidth * 0.9, height: 135)
+        .frame(width: screenWidth * 0.9, height: bigBGHeight*1.75)
         .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, bg: true)
     }
     @ViewBuilder
@@ -395,11 +369,10 @@ extension View {
             VStack(alignment: .center){
                 self
             }
-            .padding(.horizontal, 4)
-            .frame(width: screenWidth * 0.825, height: subItem ?  30 : 55)
+            .frame(width: screenWidth * 0.825, height: subItem ?  smallFGHeight : bigFGHeight)
             .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, items: items, itemNum: itemNum)
         }
-        .frame(width: screenWidth * 0.9, height: subItem ? 45 : 75)
+        .frame(width: screenWidth * 0.9, height: subItem ? smallBGHeight : bigBGHeight)
         .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, bg: true, items: items, itemNum: itemNum)
         
     }
@@ -540,7 +513,7 @@ struct PreviewVars: View {
                 VStack{
                     Text("Main button style")
                         .frame(width: 150, height: 40)
-                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
                     Text("Rounded corner style")
                         .frame(width: 200, height: 40)
                         .foregroundStyle(theme.sec)
@@ -555,7 +528,7 @@ struct PreviewVars: View {
                         theme.darkMode.toggle()
                     }
                     .frame(width: 150, height: 40)
-                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
                     
                     Text("Toolbar background")
                         .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)

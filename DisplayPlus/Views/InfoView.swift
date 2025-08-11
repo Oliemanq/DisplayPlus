@@ -21,10 +21,13 @@ struct InfoView: View {
     var body: some View {
         NavigationStack {
             ZStack{
-                backgroundGrid(themeIn: theme)
+                //backgroundGrid(themeIn: theme)
+                (theme.darkMode ? theme.pri : theme.sec)
+                    .ignoresSafeArea()
+                
                 ScrollView(.vertical){
                     VStack{
-                        Spacer(minLength: 60)
+                        Spacer(minLength: 16)
                         
                         VStack {
                             Text("\(info.time)")
@@ -89,7 +92,7 @@ struct InfoView: View {
                                             Spacer()
                                         }
                                         .infoItem(themeIn: theme, subItem: true, items: info.eventsFormatted.count, itemNum: index + 1)
-                                        .padding(.vertical, -5) //NEED TO ADD THIS FOR COMBINING ITEMS IN MULTI-ITEM GROUPS
+                                        .padding(.vertical, -4) //NEED TO ADD THIS FOR COMBINING ITEMS IN MULTI-ITEM GROUPS
                                     }
                                 }
                             }
@@ -97,7 +100,9 @@ struct InfoView: View {
                     }
                 }
             }
+            .navigationTitle("Info")
         }
+
     }
 }
 

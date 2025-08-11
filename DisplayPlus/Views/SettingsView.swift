@@ -13,6 +13,7 @@ struct SettingsView: View {
     
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
     @AppStorage("headsUpEnabled", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var headsUp: Bool = false
+    @AppStorage("useLocation", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var location: Bool = false
 
     
     init(bleIn: G1BLEManager, themeIn: ThemeColors){
@@ -24,9 +25,12 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             ZStack{
-                backgroundGrid(themeIn: theme)
+                //backgroundGrid(themeIn: theme)
+                (theme.darkMode ? theme.pri : theme.sec)
+                    .ignoresSafeArea()
+                
                 ScrollView(.vertical) {
-                    Spacer(minLength: 60)
+                    Spacer(minLength: 16)
                     VStack{
                         HStack{
                             Text("Display timer")
@@ -43,11 +47,26 @@ struct SettingsView: View {
                             Toggle("", isOn: $headsUp)
                         }
                         .settingsItem(themeIn: theme)
+                        
+                        HStack {
+                            Text("Use location for weather updates")
+                                .fixedSize(horizontal: true, vertical: false)
+                            Spacer()
+                            Toggle("", isOn: $location)
+                        }
+                        .settingsItem(themeIn: theme)
+                        //Will be added once I figure out how to pick location manually
+//                        HStack{
+//                            Text("Fixed location")
+//                                .fixedSize(horizontal: true, vertical: false)
+//                            Spacer()
+//                            
+//                        }
                     }
                 }
             }
+            .navigationTitle("Settings")
         }
-        
     }
 }
 
