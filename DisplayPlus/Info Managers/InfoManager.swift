@@ -46,6 +46,17 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         
     }
     
+    //MARK: - Update functions
+    public func updateAll() {
+        updateTime()
+        updateBattery()
+        updateCalendar()
+        updateMusic()
+        Task {
+            await updateWeather()
+        }
+    } //Triggers all update functions
+    
     public func updateTime() {
         let newTime = Date().formatted(date: .omitted, time: .shortened)
         if time != newTime {
@@ -53,7 +64,6 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
             changed = true
         }
     }
-    
     public func updateBattery() {
         if UIDevice.current.isBatteryMonitoringEnabled && UIDevice.current.batteryLevel >= 0.0 {
             if batteryLevelFormatted != (Int)(UIDevice.current.batteryLevel * 100){
@@ -67,7 +77,6 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
             }
         }
     }
-    
     public func updateCalendar() {
         if getCalendarAuthStatus() {
             let tempEventHolder = eventsFormatted.count
@@ -79,7 +88,6 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
             }
         }
     }
-    
     public func updateMusic() {
         if getMusicAuthStatus() {
             music.updateCurrentSong()
@@ -97,7 +105,6 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
             print("failed weather fetch \(error)")
         }
     }
-    
     
     //MARK: - Music functions
     public func getCurSong() -> Song {
@@ -190,7 +197,6 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     func getBattery() -> Int {
         return batteryLevelFormatted
     }
-    
     
     //MARK: - HealthKit Functions - Unused
     func getHealthData() -> RingData {

@@ -148,7 +148,8 @@ class BackgroundTaskManager: ObservableObject { // Added ObservableObject
         timer = nil
     }
     
-    func pageHandler() -> String {
+    func pageHandler(mirror: Bool = false) -> String {
+        page.mirror = mirror //Checking if handler is being called from display mirror, stops centering text if true
         textOutput = page.header()
         
         if currentPage == "Default" { // DEFAULT PAGE HANDLER

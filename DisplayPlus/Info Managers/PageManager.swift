@@ -25,7 +25,8 @@ class PageManager: ObservableObject {
     
     var songProgAsBars: String = ""
     
-
+    public var mirror: Bool = false
+    
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     
     var currentDisplayLines: [String] = []
@@ -34,7 +35,7 @@ class PageManager: ObservableObject {
         self.info = info
     }
     
-    func header() -> String {
+    func header(mirror: Bool = false) -> String {
         currentDisplayLines.removeAll()
         currentDisplayLines.append("")
 
@@ -122,7 +123,7 @@ class PageManager: ObservableObject {
                 let percentRemaining = workingWidth * (1.0-percentage)
                 
                 let completed = String(repeating: "-", count: Int((percentCompleted / rm.getWidth(text: "-"))))
-                let remaining = String(repeating: "_", count: Int((percentRemaining / rm.getWidth(text: "_"))))
+                let remaining = String(repeating: "_", count: Int((percentRemaining / rm.getWidth(text: "_", overrideProgressBar: mirror))))
                 
                 fullBar = "[" + completed + "|" + remaining + "]"
             }else{
@@ -134,12 +135,16 @@ class PageManager: ObservableObject {
     }
     
     func centerText(text: String) -> String {
-        let widthOfText = rm.getWidth(text: text)
-        
-        let widthRemaining: Float = max(0, displayWidth-widthOfText)
-        let padding = String(repeating: " ", count: Int(widthRemaining/rm.getWidth(text: " "))/2)
-        
-        let FinalText = padding + text
-        return FinalText
+        if mirror {
+            return text
+        } else {
+            let widthOfText = rm.getWidth(text: text)
+            
+            let widthRemaining: Float = max(0, displayWidth-widthOfText)
+            let padding = String(repeating: " ", count: Int(widthRemaining/rm.getWidth(text: " "))/2)
+            
+            let FinalText = padding + text
+            return FinalText
+        }
     }
 }

@@ -55,36 +55,25 @@ struct ContentView: View {
                         Spacer(minLength: 16)
                         if ble.connectionState == .connectedBoth || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
                             //MARK: - Glasses mirror
-                            VStack{
-                                if displayOn {
-                                    ZStack{
-                                        VStack(alignment: .center){
-                                            Text(bg.textOutput)
-                                                .lineLimit(
-                                                    currentPage == "Default" ? 1 :
-                                                        currentPage == "Music" ? 3 :
-                                                        currentPage == "Calendar" ? 3 :
-                                                        3 //Default if currentPage is none of the options
-                                                )
-                                                .font(.system(size: 10))
-                                                .minimumScaleFactor(0.5)
-                                        }
-                                        .ContextualBG(themeIn: theme)
-                                        
-                                        //Little decorative icon when display is on
-//                                        VStack{
-//                                            HStack{
-//                                                Image(systemName: "eyeglasses")
-//                                                    .foregroundStyle(theme.darkMode ? theme.accentLight : theme.accentDark)
-//                                                Spacer()
-//                                            }
-//                                            Spacer()
-//                                        }
-//                                        .padding(.top, 10)
+                            ZStack{
+                                if displayOn{
+                                    VStack(alignment: .center){
+                                        Text(bg.pageHandler(mirror: true))
+                                            .multilineTextAlignment(.center)
+                                            .font(.system(size: 11))
+                                            .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
                                     }
-                                    .homeItem(themeIn: theme, small: true)
+                                    .ContextualBG(themeIn: theme)
                                 }
-                            }.animation(.bouncy, value: displayOn)
+                                Image(systemName: "eyeglasses")
+                                    .font(.system(size: displayOn ? 1750 : 50))
+                                    .offset(x: displayOn ? 700 : 0)
+                                    .animation(.easeInOut(duration: 1), value: displayOn)
+
+                            }
+                            .animation(.easeOut(duration: 1), value: displayOn)
+                            .homeItem(themeIn: theme, small: true)
+                            .transition(.scale)
                             
                         
                             //MARK: - buttons
@@ -100,7 +89,11 @@ struct ContentView: View {
                                             Text("Silent mode")
                                             Spacer()
                                             Text("\(Image(systemName: silentMode ? "checkmark.circle" : "x.circle"))")
-                                        }.padding(.horizontal, buttonPadding)
+                                                .foregroundStyle(silentMode ?
+                                                                 (theme.darkMode ? theme.accentLight : theme.accentDark) :
+                                                                    (!theme.darkMode ? theme.pri : theme.sec))
+                                        }
+                                        .padding(.horizontal, buttonPadding)
                                     }
                                     .frame(width: buttonWidth, height: (silentMode ? 90 : 35))
                                     .mainButtonStyle(themeIn: theme)
@@ -116,6 +109,9 @@ struct ContentView: View {
                                                 Text("Display")
                                                 Spacer()
                                                 Text("\(Image(systemName: displayOn ? "checkmark.circle" : "x.circle"))")
+                                                    .foregroundStyle(displayOn ?
+                                                                     (theme.darkMode ? theme.accentLight : theme.accentDark) :
+                                                                        (!theme.darkMode ? theme.pri : theme.sec))
                                             }.padding(.horizontal, buttonPadding)
                                         }
                                         .frame(width: buttonWidth, height: 50)

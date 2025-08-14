@@ -51,6 +51,8 @@ struct DefaultView: View {
                 SettingsView(bleIn: ble, infoIn: info, themeIn: theme)
             }
         }
+        .tint(theme.darkMode ? theme.accentLight : theme.accentDark)
+        //Custon toolbar
         .safeAreaInset(edge: .bottom) {
             if #available (iOS 26, *){
                 GlassEffectContainer(spacing: 10){
@@ -229,17 +231,20 @@ struct DefaultView: View {
 
             }
         }
+        //onAppear actions for entire app
         .onAppear(){
             ble.connectionStatus = "Disconnected"
             ble.connectionState = .disconnected
             theme.darkMode = colorScheme == .dark
+            
+            info.updateAll()
             
             bg.startTimer() // Start the background task timer
         }
         //Managing dark mode updates
         .onChange(of: colorScheme) { newScheme, _ in
             // Update the theme whenever the color scheme changes
-            theme.darkMode = !(newScheme == .dark)
+            theme.darkMode = newScheme == .dark
         }
         //Toggling main FTUE flag when completing final page
         .onChange(of: FTUEPages) { newScheme, _ in

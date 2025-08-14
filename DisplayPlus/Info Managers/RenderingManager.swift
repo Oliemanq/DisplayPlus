@@ -133,14 +133,20 @@ public class RenderingManager {
                 }
             }
         }
-        
         return tempDict
     }
     
-    func getWidth(text: String) -> Float {
+    func getWidth(text: String, overrideProgressBar: Bool = false) -> Float {
+        
         var totalWidth: Float = 0
         for char in text {
-            totalWidth += ((charWidth[String(char)] ?? 48/100))
+            if overrideProgressBar {
+                if text == "_" {
+                    totalWidth += (charWidth[String("-")] ?? 48/100)
+                }
+            } else {
+                totalWidth += ((charWidth[String(char)] ?? 48/100))
+            }
         }
         return totalWidth
     }
