@@ -1,3 +1,8 @@
+I set up a Ko-Fi! If you would like to support me, please consider donating!
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Q5Q61JP00X)
+
+
 ## Features
  - Time and date
  - Current media + progress bar
