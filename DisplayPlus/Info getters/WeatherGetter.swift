@@ -17,14 +17,32 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var currentTemp: Int = 0
     @Published var currentWind: Int = 0
     
+    @AppStorage("useLocation", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) public var useLocation: Bool = false
+
     @State var counter: Int = 0
-    
-    private func initializeLocationPermission() {
+
+    override init() {
+        super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
         locationManager.requestAlwaysAuthorization()
-        locationManager.startUpdatingLocation()
-        locationManager.requestLocation()
+        updateLocationMonitoring()
+    }
+
+    private func updateLocationMonitoring() {
+        if useLocation {
+            print("Location usage on")
+            locationManager.startUpdatingLocation()
+            locationManager.requestLocation()
+        } else {
+            print("Location usage off")
+            locationManager.stopUpdatingLocation()
+        }
+    }
+    
+    func toggleLocationUsage(on: Bool) {
+        useLocation = on
+        updateLocationMonitoring()
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -42,6 +60,7 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 }
             }
         }
+        
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -52,9 +71,10 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         switch manager.authorizationStatus {
         case .authorizedAlways, .authorizedWhenInUse:
             print("WeatherManager: Location authorization granted.")
-            manager.requestLocation()
+            updateLocationMonitoring() // Start monitoring if needed
         case .denied, .restricted:
             print("WeatherManager: Location authorization denied or restricted.")
+            locationManager.stopUpdatingLocation()
         case .notDetermined:
             print("WeatherManager: Location authorization not determined.")
         @unknown default:
@@ -63,21 +83,34 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     func fetchWeatherData() async throws {
-        guard [.authorizedAlways, .authorizedWhenInUse].contains(locationManager.authorizationStatus) else {
-            print("WeatherManager: Location not authorized. Cannot fetch weather.")
-            // Optionally, you could re-trigger authorization request here if appropriate for your UX
-            // locationManager.requestAlwaysAuthorization()
-            return
-        }
+        let latitude: Double
+        let longitude: Double
 
-        guard let location = currentLocation else {
-            print("WeatherManager: Location not available yet. Requesting location.")
-            locationManager.requestLocation() // Actively request location if not available
-            return // Exit; weather will be fetched when didUpdateLocations is called
-        }
+        if useLocation {
+            guard [.authorizedAlways, .authorizedWhenInUse].contains(locationManager.authorizationStatus) else {
+                print("WeatherManager: Location not authorized. Cannot fetch weather.")
+                return
+            }
 
-        let latitude = location.coordinate.latitude
-        let longitude = location.coordinate.longitude
+            guard let location = currentLocation else {
+                print("WeatherManager: Location not available yet. Requesting location.")
+                locationManager.requestLocation() // Actively request location if not available
+                return // Exit; weather will be fetched when didUpdateLocations is called
+            }
+            latitude = location.coordinate.latitude
+            longitude = location.coordinate.longitude
+        } else {
+            let userDefaults = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")
+            let savedLat = userDefaults?.double(forKey: "fixedLatitude") ?? 0
+            let savedLon = userDefaults?.double(forKey: "fixedLongitude") ?? 0
+
+            guard savedLat != 0, savedLon != 0 else {
+                print("WeatherManager: Fixed location not set or invalid. Cannot fetch weather.")
+                return
+            }
+            latitude = savedLat
+            longitude = savedLon
+        }
 
         let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(latitude)&longitude=\(longitude)&current=temperature_2m,wind_speed_10m&timezone=auto&forecast_days=1&wind_speed_unit=mph&temperature_unit=fahrenheit&precipitation_unit=inch&format=flatbuffers")!
         let responses = try await WeatherApiResponse.fetch(url: url)
@@ -114,8 +147,7 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     func getAuthStatus() -> Bool {
-        initializeLocationPermission()
-        
+        // Reroute this to just check the status, not re-initialize
         return locationManager.authorizationStatus == .authorizedAlways || locationManager.authorizationStatus == .authorizedWhenInUse
     }
 }

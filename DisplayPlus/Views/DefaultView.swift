@@ -48,7 +48,7 @@ struct DefaultView: View {
                 InfoView(infoIn: info, bleIn: ble, themeIn: theme)
             }
             Tab("Settings", systemImage: "gear") {
-                SettingsView(bleIn: ble, themeIn: theme)
+                SettingsView(bleIn: ble, infoIn: info, themeIn: theme)
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -112,12 +112,12 @@ struct DefaultView: View {
                         .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
                         .glassEffectID("toolbar", in: namespace)
                         
-                        Button("Force") {
-                            bg.forceUpdateInfo = true
-                        }
-                        .frame(width: 70)
-                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                        .glassEffectID("toolbar", in: namespace)
+//                        Button("Force") {
+//                            bg.forceUpdateInfo = true
+//                        }
+//                        .frame(width: 70)
+//                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+//                        .glassEffectID("toolbar", in: namespace)
                     }
                     
                     if !FTUEFinished {
@@ -229,7 +229,6 @@ struct DefaultView: View {
 
             }
         }
-        .accentColor(!theme.darkMode ? theme.pri : theme.sec)
         .onAppear(){
             ble.connectionStatus = "Disconnected"
             ble.connectionState = .disconnected
@@ -246,7 +245,6 @@ struct DefaultView: View {
         .onChange(of: FTUEPages) { newScheme, _ in
             FTUEFinished = true
         }
-        
         //Preventing delays from waiting for bg timer when changing pages
         .onChange(of: displayOn) {
             print("display \(displayOn ? "on" : "off")")
@@ -262,9 +260,18 @@ struct DefaultView: View {
 class ThemeColors: ObservableObject {
 //    @Published var pri: Color = Color(red: 10/255, green: 25/255, blue: 10/255)
 //    @Published var sec: Color = Color(red: 175/255, green: 220/255, blue: 175/255)
-    @Published var pri: Color = Color(red: 15/255, green: 20/255, blue: 15/255)
-    @Published var sec: Color = Color(red: 225/255, green: 255/255, blue: 225/255)
-    @Published var accent: Color = Color(red: 175/255, green: 255/255, blue: 175/255)
+    @Published var pri: Color = Color(red: 15/255, green: 16/255, blue: 15/255)
+    @Published var sec: Color = Color(red: 245/255, green: 248/255, blue: 245/255)
+    
+    @Published var priLightAlt: Color = Color(red: 25/255, green: 26/255, blue: 25/255)
+    @Published var secDarkAlt: Color = Color(red: 225/255, green: 227/255, blue: 225/255)
+    
+    @Published var accentLight: Color = Color(red: 175/255, green: 255/255, blue: 175/255)
+    @Published var accentDark: Color = Color(red: 100/255, green: 200/255, blue: 100/255)
+    
+    @Published var backgroundLight: Color = Color(red: 235/255, green: 235/255, blue: 235/255)
+    @Published var backgroundDark: Color = Color(red: 30/255, green: 30/255, blue: 30/255)
+    
     @Published var darkMode: Bool = false
 }
 

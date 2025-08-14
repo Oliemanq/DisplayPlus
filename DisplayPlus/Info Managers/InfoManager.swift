@@ -92,7 +92,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     public func updateWeather() async{
         do{
             try await weather.fetchWeatherData()
-            print("Weather fetch successful, InfoManager updated: Temp=\(weather.currentTemp)")
+            print("Weather with\(!weather.useLocation ? "out" : "") location, fetch successful, InfoManager updated: Temp=\(weather.currentTemp)")
         }catch {
             print("failed weather fetch \(error)")
         }

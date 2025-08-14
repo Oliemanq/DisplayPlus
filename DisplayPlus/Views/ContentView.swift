@@ -46,8 +46,7 @@ struct ContentView: View {
         NavigationStack {
             ZStack(alignment: .bottom){
                 //MARK: - Background
-                //backgroundGrid(themeIn: theme)
-                (theme.darkMode ? theme.pri : theme.sec)
+                (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
                     .ignoresSafeArea()
                     
                 
@@ -67,25 +66,29 @@ struct ContentView: View {
                                                         currentPage == "Calendar" ? 3 :
                                                         3 //Default if currentPage is none of the options
                                                 )
+                                                .font(.system(size: 10))
                                                 .minimumScaleFactor(0.5)
                                         }
-                                        VStack{
-                                            HStack{
-                                                Image(systemName: "eyeglasses")
-                                                    .foregroundStyle(!theme.darkMode ? theme.pri : theme.accent)
-                                                Spacer()
-                                            }
-                                            Spacer()
-                                        }
-                                        .padding(.top, 4)
+                                        .ContextualBG(themeIn: theme)
+                                        
+                                        //Little decorative icon when display is on
+//                                        VStack{
+//                                            HStack{
+//                                                Image(systemName: "eyeglasses")
+//                                                    .foregroundStyle(theme.darkMode ? theme.accentLight : theme.accentDark)
+//                                                Spacer()
+//                                            }
+//                                            Spacer()
+//                                        }
+//                                        .padding(.top, 10)
                                     }
-                                    .homeItem(themeIn: theme)
+                                    .homeItem(themeIn: theme, small: true)
                                 }
                             }.animation(.bouncy, value: displayOn)
                             
                         
                             //MARK: - buttons
-                            HStack{
+                            HStack(spacing: 30){
                                 VStack(alignment: .center){
                                     //Silent mode button
                                     Button {
@@ -100,7 +103,7 @@ struct ContentView: View {
                                         }.padding(.horizontal, buttonPadding)
                                     }
                                     .frame(width: buttonWidth, height: (silentMode ? 90 : 35))
-                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
+                                    .mainButtonStyle(themeIn: theme)
                                     
                                     //Display on button
                                     if !silentMode {
@@ -116,96 +119,107 @@ struct ContentView: View {
                                             }.padding(.horizontal, buttonPadding)
                                         }
                                         .frame(width: buttonWidth, height: 50)
-                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
+                                        .mainButtonStyle(themeIn: theme)
                                     }
                                 }
-                                Spacer()
+                                .homeItem(themeIn: theme, subItem: true)
                                 VStack{
                                     Text("Battery")
                                     Text("\(Image(systemName: "eyeglasses")) - \(Int(ble.glassesBatteryAvg))%")
                                     Text("\(Image(systemName: "earbuds.case")) - \(Int(ble.caseBatteryLevel))%")
                                 }
+                                .frame(height: 90)
+                                .homeItem(themeIn: theme, subItem: true)
                             }
                             .homeItem(themeIn: theme)
                             
                             
                             //MARK: - brightnessControl
-                            HStack{
-                                VStack(alignment: .center){
-                                    VStack{
-                                        if #available (iOS 26, *) {
-                                            GlassEffectContainer(spacing: 15) {
-                                                HStack(spacing: 1){
-                                                    Text("Brightness")
-                                                        .frame(width: 120, height: 30)
-                                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
-                                                        .glassEffectID("BrightnessDisplay", in: namespace)
-                                                        .animation(.spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0.1), value: brightnessSlider)
-                                                    if !ble.autoBrightnessEnabled{
-                                                        Text("\(Int(ceil(brightnessSlider/6)))")
-                                                            .frame(width: CGFloat(brightnessSlider/6*15 + 30), height: 30)
-                                                            .font(.system(size: CGFloat(brightnessSlider/6)*1.25 + 12))
-                                                            .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
-                                                            .glassEffectID("BrightnessDisplay", in: namespace)
-                                                    }
-                                                }
-                                            }
-                                        }else{
-                                            HStack{
-                                                Text("Brightness")
-                                                    .frame(width: 120, height: 30)
-                                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
-                                                
+                            VStack(alignment: .center, spacing: 2){
+                                //Label and value
+                                if #available (iOS 26, *) {
+                                    GlassEffectContainer(spacing: 15) {
+                                        HStack(spacing: 1){
+                                            Text("Brightness")
+                                                .frame(width: 120, height: 30)
+                                                .mainButtonStyle(themeIn: theme)
+                                                .glassEffectID("BrightnessDisplay", in: namespace)
+                                                .animation(.spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0.1), value: brightnessSlider)
+                                            if !ble.autoBrightnessEnabled{
                                                 Text("\(Int(ceil(brightnessSlider/6)))")
-                                                    .font(.system(size: 12 + CGFloat(brightnessSlider/6)*1.25))
                                                     .frame(width: CGFloat(brightnessSlider/6*15 + 30), height: 30)
-                                                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
+                                                    .font(.system(size: CGFloat(brightnessSlider/6)*1.25 + 12))
+                                                    .mainButtonStyle(themeIn: theme)
+                                                    .glassEffectID("BrightnessDisplay", in: namespace)
                                             }
                                         }
+                                        .homeItem(themeIn: theme, subItem: true)
+                                    }
+                                }else{
+                                    HStack{
+                                        Text("Brightness")
+                                            .frame(width: 120, height: 30)
+                                            .mainButtonStyle(themeIn: theme)
                                         
-                                        VStack{
-                                            if !ble.autoBrightnessEnabled{
-                                                Slider(
-                                                    value: $brightnessSlider,
-                                                    in: 0.01...42,
-                                                    step: 6
-                                                ) { editing in
-                                                    isSliderDragging = editing
-                                                    if !editing {
-                                                        // USER HAS FINISHED DRAGGING.
-                                                        print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
-                                                        ble.setBrightness(value: brightnessSlider)
-                                                        
-                                                    }
-                                                }
-                                                .accentColor(theme.darkMode ? theme.sec : theme.pri)
-                                            }
-                                            if #available(iOS 26, *){
-                                                Button("\(Image(systemName: ble.autoBrightnessEnabled ? "environments.fill" : "environments.slash")) Auto"){
-                                                    withAnimation{
-                                                        ble.autoBrightnessEnabled.toggle()
-                                                        // Also send an update when auto-brightness is toggled
-                                                        print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
-                                                        ble.setBrightness(value: brightnessSlider)
-                                                    }
-                                                }
-                                                .frame(width: 100,height: 30)
-                                                .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
-                                            }else{
-                                                Button("\(Image(systemName: ble.autoBrightnessEnabled ? "sun.max.fill" : "sun.min")) Auto"){
-                                                    withAnimation(.easeInOut){
-                                                        ble.autoBrightnessEnabled.toggle()
-                                                        // Also send an update when auto-brightness is toggled
-                                                        print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
-                                                        ble.setBrightness(value: brightnessSlider)
-                                                    }
-                                                }
-                                                .frame(width: 100,height: 30)
-                                                .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
-                                                .animation(.easeInOut, value: ble.autoBrightnessEnabled)
-                                            }
+                                        Text("\(Int(ceil(brightnessSlider/6)))")
+                                            .font(.system(size: 12 + CGFloat(brightnessSlider/6)*1.25))
+                                            .frame(width: CGFloat(brightnessSlider/6*15 + 30), height: 30)
+                                            .mainButtonStyle(themeIn: theme)
+                                    }
+                                    .homeItem(themeIn: theme, subItem: true)
+                                    
+                                }
+                                
+                                //Brightness Slider
+                                if !ble.autoBrightnessEnabled{
+                                    Slider(
+                                        value: $brightnessSlider,
+                                        in: 0.01...42,
+                                        step: 6
+                                    ) { editing in
+                                        isSliderDragging = editing
+                                        if !editing {
+                                            // USER HAS FINISHED DRAGGING.
+                                            print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
+                                            ble.setBrightness(value: brightnessSlider)
+                                            
                                         }
                                     }
+                                    .accentColor(theme.darkMode ? theme.accentLight : theme.accentDark)
+                                    .homeItem(themeIn: theme, subItem: true)
+                                }
+                                
+                                //Autobrightness button
+                                if #available(iOS 26, *){
+                                    Button("\(Image(systemName: ble.autoBrightnessEnabled ? "environments.fill" : "environments.slash")) Auto"){
+                                        withAnimation{
+                                            ble.autoBrightnessEnabled.toggle()
+                                            // Also send an update when auto-brightness is toggled
+                                            print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
+                                            ble.setBrightness(value: brightnessSlider)
+                                        }
+                                    }
+                                    .frame(width: 100,height: 30)
+                                    .foregroundColor(ble.autoBrightnessEnabled ?
+                                                     (theme.darkMode ? theme.accentLight : theme.accentDark) :
+                                                        theme.darkMode ? Color.white : Color.black)
+                                    .mainButtonStyle(themeIn: theme)
+                                    .homeItem(themeIn: theme, subItem: true)
+                                    
+                                }else{
+                                    Button("\(Image(systemName: ble.autoBrightnessEnabled ? "sun.max.fill" : "sun.min")) Auto"){
+                                        withAnimation(.easeInOut){
+                                            ble.autoBrightnessEnabled.toggle()
+                                            // Also send an update when auto-brightness is toggled
+                                            print("set brightness with auto \(ble.autoBrightnessEnabled ? "on" : "off")")
+                                            ble.setBrightness(value: brightnessSlider)
+                                        }
+                                    }
+                                    .frame(width: 100,height: 30)
+                                    .mainButtonStyle(themeIn: theme)
+                                    .animation(.easeInOut, value: ble.autoBrightnessEnabled)
+                                    .homeItem(themeIn: theme, subItem: true)
+                                    
                                 }
                             }
                             .homeItem(themeIn: theme)
@@ -281,7 +295,7 @@ struct ContentView: View {
                                             isPresentingScanView = false
                                         }
                                         .frame(width: 150, height: 50)
-                                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
+                                        .mainButtonStyle(themeIn: theme)
                                     }
                                 }
                             }

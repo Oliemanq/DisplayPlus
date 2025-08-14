@@ -228,7 +228,7 @@ extension View {
     @ViewBuilder
     //Modifier for contextual background of items
     //If bg is true, it will just be a glass effect background without foreground color
-    func ContextualBG(pri: Color, sec: Color, darkMode: Bool, bg: Bool = false, items: Int = 1, itemNum: Int = 1) -> some View {
+    func ContextualBG(themeIn: ThemeColors, bg: Bool = false, items: Int = 1, itemNum: Int = 1) -> some View {
         let rounding: CGFloat = 12
         
         let top = items > 1 && itemNum == 1
@@ -236,6 +236,13 @@ extension View {
         //let middle = items > 1 && (!top && !bottom)
         let alone = items == 1
         
+        let darkMode = themeIn.darkMode
+        let pri = themeIn.pri
+        let sec = themeIn.sec
+        let priLightAlt = themeIn.priLightAlt
+        let secDarkAlt = themeIn.secDarkAlt
+//        let accentLight = themeIn.accentLight
+//        let accentDark = themeIn.accentDark
         //Custom shape that allows the liquid glass to render properly
         //Allows items in the same "set" to look more seemless
         let shape: RoundedCorner = {
@@ -254,10 +261,11 @@ extension View {
         
         if bg {
             self
-                .padding(2)
+                .padding(.vertical, alone ? 4 : -4)
+                .padding(.horizontal, 4)
                 .background(
-                    Rectangle()
-                        .foregroundStyle(!darkMode ? pri.opacity(0.45) : sec.opacity(0.45))
+                    shape
+                        .foregroundStyle(darkMode ? pri : sec)
                 )
                 .overlay(
                     shape
@@ -266,36 +274,43 @@ extension View {
                 .clipShape(shape)
         } else {
             self
-                .padding(.horizontal, 6)
-                .padding(.vertical, alone ? 6 : 12)
+                .padding(.horizontal, 8)
+                .padding(.vertical, alone ? 8 : 6)
                 .background(
-                    Rectangle()
-                        .foregroundStyle(darkMode ? pri.opacity(alone ? 0.85 : 1) : sec.opacity(alone ? 0.85 : 1))
-                    //.glassEffect(.regular.tint(darkMode ? pri : sec), in: shape)
+                    shape
+                        .foregroundStyle(darkMode ? priLightAlt : secDarkAlt)
                         .overlay(
                             shape
-                                .stroke(alone ? (darkMode ? pri : sec) : Color.clear, lineWidth: 1)
+                                .stroke(darkMode ? pri : sec, lineWidth: alone ? 1 : 0)
                         )
                 )
                 .clipShape(shape)
-                .foregroundStyle(!darkMode ? pri : sec)
-                .offset(x: 0, y: alone ? 0 : (bottom ? -10 : (top ? 10 : 0))) //Offset for multiple items
+                .foregroundStyle(!darkMode ? priLightAlt : secDarkAlt)
+                //.offset(x: 0, y: alone ? 0 : (bottom ? -6 : (top ? 6 : 0))) //Offset for multiple items
         }
     }
     
     //Main style for custon buttons throughout the app
     @ViewBuilder
-    func mainButtonStyle(pri: Color, sec: Color, accent: Color, darkMode: Bool) -> some View {
+    func mainButtonStyle(themeIn: ThemeColors) -> some View {
+        let darkMode = themeIn.darkMode
+        let pri = themeIn.pri
+        let sec = themeIn.sec
+//        let accentLight = themeIn.accentLight
+//        let accentDark = themeIn.accentDark
+        
         if #available(iOS 26, *) {
             self
-                .glassEffect(darkMode ? .regular.interactive(true) : .regular.tint(pri).interactive(true))
-                .foregroundColor(accent)
+                .glassEffect(.regular.interactive(true))
+                .foregroundStyle(!darkMode ? pri : sec)
+                //.foregroundColor(accent)
 
         } else {
             self
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
                 .background(!darkMode ? pri : sec)
                 .foregroundColor(darkMode ? pri : sec)
-                .buttonStyle(.borderless)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
@@ -327,53 +342,54 @@ extension View {
         }
     }
     
-    //Modifier for items in settings view
     @ViewBuilder
-    func settingsItem(themeIn: ThemeColors) -> some View {
+    func homeItem(themeIn: ThemeColors, subItem: Bool = false, small: Bool = false) -> some View {
         let screenWidth = UIScreen.main.bounds.width
         //let screenHeight = UIScreen.main.bounds.height
         
-        HStack{
-            VStack(alignment: .leading){
+        if !subItem {
+            HStack{
                 self
-                    .tint(themeIn.accent)
             }
-            .frame(width: screenWidth * 0.825, height: 35)
-            .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode)
+            .frame(width: screenWidth * 0.9, height: bigBGHeight*(small ? 1.25 : 1.75))
+            .padding(.horizontal, 6)
+            .ContextualBG(themeIn: themeIn, bg: true)
+        }else{
+            HStack{
+                self
+            }
+            .ContextualBG(themeIn: themeIn)
         }
-        .frame(width: screenWidth * 0.9, height: 55)
-        .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, bg: true)
     }
     
-    @ViewBuilder
-    func homeItem(themeIn: ThemeColors) -> some View {
-        let screenWidth = UIScreen.main.bounds.width
-        //let screenHeight = UIScreen.main.bounds.height
-        
-        HStack{
-            VStack(alignment: .leading){
-                self
-            }
-            .frame(width: screenWidth * 0.825, height: bigFGHeight*2)
-            .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode)
-        }
-        .frame(width: screenWidth * 0.9, height: bigBGHeight*1.75)
-        .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, bg: true)
-    }
     @ViewBuilder
     func infoItem(themeIn: ThemeColors, subItem: Bool = false, items: Int = 1, itemNum: Int = 1) -> some View {
         let screenWidth = UIScreen.main.bounds.width
         //let screenHeight = UIScreen.main.bounds.height
         
-        HStack{
-            VStack(alignment: .center){
-                self
-            }
-            .frame(width: screenWidth * 0.825, height: subItem ?  smallFGHeight : bigFGHeight)
-            .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, items: items, itemNum: itemNum)
-        }
-        .frame(width: screenWidth * 0.9, height: subItem ? smallBGHeight : bigBGHeight)
-        .ContextualBG(pri: themeIn.pri, sec: themeIn.sec, darkMode: themeIn.darkMode, bg: true, items: items, itemNum: itemNum)
+        self
+            .ContextualBG(themeIn: themeIn, items: items, itemNum: itemNum)
+            .frame(width: screenWidth * 0.9, height: subItem ?  smallBGHeight : bigBGHeight)
+            .ContextualBG(themeIn: themeIn, bg: true, items: items, itemNum: itemNum)
+        
+    }
+    
+    @ViewBuilder
+    func settingsItem(themeIn: ThemeColors, subItem: Bool = false, items: Int = 1, itemNum: Int = 1) -> some View {
+        let darkMode = themeIn.darkMode
+//        let pri = themeIn.pri
+//        let sec = themeIn.sec
+        let accentLight = themeIn.accentLight
+        let accentDark = themeIn.accentDark
+        
+        let screenWidth = UIScreen.main.bounds.width
+        //let screenHeight = UIScreen.main.bounds.height
+        
+        self
+            .padding(.horizontal, 8)
+            .tint(darkMode ? accentDark : accentLight)
+            .frame(width: screenWidth * 0.9, height: subItem ?  smallBGHeight : bigBGHeight)
+            .ContextualBG(themeIn: themeIn, bg: true, items: items, itemNum: itemNum)
         
     }
 }
@@ -513,7 +529,7 @@ struct PreviewVars: View {
                 VStack{
                     Text("Main button style")
                         .frame(width: 150, height: 40)
-                        .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
+                        .mainButtonStyle(themeIn: theme)
                     Text("Rounded corner style")
                         .frame(width: 200, height: 40)
                         .foregroundStyle(theme.sec)
@@ -522,13 +538,13 @@ struct PreviewVars: View {
                         )
                     Text("Background glass")
                         .foregroundStyle(theme.sec)
-                        .ContextualBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode, bg: true)
+                        .ContextualBG(themeIn: theme, bg: true)
                     
                     Button("Toggle UI colors"){
                         theme.darkMode.toggle()
                     }
                     .frame(width: 150, height: 40)
-                    .mainButtonStyle(pri: theme.pri, sec: theme.sec, accent: theme.accent, darkMode: theme.darkMode)
+                    .mainButtonStyle(themeIn: theme)
                     
                     Text("Toolbar background")
                         .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
@@ -542,4 +558,3 @@ struct PreviewVars: View {
 #Preview {
     PreviewVars()
 }
-

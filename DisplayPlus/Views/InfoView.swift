@@ -22,7 +22,7 @@ struct InfoView: View {
         NavigationStack {
             ZStack{
                 //backgroundGrid(themeIn: theme)
-                (theme.darkMode ? theme.pri : theme.sec)
+                (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
                     .ignoresSafeArea()
                 
                 ScrollView(.vertical){
@@ -72,28 +72,22 @@ struct InfoView: View {
                             }
                             .infoItem(themeIn: theme)
                         }else{
-                            HStack{
-                                VStack{
-                                    HStack{
-                                        Text("Calendar events (\(info.numOfEvents)): ")
-                                        Spacer()
-                                    }
+                            VStack(alignment: .leading) {
+                                Text("Calendar events (\(info.numOfEvents)): ")
                                     .infoItem(themeIn: theme, subItem: true)
-                                    
-                                    // Use infoManager.eventsFormatted for ForEach{
-                                    ForEach(Array(info.eventsFormatted.enumerated()), id: \ .element.id) { index, event in
-                                        HStack {
-                                            VStack(alignment: .leading) {
-                                                Text("\(String(repeating: "    ", count: index%2)) - \(event.titleLine)")
-                                                    .font(.caption)
-                                                Text("\(String(repeating: "    ", count: index%2))    \(event.subtitleLine)")
-                                                    .font(.footnote)
-                                            }
-                                            Spacer()
-                                        }
-                                        .infoItem(themeIn: theme, subItem: true, items: info.eventsFormatted.count, itemNum: index + 1)
-                                        .padding(.vertical, -4) //NEED TO ADD THIS FOR COMBINING ITEMS IN MULTI-ITEM GROUPS
+                                
+                                // Use infoManager.eventsFormatted for ForEach{
+                                ForEach(Array(info.eventsFormatted.enumerated()), id: \ .element.id) { index, event in
+                                    VStack(alignment: .leading) {
+                                        Text(" - \(event.titleLine)")
+                                            .font(.caption)
+                                        Text("     \(event.subtitleLine)")
+                                            .font(.footnote)
                                     }
+                                    .infoItem(themeIn: theme, subItem: true, items: info.eventsFormatted.count, itemNum: index + 1)
+                                    .padding(.vertical, -4) //NEED TO ADD THIS FOR COMBINING ITEMS IN MULTI-ITEM GROUPS
+                                    
+                                    
                                 }
                             }
                         }

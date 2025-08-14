@@ -18,6 +18,8 @@
 			<false/>
 		</dict>
 	</dict>
+	<key>MKDirectionsApplicationSupportedModes</key>
+	<array/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
