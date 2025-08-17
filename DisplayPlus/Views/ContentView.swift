@@ -83,13 +83,13 @@ struct ContentView: View {
                                             ble.setSilentModeState(on: !silentMode)
                                         }
                                     } label: {
-                                        HStack(alignment: .center){
+                                        HStack{
                                             Text("Silent mode")
                                             Spacer()
                                             Text("\(Image(systemName: silentMode ? "checkmark.circle" : "x.circle"))")
                                                 .foregroundStyle(silentMode ?
                                                                  (theme.darkMode ? theme.accentLight : theme.accentDark) :
-                                                                    (!theme.darkMode ? theme.pri : theme.sec))
+                                                                    (theme.darkMode ? theme.pri : theme.sec))
                                         }
                                         .padding(.horizontal, buttonPadding)
                                     }

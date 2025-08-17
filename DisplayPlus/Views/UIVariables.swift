@@ -296,6 +296,8 @@ extension View {
         let darkMode = themeIn.darkMode
         let pri = themeIn.pri
         let sec = themeIn.sec
+        let priLightAlt = themeIn.priLightAlt
+        let secDarkAlt = themeIn.secDarkAlt
 //        let accentLight = themeIn.accentLight
 //        let accentDark = themeIn.accentDark
         
@@ -307,10 +309,8 @@ extension View {
 
         } else {
             self
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(!darkMode ? pri : sec)
-                .foregroundColor(darkMode ? pri : sec)
+                .background(!darkMode ? priLightAlt : secDarkAlt)
+                .foregroundStyle(darkMode ? pri : sec)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
