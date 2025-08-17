@@ -386,7 +386,7 @@ extension View {
         //let screenHeight = UIScreen.main.bounds.height
         
         self
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 12)
             .tint(darkMode ? accentDark : accentLight)
             .frame(width: screenWidth * 0.9, height: subItem ?  smallBGHeight : bigBGHeight)
             .ContextualBG(themeIn: themeIn, bg: true, items: items, itemNum: itemNum)

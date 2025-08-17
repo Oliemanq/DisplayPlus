@@ -10,12 +10,16 @@ import SwiftUI
 struct DefaultView: View {
     @Environment(\.colorScheme) private var colorScheme
     
-    @State var theme = ThemeColors()
+    @ObservedObject var theme = ThemeColors()
     
     @StateObject private var info: InfoManager
     @StateObject private var ble: G1BLEManager
     @StateObject private var page: PageManager
     @StateObject private var bg: BackgroundTaskManager
+    
+    var contentView: ContentView
+    var infoView: InfoView
+    var settingsView: SettingsView
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     @AppStorage("isPresentingScanView", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var isPresentingScanView: Bool = false
@@ -38,19 +42,24 @@ struct DefaultView: View {
         _ble = StateObject(wrappedValue: bleInstance)
         _page = StateObject(wrappedValue: pageInstance)
         _bg = StateObject(wrappedValue: bgInstance)
+        
+        contentView = ContentView(infoInstance: infoInstance, bleInstance: bleInstance, bgInstance: bgInstance)
+        infoView = InfoView(infoIn: infoInstance, bleIn: bleInstance)
+        settingsView = SettingsView(bleIn: bleInstance, infoIn: infoInstance)
     }
     var body: some View {
         TabView {
             Tab("Home", systemImage: "eyeglasses") {
-                ContentView(infoInstance: info, bleInstance: ble, bgInstance: bg, themeIn: theme)
+                ContentView(infoInstance: info, bleInstance: ble, bgInstance: bg)
             }
             Tab("Info", systemImage: "info.square") {
-                InfoView(infoIn: info, bleIn: ble, themeIn: theme)
+                InfoView(infoIn: info, bleIn: ble)
             }
             Tab("Settings", systemImage: "gear") {
-                SettingsView(bleIn: ble, infoIn: info, themeIn: theme)
+                SettingsView(bleIn: ble, infoIn: info)
             }
         }
+        .environmentObject(theme)
         .tint(theme.darkMode ? theme.accentLight : theme.accentDark)
         //Custon toolbar
         .safeAreaInset(edge: .bottom) {
@@ -242,9 +251,9 @@ struct DefaultView: View {
             bg.startTimer() // Start the background task timer
         }
         //Managing dark mode updates
-        .onChange(of: colorScheme) { newScheme, _ in
-            // Update the theme whenever the color scheme changes
-            theme.darkMode = newScheme == .dark
+        .onChange(of: colorScheme) { _, newScheme in
+            // Update the theme whenever the color scheme changes (use newScheme, second param)
+            theme.darkMode = (newScheme == .dark)
         }
         //Toggling main FTUE flag when completing final page
         .onChange(of: FTUEPages) { newScheme, _ in

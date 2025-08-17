@@ -14,25 +14,30 @@ extension CLLocationCoordinate2D: @retroactive Equatable {
 }
 
 struct SettingsView: View {
-    let theme: ThemeColors
-    
     @StateObject private var ble: G1BLEManager
     @StateObject private var info: InfoManager
+    @EnvironmentObject var theme: ThemeColors
     
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
     @AppStorage("headsUpEnabled", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var headsUp: Bool = false
     @AppStorage("useLocation", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var location: Bool = false
+    @AppStorage("fixedLatitude", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var fixedLatitude: Double = 0.0
+    @AppStorage("fixedLongitude", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var fixedLongitude: Double = 0.0
     @State private var showingLocationPicker = false
     @State private var fixedLocation: CLLocationCoordinate2D?
     
     // Add a debounce timer
     @State private var debounceTimer: Timer?
     
-    init(bleIn: G1BLEManager, infoIn: InfoManager, themeIn: ThemeColors){
+    // Display helper for fixed location city (uses published weather.currentCity)
+    private var fixedCityDisplay: String {
+        if fixedLatitude == 0 && fixedLongitude == 0 { return "Not set" }
+        return info.weather.currentCity ?? "Resolving..."
+    }
+    
+    init(bleIn: G1BLEManager, infoIn: InfoManager){
         _ble = StateObject(wrappedValue: bleIn)
         _info = StateObject(wrappedValue: infoIn)
-        
-        theme = themeIn
     }
 
     var body: some View {
@@ -45,6 +50,7 @@ struct SettingsView: View {
                 ScrollView(.vertical) {
                     Spacer(minLength: 16)
                     VStack{
+                        //toggle display on timer
                         HStack{
                             Text("Display timer")
                             Spacer()
@@ -53,6 +59,7 @@ struct SettingsView: View {
                         }
                         .settingsItem(themeIn: theme)
                         
+                        //use heads up for display toggle
                         HStack{
                             Text("Use HeadsUp for dashboard")
                                 .fixedSize(horizontal: true, vertical: false)
@@ -61,14 +68,16 @@ struct SettingsView: View {
                         }
                         .settingsItem(themeIn: theme)
                         
+                        //use user location for weather updates
                         HStack {
                             Text("Use location for weather updates")
                                 .fixedSize(horizontal: true, vertical: false)
                             Spacer()
                             Toggle("", isOn: $location)
                         }
-                        .settingsItem(themeIn: theme, items: (location ? 1 : 2), itemNum: 1)
+                        .settingsItem(themeIn: theme, items: (location ? 1 : 3), itemNum: 1)
                         
+                        //fixed location for weather updates
                         if !location {
                             HStack{
                                 Text("Pick set location")
@@ -79,11 +88,17 @@ struct SettingsView: View {
                                 }) {
                                     Text("Select")
                                 }
-                                .padding(4)
+                                .padding(6)
                                 .mainButtonStyle(themeIn: theme)
                             }
-                            .settingsItem(themeIn: theme, items: 2, itemNum: 2)
+                            .settingsItem(themeIn: theme, items: 3, itemNum: 2)
                             .offset(y: -8)
+                            HStack {
+                                Text("Current location: \(fixedCityDisplay)") // Use cached/published city
+                                    .ContextualBG(themeIn: theme)
+                            }
+                            .settingsItem(themeIn: theme, items: 3, itemNum: 3)
+                            .offset(y: -16)
                         }
                     }
                 }
@@ -95,10 +110,10 @@ struct SettingsView: View {
         }
         .onChange(of: fixedLocation) {
             if let newLocation = fixedLocation {
-                UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set(newLocation.latitude, forKey: "fixedLatitude")
-                UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set(newLocation.longitude, forKey: "fixedLongitude")
+                fixedLatitude = newLocation.latitude
+                fixedLongitude = newLocation.longitude
                 Task {
-                    await info.updateWeather()
+                    await info.updateWeather() // This will trigger reverse geocode via WeatherManager
                 }
             }
         }
@@ -111,5 +126,7 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView(bleIn: G1BLEManager(), infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter()), themeIn: ThemeColors())
+    SettingsView(bleIn: G1BLEManager(), infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter()))
+        .environmentObject(ThemeColors())
+
 }

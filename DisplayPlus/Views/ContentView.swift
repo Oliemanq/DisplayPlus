@@ -14,7 +14,7 @@ struct ContentView: View {
     @StateObject private var info: InfoManager
     @StateObject private var ble: G1BLEManager
     @StateObject private var bg: BackgroundTaskManager
-    var theme: ThemeColors
+    @EnvironmentObject var theme: ThemeColors
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var displayOn = false
@@ -31,12 +31,10 @@ struct ContentView: View {
     @State private var isSliderDragging = false
     @State private var brightnessUpdateTimer: Timer?
     
-    init(infoInstance: InfoManager, bleInstance: G1BLEManager, bgInstance: BackgroundTaskManager, themeIn: ThemeColors) {
+    init(infoInstance: InfoManager, bleInstance: G1BLEManager, bgInstance: BackgroundTaskManager) {
         _info = StateObject(wrappedValue: infoInstance)
         _ble = StateObject(wrappedValue: bleInstance)
         _bg = StateObject(wrappedValue: bgInstance)
-        
-        theme = themeIn
     }
     
     var body: some View {
@@ -323,10 +321,11 @@ struct ContentView: View {
 
 #Preview {
     let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
-    let bleInstance = G1BLEManager()
+    let bleInstance = G1BLEManager() 
     let pageInstance = PageManager(info: infoInstance)
     let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
     
-    ContentView(infoInstance: infoInstance, bleInstance: bleInstance, bgInstance: bgInstance, themeIn: ThemeColors())
+    ContentView(infoInstance: infoInstance, bleInstance: bleInstance, bgInstance: bgInstance)
+        .environmentObject(ThemeColors())
 }
 

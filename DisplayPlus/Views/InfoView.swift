@@ -10,13 +10,11 @@ import SwiftUI
 struct InfoView: View {
     @StateObject var info: InfoManager
     @StateObject var ble: G1BLEManager
-    var theme: ThemeColors
+    @EnvironmentObject var theme: ThemeColors
     
-    init(infoIn: InfoManager, bleIn: G1BLEManager, themeIn: ThemeColors){
+    init(infoIn: InfoManager, bleIn: G1BLEManager){
         _info = StateObject(wrappedValue: infoIn)
         _ble = StateObject(wrappedValue: bleIn)
-        
-        theme = themeIn
     }
     var body: some View {
         NavigationStack {
@@ -102,5 +100,6 @@ struct InfoView: View {
 
 
 #Preview {
-    InfoView(infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter()), bleIn: G1BLEManager(), themeIn: ThemeColors())
+    InfoView(infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter()), bleIn: G1BLEManager())
+        .environmentObject(ThemeColors())
 }
