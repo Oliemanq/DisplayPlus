@@ -269,7 +269,7 @@ extension View {
                 )
                 .overlay(
                     shape
-                        .stroke(darkMode ? pri : sec, lineWidth: (alone ? 1 : 0))
+                        .stroke(priLightAlt, lineWidth: alone ? 0.5 : 0)
                 )
                 .clipShape(shape)
         } else {
@@ -281,7 +281,7 @@ extension View {
                         .foregroundStyle(darkMode ? priLightAlt : secDarkAlt)
                         .overlay(
                             shape
-                                .stroke(darkMode ? pri : sec, lineWidth: alone ? 1 : 0)
+                                .stroke(priLightAlt, lineWidth: alone ? 0.5 : 0)
                         )
                 )
                 .clipShape(shape)
@@ -343,22 +343,22 @@ extension View {
     }
     
     @ViewBuilder
-    func homeItem(themeIn: ThemeColors, subItem: Bool = false, small: Bool = false) -> some View {
+    func homeItem(themeIn: ThemeColors, subItem: Bool = false, small: Bool = false, height: CGFloat = 0) -> some View {
         let screenWidth = UIScreen.main.bounds.width
         //let screenHeight = UIScreen.main.bounds.height
         
-        if !subItem {
-            HStack{
-                self
-            }
-            .frame(width: screenWidth * 0.9, height: bigBGHeight*(small ? 1.25 : 1.75))
-            .padding(.horizontal, 6)
-            .ContextualBG(themeIn: themeIn, bg: true)
-        }else{
+        if subItem { //Non-background item
             HStack{
                 self
             }
             .ContextualBG(themeIn: themeIn)
+        }else{ //Background item
+            HStack{
+                self
+            }
+            .frame(width: screenWidth * 0.9, height: (height == 0 ? bigBGHeight*(small ? 1.25 : 1.75) : height))
+            .padding(.horizontal, 6)
+            .ContextualBG(themeIn: themeIn, bg: true)
         }
     }
     

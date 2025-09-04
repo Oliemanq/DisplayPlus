@@ -122,14 +122,16 @@ struct ContentView: View {
                                     Text("\(Image(systemName: "eyeglasses")) - \(Int(ble.glassesBatteryAvg))%")
                                     Text("\(Image(systemName: "earbuds.case")) - \(Int(ble.caseBatteryLevel))%")
                                 }
-                                .frame(height: 90)
+                                .frame(width: 90, height: 110)
+                                .mainButtonStyle(themeIn: theme)
                                 .homeItem(themeIn: theme, subItem: true)
+                                
                             }
                             .homeItem(themeIn: theme)
                             
                             
                             //MARK: - brightnessControl
-                            VStack(alignment: .center, spacing: 2){
+                            VStack(alignment: .center, spacing: 6){
                                 //Label and value
                                 if #available (iOS 26, *) {
                                     GlassEffectContainer(spacing: 15) {
@@ -216,7 +218,7 @@ struct ContentView: View {
                                     
                                 }
                             }
-                            .homeItem(themeIn: theme)
+                            .homeItem(themeIn: theme, height: ble.autoBrightnessEnabled ? 115 : 160)
                         }
                     }
                 }

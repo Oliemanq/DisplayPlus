@@ -274,17 +274,17 @@ struct DefaultView: View {
 class ThemeColors: ObservableObject {
 //    @Published var pri: Color = Color(red: 10/255, green: 25/255, blue: 10/255)
 //    @Published var sec: Color = Color(red: 175/255, green: 220/255, blue: 175/255)
-    @Published var pri: Color = Color(red: 15/255, green: 16/255, blue: 15/255)
-    @Published var sec: Color = Color(red: 245/255, green: 248/255, blue: 245/255)
-    
-    @Published var priLightAlt: Color = Color(red: 25/255, green: 26/255, blue: 25/255)
-    @Published var secDarkAlt: Color = Color(red: 225/255, green: 227/255, blue: 225/255)
-    
-    @Published var accentLight: Color = Color(red: 175/255, green: 255/255, blue: 175/255)
-    @Published var accentDark: Color = Color(red: 100/255, green: 200/255, blue: 100/255)
-    
-    @Published var backgroundLight: Color = Color(red: 235/255, green: 235/255, blue: 235/255)
-    @Published var backgroundDark: Color = Color(red: 30/255, green: 30/255, blue: 30/255)
+    @Published var pri: Color = Color(hue: 120/360, saturation: 0.03, brightness: 0.08) //Dark main
+    @Published var sec: Color = Color(hue: 120/360, saturation: 0.03, brightness: 0.925) //Light main
+
+    @Published var priLightAlt: Color = Color(hue: 120/360, saturation: 0.01, brightness: 0.125)
+    @Published var secDarkAlt: Color = Color(hue: 120/360, saturation: 0.01, brightness: 0.95)
+
+    @Published var accentLight: Color = Color(hue: 120/360, saturation: 0.6, brightness: 0.74) //Green accent light
+    @Published var accentDark: Color = Color(hue: 120/360, saturation: 0.6, brightness: 0.75) //Green accent dark
+
+    @Published var backgroundLight: Color = Color(hue: 120/360, saturation: 0.02, brightness: 0.98)
+    @Published var backgroundDark: Color = Color(hue: 120/360, saturation: 0.0, brightness: 0.12)
     
     @Published var darkMode: Bool = false
 }
