@@ -34,7 +34,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     @Published var healthData: RingData = RingData(steps: 0, exercise: 0, standHours: 0) // Mark with @Published
 
     // Music var
-    @Published var currentSong: Song = Song(title: "", artist: "", album: "", duration: 0.0, currentTime: 0.0, isPaused: true) // Mark with @Published, provide default
+    @Published var currentSong: Song = Song(title: "", artist: "", album: "", duration: 0.0, currentTime: 0.0, isPaused: true, isMixing: false) // Mark with @Published, provide default
 
     init (cal: CalendarManager, music: AMMonitor, weather: WeatherManager, health: HealthInfoGetter) {
         self.cal = cal

@@ -49,14 +49,14 @@ class PageManager: ObservableObject {
     func musicDisplay() -> [String]{
         var artist = ""
         if info.getCurSong().artist.count > 25 {
-            artist = ("\(info.getCurSong().artist.prefix(25))...")
+            artist = ("\(info.getCurSong().artist.prefix(22))...")
         }else{
             artist = info.getCurSong().artist
         } //Setting maximum character count for artist and song name to avoid spilling over onto next line
         
         var songTitle: String = ""
         if info.getCurSong().title.count > 25 {
-            songTitle = ("\(info.getCurSong().title.prefix(25))...")
+            songTitle = ("\(info.getCurSong().title.prefix(22))...")
         }else{
             songTitle = info.getCurSong().title
         }
@@ -64,11 +64,15 @@ class PageManager: ObservableObject {
         currentDisplayLines.append((centerText(text: "\(songTitle) - \(artist)"))) //Appening song info
         
         if !info.getCurSong().isPaused{
+            let duration = String(describing: Duration.seconds(info.getCurSong().duration).formatted(.time(pattern: .minuteSecond)))
+            let currentTime = String(describing: Duration.seconds(info.getCurSong().currentTime).formatted(.time(pattern: .minuteSecond)))
+            
+            let progressBar = progressBar(percentDone: Float(info.getCurSong().percentagePlayed) ,value: Float(info.getCurSong().currentTime), max: Float(info.getCurSong().duration), song: true, mixing: info.getCurSong().isMixing)
             //let tempProgBar = progressBar(value: 0.99, max: 1.0)
             //let tempProgBar = progressBar(value: 0.0001, max: 1.0)
             //let tempProgBar = progressBar(value: 0.5, max: 1.0)
             //currentDisplayLines.append("\(Duration.seconds(musicMonitor.currentTime).formatted(.time(pattern: .minuteSecond))) \(tempProgBar) \(Duration.seconds(musicMonitor.curSong.duration).formatted(.time(pattern: .minuteSecond)))")
-            currentDisplayLines.append(centerText(text:"\(Duration.seconds(info.getCurSong().currentTime).formatted(.time(pattern: .minuteSecond))) \(progressBar(value: Float(info.getCurSong().currentTime), max: Float(info.getCurSong().duration), song: true)) \(Duration.seconds(info.getCurSong().duration).formatted(.time(pattern: .minuteSecond)))"))
+            currentDisplayLines.append(centerText(text:"\(info.getCurSong().isMixing ? "Mixing ~ " : "")\(currentTime) \(progressBar) \(duration)"))
         }else{
             currentDisplayLines.append(centerText(text: "--Paused--"))
         } //Hiding progress bar if song is paused, showing paused text
@@ -109,26 +113,22 @@ class PageManager: ObservableObject {
     }
      */
     
-    func progressBar(value: Float, max: Float, song: Bool) -> String {
+    func progressBar(percentDone: Float, value: Float, max: Float, song: Bool, mixing: Bool) -> String {
         var fullBar: String = ""
         if song{
-            if value != 0.0 && max != 0.0 {
-                let constantWidth = Float(rm.getWidth(text: "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
-                
-                let workingWidth = (displayWidth-constantWidth)
-                
-                let percentage = value/max
-                
-                let percentCompleted = workingWidth * percentage
-                let percentRemaining = workingWidth * (1.0-percentage)
-                
-                let completed = String(repeating: "-", count: Int((percentCompleted / rm.getWidth(text: "-"))))
-                let remaining = String(repeating: "_", count: Int((percentRemaining / rm.getWidth(text: "_", overrideProgressBar: mirror))))
-                
-                fullBar = "[" + completed + "|" + remaining + "]"
-            }else{
-                fullBar = "Broken"
-            }
+            let percentage = percentDone
+            let constantWidth = Float(rm.getWidth(text: "\(mixing ? "Mixing ~ " : "")\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
+            
+            let workingWidth = (displayWidth-constantWidth)
+            
+            
+            
+            let percentCompleted = workingWidth * percentage
+            let percentRemaining = workingWidth * (1.0-percentage)
+            
+            let completed = String(repeating: "-", count: Int((percentCompleted / rm.getWidth(text: "-"))))
+            let remaining = String(repeating: "_", count: Int((percentRemaining / rm.getWidth(text: "_", overrideProgressBar: mirror))))
+            fullBar = "[" + completed + "|" + remaining + "]"
         }
         
         return fullBar

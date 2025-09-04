@@ -88,8 +88,8 @@ struct ContentView: View {
                                             Spacer()
                                             Text("\(Image(systemName: silentMode ? "checkmark.circle" : "x.circle"))")
                                                 .foregroundStyle(silentMode ?
-                                                                 (theme.darkMode ? theme.accentLight : theme.accentDark) :
-                                                                    (theme.darkMode ? theme.pri : theme.sec))
+                                                                 (!theme.darkMode ? theme.accentLight : theme.accentDark) :
+                                                                    (!theme.darkMode ? theme.pri : theme.sec))
                                         }
                                         .padding(.horizontal, buttonPadding)
                                     }
