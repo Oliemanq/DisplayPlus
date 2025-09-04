@@ -10,17 +10,16 @@ I set up a Ko-Fi! If you would like to support me, please consider donating!
  - Upcoming calendar 
  - Battery stats
  - Siri shortcuts/AppIntents support for a few actions 
- - Current weather, temp, and wind speed
-
-## Possible future features
- - Notification mirroring
+ - Current weather
  - glasses brightness
 
-## This is a NATIVE Swift/SwiftUI app that will replace the built in Even Realities app for Even Realities G1 glasses
+
+## This app is built from the ground up on Swift and SwiftUI, ideally as a replacement for the stock Even app
 I mainly wanted to do this to familiarize myself with swift/swiftui and many frameworks, like 
  - EventKit
  - MediaPlayer
  - BLE Communication
- - Notification management
+ - CoreLocation
+
 
 ## I am working on this fully in my free time, so don't expect a regular update cycle
