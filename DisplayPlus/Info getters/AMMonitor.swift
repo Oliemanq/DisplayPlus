@@ -53,7 +53,7 @@ class AMMonitor: ObservableObject {
         let isPaused = (player.playbackState == .paused)
         
         var isMixing: Bool
-        if player.currentPlaybackRate != 1.0 || player.playbackState == .seekingForward || player.playbackState == .seekingBackward {
+        if isPaused && (player.currentPlaybackRate != 1.0 || player.playbackState == .seekingForward || player.playbackState == .seekingBackward) {
             isMixing = true
             print("MIXING ------- \(player.currentPlaybackRate)")
         } else {
