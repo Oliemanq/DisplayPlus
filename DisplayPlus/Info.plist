@@ -6,6 +6,20 @@
 	<array>
 		<string>Oliemanq.DisplayPlus</string>
 	</array>
+	<key>CFBundleIcons</key>
+	<dict>
+		<key>CFBundlePrimaryIcon</key>
+		<dict>
+			<key>CFBundleIconFiles</key>
+			<array>
+				<string>AppIcon</string>
+			</array>
+			<key>UIPrerenderedIcon</key>
+			<false/>
+		</dict>
+	</dict>
+	<key>MKDirectionsApplicationSupportedModes</key>
+	<array/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
@@ -15,17 +29,5 @@
 		<string>location</string>
 		<string>processing</string>
 	</array>
-    <key>CFBundleIcons</key>
-          <dict>
-            <key>CFBundlePrimaryIcon</key>
-            <dict>
-              <key>CFBundleIconFiles</key>
-              <array>
-                <string>AppIcon</string>
-              </array>
-              <key>UIPrerenderedIcon</key>
-              <false/>
-            </dict>
-          </dict>
 </dict>
 </plist>

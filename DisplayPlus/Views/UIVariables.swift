@@ -6,6 +6,11 @@
 //
 import SwiftUI
 
+let smallBGHeight: CGFloat = 55
+let smallFGHeight: CGFloat = 35
+let bigBGHeight: CGFloat = 75
+let bigFGHeight: CGFloat = 55
+
 struct VisualEffectView: UIViewRepresentable {
     var effect: UIVisualEffect?
     func makeUIView(context: UIViewRepresentableContext<Self>) -> UIVisualEffectView { UIVisualEffectView() }
@@ -78,6 +83,7 @@ struct FloatingTextStyle: ViewModifier {
         }
     }
 }
+
 extension Text {
     func floatingTextStyle(prim: Color, sec: Color, text: String, namespace: Namespace.ID, scale: CGFloat?) -> some View {
         modifier(FloatingTextStyle(primaryColor: prim, secondaryColor: sec, text: text, namespace: namespace, scale: scale))
@@ -103,8 +109,6 @@ struct FloatingButtons: View {
     @Namespace private var namespace
     
     var body: some View {
-        let primaryColor = theme.primaryColor
-        let secondaryColor  = theme.secondaryColor
         
         ZStack {
             //Custon popup menu and buttons
@@ -129,11 +133,11 @@ struct FloatingButtons: View {
                                 ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                                     HStack(spacing: 0){
                                         Image(systemName: item.iconSystemName)
-                                            .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                            .floatingButtonStyle(prim: theme.pri, sec: theme.sec, namespace: namespace)
                                             .font(.system(size: 28))
                                         
                                         Text(item.extraText ?? "")
-                                            .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
+                                            .floatingTextStyle(prim: theme.pri, sec: theme.sec, text: item.extraText ?? "", namespace: namespace, scale: 1)
                                             .offset(x: -5)
                                     }
                                     .onTapGesture {
@@ -146,7 +150,7 @@ struct FloatingButtons: View {
                                 }.offset(x: -10)
                             }
                             Image(systemName: !isExpanded ? "folder.badge.plus" : "folder.fill.badge.plus")
-                                .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                .floatingButtonStyle(prim: theme.pri, sec: theme.sec, namespace: namespace)
                                 .font(.system(size: !isPressed ? 28 : 34))
                                 .onTapGesture {
                                     withAnimation {
@@ -180,9 +184,9 @@ struct FloatingButtons: View {
                             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                                 HStack(){
                                     Image(systemName: item.iconSystemName)
-                                        .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                        .floatingButtonStyle(prim: theme.pri, sec: theme.sec, namespace: namespace)
                                     Text(item.extraText ?? "")
-                                        .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: item.extraText ?? "", namespace: namespace, scale: 1)
+                                        .floatingTextStyle(prim: theme.pri, sec: theme.sec, text: item.extraText ?? "", namespace: namespace, scale: 1)
                                     Spacer()
                                 }
                                 .onTapGesture {
@@ -199,11 +203,11 @@ struct FloatingButtons: View {
                         }
                         HStack{
                             Image(systemName: "plus")
-                                .floatingButtonStyle(prim: primaryColor, sec: secondaryColor, namespace: namespace)
+                                .floatingButtonStyle(prim: theme.pri, sec: theme.sec, namespace: namespace)
                                 .animation(.easeInOut, value: isExpanded)
                                 .rotationEffect(.degrees(isExpanded ? 45 : 0))
                             Text("Other screens")
-                                .floatingTextStyle(prim: primaryColor, sec: secondaryColor, text: "Other screens", namespace: namespace, scale: 1)
+                                .floatingTextStyle(prim: theme.pri, sec: theme.sec, text: "Other screens", namespace: namespace, scale: 1)
                         }.onTapGesture {
                             withAnimation{
                                 isExpanded.toggle()
@@ -218,93 +222,176 @@ struct FloatingButtons: View {
 }
 
 //MARK: - General use view modifiers
-//Main style for custon buttons throughout the app
+
+//MARK: - General background modifiers
 extension View {
     @ViewBuilder
-    func mainButtonStyle(pri: Color, sec: Color, darkMode: Bool) -> some View {
-        if #available(iOS 26, *) {
+    //Modifier for contextual background of items
+    //If bg is true, it will just be a glass effect background without foreground color
+    func ContextualBG(themeIn: ThemeColors, bg: Bool = false, items: Int = 1, itemNum: Int = 1) -> some View {
+        let rounding: CGFloat = 12
+        
+        let top = items > 1 && itemNum == 1
+        let bottom = items > 1 && itemNum == items
+        //let middle = items > 1 && (!top && !bottom)
+        let alone = items == 1
+        
+        let darkMode = themeIn.darkMode
+        let pri = themeIn.pri
+        let sec = themeIn.sec
+        let priLightAlt = themeIn.priLightAlt
+        let secDarkAlt = themeIn.secDarkAlt
+//        let accentLight = themeIn.accentLight
+//        let accentDark = themeIn.accentDark
+        //Custom shape that allows the liquid glass to render properly
+        //Allows items in the same "set" to look more seemless
+        let shape: RoundedCorner = {
+            if items > 1 {
+                if top {
+                    return RoundedCorner(radius: rounding, corners: [.topLeft, .topRight])
+                } else if bottom {
+                    return RoundedCorner(radius: rounding, corners: [.bottomLeft, .bottomRight])
+                } else {
+                    return RoundedCorner(radius: 0, corners: [])
+                }
+            } else {
+                return RoundedCorner(radius: rounding, corners: .allCorners)
+            }
+        }()
+        
+        if bg {
             self
-                .glassEffect(.regular.tint(!darkMode ? pri.opacity(0.95) : sec.opacity(0.95)).interactive(true)) //, in: Rectangle()
-                .foregroundColor(darkMode ? pri : sec)
-
+                .padding(.vertical, alone ? 4 : -4)
+                .padding(.horizontal, 4)
+                .background(
+                    shape
+                        .foregroundStyle(darkMode ? pri : sec)
+                )
+                .overlay(
+                    shape
+                        .stroke(priLightAlt, lineWidth: alone ? 0.5 : 0)
+                )
+                .clipShape(shape)
         } else {
             self
-                .background(!darkMode ? pri : sec)
-                .foregroundColor(darkMode ? pri : sec)
-                .buttonStyle(.borderless)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-    }
-}
-
-//Extension for applying glass to items
-extension View {
-    @ViewBuilder
-    func glassListBG(pri: Color, sec: Color, darkMode: Bool, bg: Bool = false) -> some View {
-        if #available(iOS 26, *) {
-            
-            if bg{
-                let rounding: CGFloat = 12
-
-                self
-                    .padding(8)
-                    .background(
-                        RoundedRectangle(cornerRadius: rounding)
-                            .foregroundStyle(Color.clear)
-                            .glassEffect(darkMode ?  .clear : .clear.tint(Color.black.opacity(0.5)), in: RoundedRectangle(cornerRadius: rounding)) //.tint(sec.desaturated(amount: 0.75))
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: rounding))
-            }else{
-                let rounding: CGFloat = 12
-
-                self
-                    .padding(8)
-                    .background(
-                        RoundedRectangle(cornerRadius: rounding)
-                            .foregroundStyle(darkMode ? pri.opacity(0.6) : sec.opacity(0.85))
-                            //.glassEffect(.regular.tint(darkMode ? pri : sec),in: RoundedRectangle(cornerRadius: rounding))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: rounding)
-                                    .stroke(darkMode ? pri : sec, lineWidth: 1)
-                            )
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: rounding))
-            }
-        }else{
-            
-            if bg{
-                let rounding: CGFloat = 12
-
-                self
-                    .padding(8)
-                    .background(
-                        RoundedRectangle(cornerRadius: rounding)
-                            .foregroundStyle(.ultraThinMaterial)
-                            .opacity(0.9)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: rounding)
-                                    .stroke(darkMode ? pri : sec, lineWidth: 1)
-                            )
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: rounding))
-            }else{
-                let rounding: CGFloat = 12
-
-                self
-                    .padding(8)
-                    .background(
-                        RoundedRectangle(cornerRadius: rounding)
-                            .foregroundStyle(darkMode ? pri.opacity(0.6) : sec.opacity(0.85))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: rounding)
-                                    .stroke(!darkMode ? pri : sec, lineWidth: 0.5)
-                            )
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: rounding))
-            }
+                .padding(.horizontal, 8)
+                .padding(.vertical, alone ? 8 : 6)
+                .background(
+                    shape
+                        .foregroundStyle(darkMode ? priLightAlt : secDarkAlt)
+                        .overlay(
+                            shape
+                                .stroke(priLightAlt, lineWidth: alone ? 0.5 : 0)
+                        )
+                )
+                .clipShape(shape)
+                .foregroundStyle(!darkMode ? priLightAlt : secDarkAlt)
+                //.offset(x: 0, y: alone ? 0 : (bottom ? -6 : (top ? 6 : 0))) //Offset for multiple items
         }
     }
     
+    //Main style for custon buttons throughout the app
+    @ViewBuilder
+    func mainButtonStyle(themeIn: ThemeColors) -> some View {
+        let darkMode = themeIn.darkMode
+        let pri = themeIn.pri
+        let sec = themeIn.sec
+        let priLightAlt = themeIn.priLightAlt
+        let secDarkAlt = themeIn.secDarkAlt
+//        let accentLight = themeIn.accentLight
+//        let accentDark = themeIn.accentDark
+        
+        if #available(iOS 26, *) {
+            self
+                .glassEffect(.regular.interactive(true))
+                //.foregroundStyle(!darkMode ? pri : sec)
+                //.foregroundColor(accent)
+
+        } else {
+            self
+                .background(!darkMode ? priLightAlt : secDarkAlt)
+                .foregroundStyle(darkMode ? pri : sec)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+    
+    //Modifier for custom toolbar background and sizing
+    @ViewBuilder
+    func ToolBarBG(pri: Color, sec: Color, darkMode: Bool) -> some View {
+        if #available(iOS 26, *) {
+            
+            self
+                .foregroundStyle(!darkMode ? pri : sec)
+                .padding(8)
+                .glassEffect(.clear.interactive())
+        }else{
+            let rounding: CGFloat = 12
+            
+            self
+                .foregroundStyle(!darkMode ? pri : sec)
+                .padding(8)
+                .background(
+                    RoundedRectangle(cornerRadius: rounding)
+                        .foregroundStyle(darkMode ? pri.opacity(0.6) : sec.opacity(0.85))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: rounding)
+                                .stroke(!darkMode ? pri : sec, lineWidth: 0.5)
+                        )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: rounding))
+        }
+    }
+    
+    @ViewBuilder
+    func homeItem(themeIn: ThemeColors, subItem: Bool = false, small: Bool = false, height: CGFloat = 0) -> some View {
+        let screenWidth = UIScreen.main.bounds.width
+        //let screenHeight = UIScreen.main.bounds.height
+        
+        if subItem { //Non-background item
+            HStack{
+                self
+            }
+            .ContextualBG(themeIn: themeIn)
+        }else{ //Background item
+            HStack{
+                self
+            }
+            .frame(width: screenWidth * 0.9, height: (height == 0 ? bigBGHeight*(small ? 1.25 : 1.75) : height))
+            .padding(.horizontal, 6)
+            .ContextualBG(themeIn: themeIn, bg: true)
+        }
+    }
+    
+    @ViewBuilder
+    func infoItem(themeIn: ThemeColors, subItem: Bool = false, items: Int = 1, itemNum: Int = 1) -> some View {
+        let screenWidth = UIScreen.main.bounds.width
+        //let screenHeight = UIScreen.main.bounds.height
+        
+        self
+            .ContextualBG(themeIn: themeIn, items: items, itemNum: itemNum)
+            .frame(width: screenWidth * 0.9, height: subItem ?  smallBGHeight : bigBGHeight)
+            .ContextualBG(themeIn: themeIn, bg: true, items: items, itemNum: itemNum)
+        
+    }
+    
+    @ViewBuilder
+    func settingsItem(themeIn: ThemeColors, subItem: Bool = false, items: Int = 1, itemNum: Int = 1) -> some View {
+        let darkMode = themeIn.darkMode
+//        let pri = themeIn.pri
+//        let sec = themeIn.sec
+        let accentLight = themeIn.accentLight
+        let accentDark = themeIn.accentDark
+        
+        let screenWidth = UIScreen.main.bounds.width
+        //let screenHeight = UIScreen.main.bounds.height
+        
+        self
+            .padding(.horizontal, 12)
+            .tint(darkMode ? accentDark : accentLight)
+            .frame(width: screenWidth * 0.9, height: subItem ?  smallBGHeight : bigBGHeight)
+            .ContextualBG(themeIn: themeIn, bg: true, items: items, itemNum: itemNum)
+        
+    }
 }
 
 //Specific corner radius on each individual corner
@@ -322,6 +409,7 @@ struct RoundedCorner: Shape {
     }
 }
 
+//MARK: - Background grid
 //Grid function
 struct Grid: Shape {
     let spacing: CGFloat
@@ -351,6 +439,56 @@ struct Grid: Shape {
     }
 }
 
+func backgroundGrid(themeIn: ThemeColors) -> some View {
+    let theme: ThemeColors = themeIn
+    
+    // State variables to hold the customizable properties of the grid.
+    @State var lineColor: Color = theme.darkMode ? theme.pri : theme.sec
+    @State var lineWidth: CGFloat = 1
+    @State var spacing: CGFloat = 10
+    
+    
+    return ZStack{
+        if theme.darkMode {
+            LinearGradient(
+                gradient: Gradient(stops: [
+                    .init(color: theme.sec, location: 0.0), // Lighter color at top-left
+                    .init(color: theme.pri, location: 0.5),  // Transition to darker
+                    .init(color: theme.pri, location: 1.0)   // Darker color for the rest
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        } else {
+            LinearGradient(
+                gradient: Gradient(stops: [
+                    .init(color: theme.pri, location: 0.0), // Darker color at top-left
+                    .init(color: theme.sec, location: 0.5),  // Transition to lighter
+                    .init(color: theme.sec, location: 1.0)   // Lighter color for the rest
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        
+        Grid(spacing: spacing)
+            .stroke(lineColor, lineWidth: lineWidth)
+            .offset(x: -300, y: 25)
+            .rotationEffect(.degrees(45))
+        
+        LinearGradient(
+            gradient: Gradient(stops: [
+                .init(color: theme.darkMode ? theme.pri.opacity(0.95) : theme.sec.opacity(0.95), location: 0.05),
+                .init(color: Color.clear, location: 0.1)
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+
+    .edgesIgnoringSafeArea(.all)
+}
+
 //Quick modifier for colors that desaturates them by "amount" percentage
 extension Color {
     func desaturated(amount: CGFloat = 1) -> Color {
@@ -361,6 +499,23 @@ extension Color {
         // Reduce saturation by the given amount
         return Color(hue: Double(hue), saturation: Double(sat * (1 - amount)), brightness: Double(bri), opacity: Double(alpha))
     }
+    func moreSaturated(amount: CGFloat = 1) -> Color {
+        // Convert to UIColor
+        let uiColor = UIColor(self)
+        var hue: CGFloat = 0, sat: CGFloat = 0, bri: CGFloat = 0, alpha: CGFloat = 0
+        uiColor.getHue(&hue, saturation: &sat, brightness: &bri, alpha: &alpha)
+        // Reduce saturation by the given amount
+        return Color(hue: Double(hue), saturation: Double(sat * (1 + amount)), brightness: Double(bri), opacity: Double(alpha))
+    }
+    
+    func darker(by percentage: CGFloat = 0.2) -> Color {
+        let uiColor = UIColor(self)
+        var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
+        if uiColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha) {
+            return Color(UIColor(hue: hue, saturation: saturation, brightness: brightness * (1 - percentage), alpha: alpha))
+        }
+        return self
+    }
 }
 
 //MARK: - Preview
@@ -368,34 +523,33 @@ struct PreviewVars: View {
     var body: some View {
         let theme = ThemeColors()
         
-        let pri = theme.primaryColor
-        let sec = theme.secondaryColor
-        let darkMode = theme.darkMode
-        
-        var toggled: Bool = false
-        
         ZStack{
-            Grid(spacing: 20)
-                .stroke(toggled ? sec : pri)
-                .background(toggled ? pri : sec)
-                .ignoresSafeArea(edges: .all)
-            VStack{
-                Text("Main button style")
+            backgroundGrid(themeIn: theme)
+            ScrollView(.vertical){
+                VStack{
+                    Text("Main button style")
+                        .frame(width: 150, height: 40)
+                        .mainButtonStyle(themeIn: theme)
+                    Text("Rounded corner style")
+                        .frame(width: 200, height: 40)
+                        .foregroundStyle(theme.sec)
+                        .background(
+                            RoundedCorner(radius: 24 ,corners: [.topLeft, .bottomRight])
+                        )
+                    Text("Background glass")
+                        .foregroundStyle(theme.sec)
+                        .ContextualBG(themeIn: theme, bg: true)
+                    
+                    Button("Toggle UI colors"){
+                        theme.darkMode.toggle()
+                    }
                     .frame(width: 150, height: 40)
-                    .mainButtonStyle(pri: pri, sec: sec, darkMode: darkMode)
-                Text("Rounded corner style")
-                    .frame(width: 200, height: 40)
-                    .foregroundStyle(sec)
-                    .background(
-                        RoundedCorner(radius: 24 ,corners: [.topLeft, .bottomRight])
-                    )
-                Text("Background glass")
-                    .foregroundStyle(sec)
-                    .glassListBG(pri: pri, sec: sec, darkMode: darkMode, bg: true)
-                
-                Button("Toggle UI colors"){
-                    toggled.toggle()
-                }.mainButtonStyle(pri: pri, sec: sec, darkMode: darkMode)
+                    .mainButtonStyle(themeIn: theme)
+                    
+                    Text("Toolbar background")
+                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                }
+                .padding(.top, 250)
             }
         }
     }

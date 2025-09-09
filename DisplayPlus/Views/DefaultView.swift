@@ -1,0 +1,300 @@
+//
+//  DefaultView.swift
+//  DisplayPlus
+//
+//  Created by Oliver Heisel on 8/6/25.
+//
+
+import SwiftUI
+
+struct DefaultView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    
+    @ObservedObject var theme = ThemeColors()
+    
+    @StateObject private var info: InfoManager
+    @StateObject private var ble: G1BLEManager
+    @StateObject private var page: PageManager
+    @StateObject private var bg: BackgroundTaskManager
+    
+    var contentView: ContentView
+    var infoView: InfoView
+    var settingsView: SettingsView
+    
+    @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
+    @AppStorage("isPresentingScanView", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var isPresentingScanView: Bool = false
+    @AppStorage("FTUEFinished", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var FTUEFinished: Bool = false //First Time User Experience checker
+    @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
+    
+    
+    @State private var FTUEConnection: Bool = false
+    @State private var FTUEPages: Bool = false
+    
+    @Namespace private var namespace
+    
+    init(){
+        let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
+        let bleInstance = G1BLEManager()
+        let pageInstance = PageManager(info: infoInstance)
+        let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
+        
+        _info = StateObject(wrappedValue: infoInstance)
+        _ble = StateObject(wrappedValue: bleInstance)
+        _page = StateObject(wrappedValue: pageInstance)
+        _bg = StateObject(wrappedValue: bgInstance)
+        
+        contentView = ContentView(infoInstance: infoInstance, bleInstance: bleInstance, bgInstance: bgInstance)
+        infoView = InfoView(infoIn: infoInstance, bleIn: bleInstance)
+        settingsView = SettingsView(bleIn: bleInstance, infoIn: infoInstance)
+    }
+    var body: some View {
+        TabView {
+            Tab("Home", systemImage: "eyeglasses") {
+                ContentView(infoInstance: info, bleInstance: ble, bgInstance: bg)
+            }
+            Tab("Info", systemImage: "info.square") {
+                InfoView(infoIn: info, bleIn: ble)
+            }
+            Tab("Settings", systemImage: "gear") {
+                SettingsView(bleIn: ble, infoIn: info)
+            }
+        }
+        .environmentObject(theme)
+        .tint(theme.darkMode ? theme.accentLight : theme.accentDark)
+        //Custon toolbar
+        .safeAreaInset(edge: .bottom) {
+            if #available (iOS 26, *){
+                GlassEffectContainer(spacing: 10){
+                    HStack(){
+                        Menu("\(ble.connectionStatus)") {
+                            if ble.connectionState == .connectedBoth{
+                                Button("Disconnect"){
+                                    Task{
+                                        await bg.disconnectProper()
+                                    }
+                                }
+                            }else{
+                                Button("Start Scan"){
+                                    withAnimation{
+                                        FTUEConnection = true
+                                    }
+                                    ble.startScan()
+                                    isPresentingScanView = true
+                                }
+                            }
+                        }
+                            .frame(width: 110)
+                            .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                            .glassEffectID("toolbar", in: namespace)
+                        
+                        Menu("Pages \(Image(systemName: "folder.badge.gear"))") {
+                            if currentPage == "Calendar"{
+                                Text("Calendar")
+                            }else{
+                                Button("\(Image(systemName: "calendar")) Calendar") {
+                                    withAnimation {
+                                        FTUEPages = true
+                                    }
+                                    currentPage = "Calendar"
+                                }
+                            }
+                            if currentPage == "Music"{
+                                Text("Music")
+                            }else{
+                                Button("\(Image(systemName: "music.note.list")) Music") {
+                                    withAnimation {
+                                        FTUEPages = true
+                                    }
+                                    currentPage = "Music"
+                                }
+                            }
+                            if currentPage == "Default"{
+                                Text("Default")
+                            }else{
+                                Button("\(Image(systemName: "house.fill")) Default") {
+                                    withAnimation {
+                                        FTUEPages = true
+                                    }
+                                    currentPage = "Default"
+                                }
+                            }
+                        }
+                        .frame(width: 80)
+                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                        .glassEffectID("toolbar", in: namespace)
+                        
+//                        Button("Force") {
+//                            bg.forceUpdateInfo = true
+//                        }
+//                        .frame(width: 70)
+//                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+//                        .glassEffectID("toolbar", in: namespace)
+                    }
+                    
+                    if !FTUEFinished {
+                        HStack(spacing: -3){
+                            if !FTUEConnection {
+                                VStack{
+                                    Text("Click the 'Disconnected' button to pair glasses")
+                                        .multilineTextAlignment(.center)
+                                    Image(systemName: "arrow.down")
+                                }
+                                .offset(x: -55, y: -55)
+                                .frame(width: 200)
+                                .foregroundStyle(theme.darkMode ? theme.sec : theme.pri)
+                            }
+                            if !FTUEPages && ble.connectionState == .connectedBoth {
+                                VStack{
+                                    Text("Click 'Pages' to change the active screen on the glasses")
+                                        .multilineTextAlignment(.center)
+                                    Image(systemName: "arrow.down")
+                                }
+                                .foregroundStyle(theme.darkMode ? theme.sec : theme.pri)
+                                .offset(x: 70, y: -55)
+                                .frame(width: 225)
+                            }
+                        }
+                    }
+                }
+                .offset(y: -55)
+                
+            }else{
+                ZStack{
+                    HStack(spacing: 10){
+//                        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+//                            Button("Toggle FTUEFinished"){
+//                                FTUEFinished.toggle()
+//                            }
+//                            .frame(width: 200)
+//                            .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+//                        }
+                        
+                        Menu("\(ble.connectionStatus)") {
+                            if ble.connectionState == .connectedBoth{
+                                Button("Disconnect"){
+                                    Task{
+                                        await bg.disconnectProper()
+                                    }
+                                }
+                            }else{
+                                Button("Start Scan"){
+                                    withAnimation{
+                                        FTUEConnection = true
+                                    }
+                                    ble.startScan()
+                                    isPresentingScanView = true
+                                }
+                            }
+                        }
+                        .frame(width: 110)
+                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                        
+                        Menu("Pages \(Image(systemName: "folder.badge.gear"))") {
+                            Button("\(Image(systemName: "house.fill")) Default") {
+                                withAnimation {
+                                    FTUEPages = true
+                                }
+                                currentPage = "Default"
+                            }
+                            Button("\(Image(systemName: "music.note.list")) Music") {
+                                withAnimation {
+                                    FTUEPages = true
+                                }
+                                currentPage = "Music"
+                            }
+                            Button("\(Image(systemName: "calendar")) Calendar") {
+                                withAnimation {
+                                    FTUEPages = true
+                                }
+                                currentPage = "Calendar"
+                            }
+                        }
+                        .frame(width: 120)
+                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                    }
+                    
+                    if !FTUEFinished {
+                        HStack(spacing: -3){
+                            if !FTUEConnection {
+                                VStack{
+                                    Text("Click the 'Disconnected' button to pair glasses")
+                                        .multilineTextAlignment(.center)
+                                    Image(systemName: "arrow.down")
+                                }
+                                .offset(x: -75, y: -55)
+                                .frame(width: 200)
+                            }
+                            if !FTUEPages && ble.connectionState == .connectedBoth {
+                                VStack{
+                                    Text("Click 'Pages' to change the active screen on the glasses")
+                                        .multilineTextAlignment(.center)
+                                    Image(systemName: "arrow.down")
+                                }
+                                .offset(x: 70, y: -55)
+                                .frame(width: 225)
+                            }
+                        }
+                    }
+                }
+                .offset(y: -50)
+
+            }
+        }
+        //onAppear actions for entire app
+        .onAppear(){
+            ble.connectionStatus = "Disconnected"
+            ble.connectionState = .disconnected
+            theme.darkMode = colorScheme == .dark
+            
+            info.updateAll()
+            
+            bg.startTimer() // Start the background task timer
+        }
+        //Managing dark mode updates
+        .onChange(of: colorScheme) { _, newScheme in
+            // Update the theme whenever the color scheme changes (use newScheme, second param)
+            theme.darkMode = (newScheme == .dark)
+        }
+        //Toggling main FTUE flag when completing final page
+        .onChange(of: FTUEPages) { newScheme, _ in
+            FTUEFinished = true
+        }
+        //Preventing delays from waiting for bg timer when changing pages
+        .onChange(of: displayOn) {
+            print("display \(displayOn ? "on" : "off")")
+            if !displayOn {
+                ble.sendBlank()
+            } else {
+                info.changed = true
+            }
+        }
+        .onChange(of: connectionState) { newValue in
+            if newValue == .connectedBoth {
+                ble.fetchBrightness()
+                ble.fetchSilentMode()
+                ble.fetchGlassesBattery()
+            }
+    }
+}
+
+class ThemeColors: ObservableObject {
+//    @Published var pri: Color = Color(red: 10/255, green: 25/255, blue: 10/255)
+//    @Published var sec: Color = Color(red: 175/255, green: 220/255, blue: 175/255)
+    @Published var pri: Color = Color(hue: 120/360, saturation: 0.03, brightness: 0.08) //Dark main
+    @Published var sec: Color = Color(hue: 120/360, saturation: 0.03, brightness: 0.925) //Light main
+
+    @Published var priLightAlt: Color = Color(hue: 120/360, saturation: 0.01, brightness: 0.125)
+    @Published var secDarkAlt: Color = Color(hue: 120/360, saturation: 0.01, brightness: 0.95)
+
+    @Published var accentLight: Color = Color(hue: 120/360, saturation: 0.6, brightness: 0.74) //Green accent light
+    @Published var accentDark: Color = Color(hue: 120/360, saturation: 0.6, brightness: 0.75) //Green accent dark
+
+    @Published var backgroundLight: Color = Color(hue: 120/360, saturation: 0.02, brightness: 0.98)
+    @Published var backgroundDark: Color = Color(hue: 120/360, saturation: 0.0, brightness: 0.12)
+    
+    @Published var darkMode: Bool = false
+}
+
+#Preview {
+    DefaultView()
+}
