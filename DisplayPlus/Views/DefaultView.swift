@@ -268,6 +268,12 @@ struct DefaultView: View {
                 info.changed = true
             }
         }
+        .onChange(of: connectionState) { newValue in
+            if newValue == .connectedBoth {
+                ble.fetchBrightness()
+                ble.fetchSilentMode()
+                ble.fetchGlassesBattery()
+            }
     }
 }
 

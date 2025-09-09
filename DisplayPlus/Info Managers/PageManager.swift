@@ -93,12 +93,12 @@ class PageManager: ObservableObject {
         
         currentDisplayLines.append((centerText(text: "\(title) - \(artist)"))) //Appening song info
         
-        if !info.getCurSong().isPaused{
-            let duration = String(describing: Duration.seconds(info.getCurSong().duration).formatted(.time(pattern: .minuteSecond)))
-            let currentTime = String(describing: Duration.seconds(info.getCurSong().currentTime).formatted(.time(pattern: .minuteSecond)))
+        if !curSong.isPaused{
+            let duration = String(describing: Duration.seconds(curSong.duration).formatted(.time(pattern: .minuteSecond)))
+            let currentTime = String(describing: Duration.seconds(curSong.currentTime).formatted(.time(pattern: .minuteSecond)))
             
-            let progressBar = progressBar(percentDone: info.getCurSong().percentagePlayed ,value: info.getCurSong().currentTime, max: info.getCurSong().duration, song: true, mixing: info.getCurSong().isMixing)
-            currentDisplayLines.append(centerText(text:"\(info.getCurSong().isMixing ? "Mixing ~ " : "")\(currentTime) \(progressBar) \(duration)"))
+            let progressBar = progressBar(percentDone: curSong.percentagePlayed ,value: curSong.currentTime, max: curSong.duration)
+            currentDisplayLines.append(centerText(text:"\(currentTime) \(progressBar) \(duration)"))
         }else{
             currentDisplayLines.append(centerText(text: "--Paused--"))
         } //Hiding progress bar if song is paused, showing paused text
@@ -139,21 +139,20 @@ class PageManager: ObservableObject {
     }
      */
     
-    func progressBar(percentDone: CGFloat, value: CGFloat, max: CGFloat, song: Bool, mixing: Bool) -> String {
+    func progressBar(percentDone: CGFloat, value: CGFloat, max: CGFloat) -> String {
         var fullBar: String = ""
-        if song{
-            let percentage = percentDone
-            let constantWidth = CGFloat(rm.getWidth(text: "\(mixing ? "Mixing ~ " : "")\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
-            
-            let workingWidth = (displayWidth-constantWidth)
-            
-            let percentCompleted = workingWidth * percentage
-            let percentRemaining = workingWidth * (1.0-percentage)
-            
-            let completed = String(repeating: "-", count: Int((percentCompleted / rm.getWidth(text: "-"))))
-            let remaining = String(repeating: "_", count: Int((percentRemaining / rm.getWidth(text: "_", overrideProgressBar: mirror))))
-            fullBar = "[" + completed + "|" + remaining + "]"
-        }
+        let percentage = percentDone
+        let constantWidth = CGFloat(rm.getWidth(text: "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
+        
+        let workingWidth = (displayWidth-constantWidth)
+        
+        let percentCompleted = workingWidth * percentage
+        let percentRemaining = workingWidth * (1.0-percentage)
+        
+        let completed = String(repeating: "-", count: Int((percentCompleted / rm.getWidth(text: "-"))))
+        let remaining = String(repeating: "_", count: Int((percentRemaining / rm.getWidth(text: "_", overrideProgressBar: mirror))))
+        fullBar = "[" + completed + "|" + remaining + "]"
+        
         
         return fullBar
     }

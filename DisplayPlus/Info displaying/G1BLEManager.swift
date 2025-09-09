@@ -161,11 +161,6 @@ class G1BLEManager: NSObject, ObservableObject{
         print("Disconnected from G1 glasses.")
     }
     
-    /// Write data to left, right, or both arms. By default, writes to both.
-    /// - Parameters:
-    ///   - data: The data to send
-    ///   - arm: "L", "R", or "Both"
-    ///
     //MARK: - Main writeData function
     func writeData(_ data: Data, to arm: String = "Both") {
         switch arm {
@@ -542,6 +537,7 @@ extension G1BLEManager: CBPeripheralDelegate {
         else if peripheral == rightPeripheral, rightRChar != nil, rightWChar != nil {
             sendInitCommand(arm: "R")
         }
+        
     }
     
     //didUpdateNoficicationState handling

@@ -34,7 +34,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     @Published var healthData: RingData = RingData(steps: 0, exercise: 0, standHours: 0) // Mark with @Published
 
     // Music var
-    @Published var currentSong: Song = Song(title: "", artist: "", album: "", duration: 0.0, currentTime: 0.0, isPaused: true, isMixing: false) // Mark with @Published, provide default
+    @Published var currentSong: Song = Song(title: "", artist: "", album: "", duration: 0.0, currentTime: 0.0, isPaused: true) // Mark with @Published, provide default
 
     init (cal: CalendarManager, music: AMMonitor, weather: WeatherManager, health: HealthInfoGetter) {
         self.cal = cal
@@ -47,7 +47,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     }
     
     //MARK: - Update functions
-    public func updateAll() {
+    @MainActor public func updateAll() {
         updateTime()
         updateBattery()
         updateCalendar()
@@ -88,7 +88,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
             }
         }
     }
-    public func updateMusic() {
+    @MainActor public func updateMusic() {
         if getMusicAuthStatus() {
             music.updateCurrentSong()
             if currentSong.title != music.curSong.title || currentSong.isPaused != music.curSong.isPaused || currentSong.currentTime != music.curSong.currentTime {
@@ -228,7 +228,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
      */
     
     
-    func getMusicAuthStatus() -> Bool {
+    @MainActor func getMusicAuthStatus() -> Bool {
         return music.getAuthStatus() // Return the music authorization status
     }
     func getCalendarAuthStatus() -> Bool {

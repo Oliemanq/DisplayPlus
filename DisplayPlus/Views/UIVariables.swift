@@ -304,7 +304,7 @@ extension View {
         if #available(iOS 26, *) {
             self
                 .glassEffect(.regular.interactive(true))
-                .foregroundStyle(!darkMode ? pri : sec)
+                //.foregroundStyle(!darkMode ? pri : sec)
                 //.foregroundColor(accent)
 
         } else {
