@@ -5,6 +5,7 @@
 //  Created by Oliver Heisel on 5/8/25.
 //
 import SwiftUI
+import Foundation
 
 public class RenderingManager {
     var DisplayWidth = 576
@@ -128,8 +129,8 @@ public class RenderingManager {
         
         if let keyDict = key {
             for (k, v) in keyDict {
-                if let intValue = v as? Float {
-                    tempDict[k] = 100 / intValue 
+                if let intValue = v as? Int {
+                    tempDict[k] = 100.0 / Float(intValue)
                 }
             }
         }
@@ -137,18 +138,36 @@ public class RenderingManager {
     }
     
     func getWidth(text: String, overrideProgressBar: Bool = false) -> CGFloat {
+        print(overrideProgressBar ? "Overriding progress bar" : "")
         
         var totalWidth: CGFloat = 0
         for char in text {
-            if overrideProgressBar {
+            if isJapanese(char: char) {
+                totalWidth += CGFloat(100.0 / 32) // Assuming Japanese characters are wide, like 'M'
+            } else if overrideProgressBar {
                 if text == "_" {
                     totalWidth += CGFloat(charWidth[String("-")] ?? 100/32)
                 }
             } else {
-                totalWidth += CGFloat(charWidth[String(char)] ?? 100/32)
+                totalWidth += CGFloat(charWidth[String(char)] ?? 100.0/48.0)
             }
         }
         return totalWidth
+    }
+    
+    func isJapanese(char: Character) -> Bool {
+        for scalar in char.unicodeScalars {
+            let value = scalar.value
+            // Hiragana, Katakana, CJK Unified Ideographs (Kanji)
+            if (value >= 0x3040 && value <= 0x309F) || // Hiragana
+               (value >= 0x30A0 && value <= 0x30FF) || // Katakana
+               (value >= 0x4E00 && value <= 0x9FAF) {  // CJK Unified Ideographs (Kanji)
+                print("Japanese char: \(char)")
+                return true
+            }
+        }
+        print("non-Japanese char: \(char)")
+        return false
     }
     
     func fitOnScreen(text: String) -> String {
