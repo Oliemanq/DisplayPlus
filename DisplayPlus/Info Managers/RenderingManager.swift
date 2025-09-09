@@ -149,7 +149,7 @@ public class RenderingManager {
                     totalWidth += CGFloat(charWidth[String("-")] ?? 100/32)
                 }
             } else {
-                totalWidth += CGFloat(charWidth[String(char)] ?? 100.0/48.0)
+                totalWidth += CGFloat(charWidth[String(char)] ?? 48/100)
             }
         }
         return totalWidth
