@@ -62,22 +62,21 @@ class PageManager: ObservableObject {
             let separatorWidth = rm.getWidth(text: " - ")
             let dotWidth = rm.getWidth(text: "...")
             
-            // Iteratively shorten artist/title until it fits or strings are empty
-            while true {
-                let titleWidth = rm.getWidth(text: title)
-                let artistWidth = rm.getWidth(text: artist)
-                
-                if titleWidth + artistWidth + dotWidth*2 <= displayWidth - separatorWidth {
-                    break
-                }
-                
-                // Prefer shortening the longer one first; keep artist above a small threshold before switching
-                if artistWidth + dotWidth > 50, !artist.isEmpty {
-                    artist = String(artist.dropLast())
-                    artistShortened = true
-                } else if !title.isEmpty {
+            var titleWidth = rm.getWidth(text: title)
+            var artistWidth = rm.getWidth(text: artist)
+            
+            while titleWidth + artistWidth + separatorWidth + (titleShortened ? dotWidth : 0) + (artistShortened ? dotWidth : 0) > displayWidth {
+                let canShortenTitle = title.count > 0
+                let canShortenArtist = artist.count > 0
+
+                if canShortenTitle && (!canShortenArtist || titleWidth >= artistWidth) {
                     title = String(title.dropLast())
+                    titleWidth = rm.getWidth(text: title)
                     titleShortened = true
+                } else if canShortenArtist {
+                    artist = String(artist.dropLast())
+                    artistWidth = rm.getWidth(text: artist)
+                    artistShortened = true
                 } else {
                     break
                 }

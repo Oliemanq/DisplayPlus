@@ -137,9 +137,7 @@ public class RenderingManager {
         return tempDict
     }
     
-    func getWidth(text: String, overrideProgressBar: Bool = false) -> CGFloat {
-        print(overrideProgressBar ? "Overriding progress bar" : "")
-        
+    func getWidth(text: String, overrideProgressBar: Bool = false) -> CGFloat {        
         var totalWidth: CGFloat = 0
         for char in text {
             if isJapanese(char: char) {
@@ -162,11 +160,9 @@ public class RenderingManager {
             if (value >= 0x3040 && value <= 0x309F) || // Hiragana
                (value >= 0x30A0 && value <= 0x30FF) || // Katakana
                (value >= 0x4E00 && value <= 0x9FAF) {  // CJK Unified Ideographs (Kanji)
-                print("Japanese char: \(char)")
                 return true
             }
         }
-        print("non-Japanese char: \(char)")
         return false
     }
     
