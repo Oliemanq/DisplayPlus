@@ -56,41 +56,30 @@ class PageManager: ObservableObject {
 //        print("Fits on screen: \(rm.doesFitOnScreen(text: "\(title) - \(artist)"))")
         
         if !rm.doesFitOnScreen(text: "\(title) - \(artist)") {
-            var artistShortened = false
-            var titleShortened = false
+            let separator = " - "
+            let separatorWidth = rm.getWidth(text: separator)
+            let ellipsis = "..."
+            let ellipsisWidth = rm.getWidth(text: ellipsis)
             
-            let separatorWidth = rm.getWidth(text: " - ")
-            let dotWidth = rm.getWidth(text: "...")
+            let maxArtistWidth = displayWidth * 0.7
             
-            var titleWidth = rm.getWidth(text: title)
-            var artistWidth = rm.getWidth(text: artist)
-            
-            while titleWidth + artistWidth + separatorWidth + (titleShortened ? dotWidth : 0) + (artistShortened ? dotWidth : 0) > displayWidth {
-                let canShortenTitle = title.count > 0
-                let canShortenArtist = artist.count > 0
-
-                if canShortenTitle && (!canShortenArtist || titleWidth >= artistWidth) {
-                    title = String(title.dropLast())
-                    titleWidth = rm.getWidth(text: title)
-                    titleShortened = true
-                } else if canShortenArtist {
-                    artist = String(artist.dropLast())
-                    artistWidth = rm.getWidth(text: artist)
-                    artistShortened = true
-                } else {
-                    break
-                }
+            // 1. Shorten artist ONLY if it's longer than 70% of the screen
+            if rm.getWidth(text: artist) > maxArtistWidth {
+                let newArtistLength = findBestFit(text: artist, availableWidth: maxArtistWidth - ellipsisWidth)
+                artist = String(artist.prefix(newArtistLength)) + ellipsis
             }
             
-            if artistShortened {
-                artist.append("...")
-            }
-            if titleShortened {
-                title.append("...")
+            // 2. Calculate available width for title based on the (potentially shortened) artist
+            let availableTitleWidth = displayWidth - rm.getWidth(text: artist) - separatorWidth
+            
+            // 3. Shorten title if it doesn't fit in the remaining space
+            if rm.getWidth(text: title) > availableTitleWidth {
+                let newTitleLength = findBestFit(text: title, availableWidth: availableTitleWidth - ellipsisWidth)
+                title = String(title.prefix(newTitleLength)) + ellipsis
             }
         }
         
-        currentDisplayLines.append((centerText(text: "\(title) - \(artist)"))) //Appening song info
+        currentDisplayLines.append((centerText(text: "\(title)\(artist.isEmpty ? "" : " - ")\(artist)"))) //Appending song info
         
         if !curSong.isPaused{
             let duration = String(describing: Duration.seconds(curSong.duration).formatted(.time(pattern: .minuteSecond)))
@@ -168,5 +157,23 @@ class PageManager: ObservableObject {
             let FinalText = padding + text
             return FinalText
         }
+    }
+    
+    func findBestFit(text: String, availableWidth: CGFloat) -> Int {
+        var lowerBound = 0
+        var upperBound = text.count
+        var bestFit = 0
+
+        while lowerBound <= upperBound {
+            let mid = (lowerBound + upperBound) / 2
+            let prefix = String(text.prefix(mid))
+            if rm.getWidth(text: prefix) <= availableWidth {
+                bestFit = mid
+                lowerBound = mid + 1
+            } else {
+                upperBound = mid - 1
+            }
+        }
+        return bestFit
     }
 }
