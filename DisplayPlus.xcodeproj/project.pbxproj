@@ -65,6 +65,7 @@
 		4E01F5A62E733A9900104D9E /* Exceptions for "DisplayPlus" folder in "DisplayPlusWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AppIntents.swift,
 				"Info Managers/DisplayPlusLiveActivityAttributes.swift",
 			);
 			target = 4E627B932E72676F00E38E36 /* DisplayPlusWidgetExtension */;
