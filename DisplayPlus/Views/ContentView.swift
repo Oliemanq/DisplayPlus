@@ -324,8 +324,9 @@ struct ContentView: View {
 
 
 #Preview {
+    let laInstance = LiveActivityManager()
     let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
-    let bleInstance = G1BLEManager() 
+    let bleInstance = G1BLEManager(liveIn: laInstance)
     let pageInstance = PageManager(info: infoInstance)
     let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
     

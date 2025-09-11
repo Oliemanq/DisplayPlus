@@ -100,6 +100,6 @@ struct InfoView: View {
 
 
 #Preview {
-    InfoView(infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter()), bleIn: G1BLEManager())
+    InfoView(infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter()), bleIn: G1BLEManager(liveIn: LiveActivityManager()))
         .environmentObject(ThemeColors())
 }

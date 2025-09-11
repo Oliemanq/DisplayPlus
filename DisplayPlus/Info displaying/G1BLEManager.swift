@@ -38,7 +38,7 @@ class G1BLEManager: NSObject, ObservableObject{
     @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
     @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
 
- 
+    private var la: LiveActivityManager
     
     private var reconnectAttempts: [UUID: Int] = [:]
     private let maxReconnectAttempts = 5
@@ -86,7 +86,8 @@ class G1BLEManager: NSObject, ObservableObject{
 
     @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
 
-    override init() {
+    init(liveIn: LiveActivityManager) {
+        la = liveIn
         super.init()
         // Initialize CoreBluetooth central
         centralManager = CBCentralManager(delegate: self, queue: nil)
@@ -816,6 +817,7 @@ extension G1BLEManager: CBPeripheralDelegate {
             }
         }
         WidgetCenter.shared.reloadAllTimelines()
+        la.updateActivity()
     }
     private func disconnectFromMessage(){
         disconnect()

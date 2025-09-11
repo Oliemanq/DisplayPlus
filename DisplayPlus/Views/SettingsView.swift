@@ -17,6 +17,7 @@ struct SettingsView: View {
     @StateObject private var ble: G1BLEManager
     @StateObject private var info: InfoManager
     @EnvironmentObject var theme: ThemeColors
+    @StateObject private var la: LiveActivityManager
     
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
     @AppStorage("headsUpEnabled", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var headsUp: Bool = false
@@ -29,15 +30,18 @@ struct SettingsView: View {
     // Add a debounce timer
     @State private var debounceTimer: Timer?
     
+    @State private var showingActivity = false
+    
     // Display helper for fixed location city (uses published weather.currentCity)
     private var fixedCityDisplay: String {
         if fixedLatitude == 0 && fixedLongitude == 0 { return "Not set" }
         return info.weather.currentCity ?? "Resolving..."
     }
     
-    init(bleIn: G1BLEManager, infoIn: InfoManager){
+    init(bleIn: G1BLEManager, infoIn: InfoManager, liveIn: LiveActivityManager){
         _ble = StateObject(wrappedValue: bleIn)
         _info = StateObject(wrappedValue: infoIn)
+        _la = StateObject(wrappedValue: liveIn)
     }
 
     var body: some View {
@@ -100,6 +104,27 @@ struct SettingsView: View {
                             .settingsItem(themeIn: theme, items: 3, itemNum: 3)
                             .offset(y: -16)
                         }
+                        
+                        HStack {
+                            Text("Live Activity \(showingActivity ? "" : "not ")running")
+                            Spacer()
+                            Button("\(Image(systemName: showingActivity ? "stop.circle" : "play.circle"))") {
+                                if showingActivity {
+                                    showingActivity = false
+                                    la.stopActivity()
+                                } else {
+                                    showingActivity = true
+                                    la.startActivity()
+                                }
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 24)
+                            .font(.system(size: 24))
+                            .mainButtonStyle(themeIn: theme)
+                                
+                        }
+                        .settingsItem(themeIn: theme)
+                        
                     }
                 }
             }
@@ -126,7 +151,7 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView(bleIn: G1BLEManager(), infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter()))
+    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter()), liveIn: LiveActivityManager())
         .environmentObject(ThemeColors())
 
 }

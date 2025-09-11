@@ -16,10 +16,7 @@ struct DefaultView: View {
     @StateObject private var ble: G1BLEManager
     @StateObject private var page: PageManager
     @StateObject private var bg: BackgroundTaskManager
-    
-    var contentView: ContentView
-    var infoView: InfoView
-    var settingsView: SettingsView
+    @StateObject private var la: LiveActivityManager
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     @AppStorage("isPresentingScanView", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var isPresentingScanView: Bool = false
@@ -33,8 +30,10 @@ struct DefaultView: View {
     @Namespace private var namespace
     
     init(){
+        
+        let laInstance = LiveActivityManager()
         let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
-        let bleInstance = G1BLEManager()
+        let bleInstance = G1BLEManager(liveIn: laInstance)
         let pageInstance = PageManager(info: infoInstance)
         let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
         
@@ -42,10 +41,7 @@ struct DefaultView: View {
         _ble = StateObject(wrappedValue: bleInstance)
         _page = StateObject(wrappedValue: pageInstance)
         _bg = StateObject(wrappedValue: bgInstance)
-        
-        contentView = ContentView(infoInstance: infoInstance, bleInstance: bleInstance, bgInstance: bgInstance)
-        infoView = InfoView(infoIn: infoInstance, bleIn: bleInstance)
-        settingsView = SettingsView(bleIn: bleInstance, infoIn: infoInstance)
+        _la = StateObject(wrappedValue: laInstance)
     }
     var body: some View {
         TabView {
@@ -56,7 +52,7 @@ struct DefaultView: View {
                 InfoView(infoIn: info, bleIn: ble)
             }
             Tab("Settings", systemImage: "gear") {
-                SettingsView(bleIn: ble, infoIn: info)
+                SettingsView(bleIn: ble, infoIn: info, liveIn: la)
             }
         }
         .environmentObject(theme)

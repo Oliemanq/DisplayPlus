@@ -62,6 +62,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4E01F5A62E733A9900104D9E /* Exceptions for "DisplayPlus" folder in "DisplayPlusWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Info Managers/DisplayPlusLiveActivityAttributes.swift",
+			);
+			target = 4E627B932E72676F00E38E36 /* DisplayPlusWidgetExtension */;
+		};
 		4E627BAA2E72677000E38E36 /* Exceptions for "DisplayPlusWidget" folder in "DisplayPlusWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -91,6 +98,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				4EC790A92DDFC63700DE5DB2 /* Exceptions for "DisplayPlus" folder in "DisplayPlus" target */,
+				4E01F5A62E733A9900104D9E /* Exceptions for "DisplayPlus" folder in "DisplayPlusWidgetExtension" target */,
 			);
 			path = DisplayPlus;
 			sourceTree = "<group>";
@@ -613,6 +621,7 @@
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app saves your workout data to your health profile.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app needs your location to provide weather updates even when the app is in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to provide weather updates.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -657,6 +666,7 @@
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app saves your workout data to your health profile.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app needs your location to provide weather updates even when the app is in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to provide weather updates.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

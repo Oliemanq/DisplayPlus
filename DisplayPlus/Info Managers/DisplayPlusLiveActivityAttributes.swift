@@ -1,7 +1,17 @@
-import Foundation
+//
+//  DisplayPlusLiveActivityAttributes.swift
+//  DisplayPlus
+//
+//  Created by Oliver Heisel on 9/11/25.
+//
+
 import ActivityKit
+import SwiftUI
+
 
 struct DisplayPlusWidgetAttributes: ActivityAttributes {
+    public typealias BatteryActivityStatus = ContentState
+    
     public struct ContentState: Codable, Hashable {
         // Dynamic stateful properties about your activity go here!
         var glassesBattery: Float
