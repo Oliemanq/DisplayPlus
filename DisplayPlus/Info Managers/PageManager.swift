@@ -63,19 +63,23 @@ class PageManager: ObservableObject {
             
             let maxArtistWidth = displayWidth * 0.7
             
-            // 1. Shorten artist ONLY if it's longer than 70% of the screen
-            if rm.getWidth(text: artist) > maxArtistWidth {
-                let newArtistLength = findBestFit(text: artist, availableWidth: maxArtistWidth - ellipsisWidth)
-                artist = String(artist.prefix(newArtistLength)) + ellipsis
-            }
-            
-            // 2. Calculate available width for title based on the (potentially shortened) artist
-            let availableTitleWidth = displayWidth - rm.getWidth(text: artist) - separatorWidth
-            
-            // 3. Shorten title if it doesn't fit in the remaining space
-            if rm.getWidth(text: title) > availableTitleWidth {
-                let newTitleLength = findBestFit(text: title, availableWidth: availableTitleWidth - ellipsisWidth)
-                title = String(title.prefix(newTitleLength)) + ellipsis
+            do {
+                // 1. Shorten artist ONLY if it's longer than 70% of the screen
+                if rm.getWidth(text: artist) > maxArtistWidth {
+                    let newArtistLength = findBestFit(text: artist, availableWidth: maxArtistWidth - ellipsisWidth)
+                    artist = String(artist.prefix(newArtistLength)) + ellipsis
+                }
+                
+                // 2. Calculate available width for title based on the (potentially shortened) artist
+                let availableTitleWidth = displayWidth - rm.getWidth(text: artist) - separatorWidth
+                
+                // 3. Shorten title if it doesn't fit in the remaining space
+                if rm.getWidth(text: title) > availableTitleWidth {
+                    let newTitleLength = findBestFit(text: title, availableWidth: availableTitleWidth - ellipsisWidth)
+                    title = String(title.prefix(newTitleLength)) + ellipsis
+                }
+            } catch {
+                print("Error fitting text: \(error)")
             }
         }
         
@@ -130,16 +134,21 @@ class PageManager: ObservableObject {
     func progressBar(percentDone: CGFloat, value: CGFloat, max: CGFloat) -> String {
         var fullBar: String = ""
         let percentage = percentDone
-        let constantWidth = CGFloat(rm.getWidth(text: "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
         
-        let workingWidth = (displayWidth-constantWidth)
-        
-        let percentCompleted = workingWidth * percentage
-        let percentRemaining = workingWidth * (1.0-percentage)
-        
-        let completed = String(repeating: "-", count: Int((percentCompleted / rm.getWidth(text: "-"))))
-        let remaining = String(repeating: "_", count: Int((percentRemaining / rm.getWidth(text: "_", overrideProgressBar: mirror))))
-        fullBar = "[" + completed + "|" + remaining + "]"
+        do {
+            let constantWidth = CGFloat(rm.getWidth(text: "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
+            
+            let workingWidth = (displayWidth-constantWidth)
+            
+            let percentCompleted = workingWidth * percentage
+            let percentRemaining = workingWidth * (1.0-percentage)
+            
+            let completed = String(repeating: "-", count: Int((percentCompleted / rm.getWidth(text: "-"))))
+            let remaining = String(repeating: "_", count: Int((percentRemaining / rm.getWidth(text: "_", overrideProgressBar: mirror))))
+            fullBar = "[" + completed + "|" + remaining + "]"
+        } catch {
+            print("Error creating progress bar: \(error)")
+        }
         
         
         return fullBar

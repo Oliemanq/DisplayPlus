@@ -38,7 +38,7 @@ class G1BLEManager: NSObject, ObservableObject{
     @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
     @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
 
-
+ 
     
     private var reconnectAttempts: [UUID: Int] = [:]
     private let maxReconnectAttempts = 5
@@ -617,20 +617,31 @@ extension G1BLEManager: CBPeripheralDelegate {
             case 8: //08
                 print("Glasses in case, lid open")
             case 9: //09
-                print("Charging")
+                switch byteArray[2] {
+                case 0:
+                    glassesCharging = false
+                    print("Glasses no longer charging")
+                case 1:
+                    glassesCharging = true
+                    print("Glasses charging")
+                default:
+                    print("unknown charging response")
+                }
             case 10: //0A
-                //Sent a lot for an unknown reason
-                let _ = false
-            case 11: //0B
-                print("Glasses in case, lid closed")
+                print("Glasses in case, lid closed, case NOT plugged in")
                 disconnectFromMessage()
+                caseCharging = false
+            case 11: //0B
+                print("Glasses in case, lid closed, case plugged in")
+                disconnectFromMessage()
+                caseCharging = true
             case 12: //0C
                 print("not documented 0C")
             case 13: //0D
                 print("Not documented 0D")
             case 14: //0E
                 print("Case charging")
-                
+                caseCharging = true
             case 15: //0F
                 print("Case battery percentage \(byteArray[2])%")
                 updateBattery(device: "case", batteryLevel: byteArray[2])
@@ -639,7 +650,8 @@ extension G1BLEManager: CBPeripheralDelegate {
             case 17: //11
                 print("Bluetooth pairing success \(name ?? "no name")")
             case 18: //12
-                print("Right held and released")
+                let _ = 1 //filler
+                //print("Right held and released")
             case 23: //17
                 print("Left held")
             case 24: //18
@@ -688,7 +700,7 @@ extension G1BLEManager: CBPeripheralDelegate {
                     updateBattery(device: name!, batteryLevel: byteArray[2])
                 }
             default:
-                print("Unknown message, header from battery fetch \(byteArray)")
+                print("Unknown message from battery fetch \(byteArray)")
             }
         
         //MARK: - Silent mode

@@ -12,7 +12,9 @@ import SwiftUI
 struct DisplayPlusWidgetAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         // Dynamic stateful properties about your activity go here!
-        var emoji: String
+        var glassesBattery: Float
+        var caseBattery: Float
+        var connectionStatus: String
     }
 
     // Fixed non-changing properties about your activity go here!
@@ -20,13 +22,35 @@ struct DisplayPlusWidgetAttributes: ActivityAttributes {
 }
 
 struct DisplayPlusWidgetLiveActivity: Widget {
+    
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: DisplayPlusWidgetAttributes.self) { context in
             // Lock screen/banner UI goes here
-            VStack {
-                Text("Hello \(context.state.emoji)")
+            VStack(spacing: 15) {
+                HStack{
+                    Text("Glasses \(context.state.connectionStatus)")
+                }
+                if context.state.connectionStatus == "Connected" {
+                    HStack {
+                        Image(systemName: "eyeglasses")
+                            .frame(width: 30)
+                        ProgressView(value: context.state.glassesBattery / 100.0)
+                        Text("\(Int(context.state.glassesBattery))%")
+                            .frame(width: 60)
+                        
+                    }
+                    HStack {
+                        Image(systemName: "earbuds.case")
+                            .frame(width: 30)
+                        ProgressView(value: context.state.caseBattery / 100.0)
+                        Text("\(Int(context.state.caseBattery))%")
+                            .frame(width: 60)
+                    }
+                }
             }
-            .activityBackgroundTint(Color.cyan)
+            .accentColor(Color.green)
+            .padding(15)
+            .activityBackgroundTint(Color.green)
             .activitySystemActionForegroundColor(Color.black)
 
         } dynamicIsland: { context in
@@ -34,24 +58,29 @@ struct DisplayPlusWidgetLiveActivity: Widget {
                 // Expanded UI goes here.  Compose the expanded UI through
                 // various regions, like leading/trailing/center/bottom
                 DynamicIslandExpandedRegion(.leading) {
-                    Text("Leading")
+                    Image(systemName: "eyeglasses")
+                        .frame(width: 30)
+                        .padding(.top, 5)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text("Trailing")
+                    Text("\(Int(context.state.glassesBattery))%")
+                        .frame(width: 60)
+                        .padding(.top, 5)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    Text("Bottom \(context.state.emoji)")
+                    ProgressView(value: Float(Int(context.state.glassesBattery)) / 100.0)
+                        .accentColor(Color.green)
+                        .padding(.top, 2)
                     // more content
                 }
             } compactLeading: {
-                Text("L")
+                Image(systemName: "eyeglasses")
             } compactTrailing: {
-                Text("T \(context.state.emoji)")
+                Text("\(Int(context.state.glassesBattery))%")
             } minimal: {
-                Text(context.state.emoji)
+                Text("\(Int(context.state.glassesBattery))%")
             }
-            .widgetURL(URL(string: "http://www.apple.com"))
-            .keylineTint(Color.red)
+            .keylineTint(Color.green)
         }
     }
 }
@@ -62,19 +91,12 @@ extension DisplayPlusWidgetAttributes {
     }
 }
 
-extension DisplayPlusWidgetAttributes.ContentState {
-    fileprivate static var smiley: DisplayPlusWidgetAttributes.ContentState {
-        DisplayPlusWidgetAttributes.ContentState(emoji: "😀")
-     }
-     
-     fileprivate static var starEyes: DisplayPlusWidgetAttributes.ContentState {
-         DisplayPlusWidgetAttributes.ContentState(emoji: "🤩")
-     }
-}
-
 #Preview("Notification", as: .content, using: DisplayPlusWidgetAttributes.preview) {
    DisplayPlusWidgetLiveActivity()
 } contentStates: {
-    DisplayPlusWidgetAttributes.ContentState.smiley
-    DisplayPlusWidgetAttributes.ContentState.starEyes
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 75, caseBattery: 50, connectionStatus: "Connected")
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 75, caseBattery: 50, connectionStatus: "Disconnected")
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 100, caseBattery: 100, connectionStatus: "Connected")
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 0, caseBattery: 0, connectionStatus: "Connected")
 }
+
