@@ -21,6 +21,8 @@ struct ContentView: View {
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
     @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
+    @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
+    @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
     
     
     @Namespace private var namespace
@@ -119,8 +121,8 @@ struct ContentView: View {
                                 .homeItem(themeIn: theme, subItem: true)
                                 VStack{
                                     Text("Battery")
-                                    Text("\(Image(systemName: "eyeglasses")) - \(Int(ble.glassesBatteryAvg))%")
-                                    Text("\(Image(systemName: "earbuds.case")) - \(Int(ble.caseBatteryLevel))%")
+                                    Text("\(Image(systemName: "eyeglasses")) - \(glassesBattery)%")
+                                    Text("\(Image(systemName: "earbuds.case")) - \(caseBattery)%")
                                 }
                                 .frame(width: 90, height: 110)
                                 .mainButtonStyle(themeIn: theme)

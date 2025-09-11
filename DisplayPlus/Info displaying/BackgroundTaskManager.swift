@@ -22,12 +22,14 @@ class BackgroundTaskManager: ObservableObject {
     var autoOffCounter: Int = 0
     var forceUpdateInfo: Bool = true
     
-    var logging: Bool = true // For debugging purposes
+    var logging: Bool = false // For debugging purposes
     
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var autoOff = false
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var currentPage = ""
     @AppStorage("useLocation", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var useLocation: Bool = false
+    @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
+    @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
 
     init(ble: G1BLEManager, info: InfoManager, page: PageManager) {
         self.ble = ble
@@ -111,7 +113,10 @@ class BackgroundTaskManager: ObservableObject {
             
             if counter % 60 == 0 { // every 30 seconds (60 * 0.5s)
                 ble.fetchGlassesBattery()
-                if (ble.glassesBatteryAvg <= 3.0 || ble.glassesBatteryLeft <= 1 || ble.glassesBatteryRight <= 1) && ble.glassesBatteryAvg != 0.0 {
+                Task{ try await Task.sleep(nanoseconds: 50_000_000) } // small delay to allow glasses battery fetch to complete before fetching case battery
+                
+                
+                if ((glassesBattery <= 3 && glassesBattery != 0) || ble.glassesBatteryLeft <= 1 || ble.glassesBatteryRight <= 1){
                     Task {
                         await self.lowBatteryDisconnect()
                     }
@@ -187,6 +192,7 @@ class BackgroundTaskManager: ObservableObject {
     
     @MainActor
     func lowBatteryDisconnect() async {
+        print("Low battery disconnect triggered")
         //Stopping timer to stop overwritting eachother
         stopTimer()
         

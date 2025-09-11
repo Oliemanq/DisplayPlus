@@ -14,6 +14,7 @@
 import CoreBluetooth
 import SwiftData
 import SwiftUI
+import WidgetKit
 
 struct G1DiscoveredPair {
     var channel: Int? = nil
@@ -34,6 +35,8 @@ class G1BLEManager: NSObject, ObservableObject{
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
     @AppStorage("headsUpEnabled", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var headsUp: Bool = false
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
+    @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
+    @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
 
 
     
@@ -71,12 +74,10 @@ class G1BLEManager: NSObject, ObservableObject{
     //Vars altered by messages from processIncomingData, easy access throughout app
     public private(set) var wearing: Bool = false
     
-    public private(set) var glassesBatteryLeft: CGFloat = 0.0
-    public private(set) var glassesBatteryRight: CGFloat = 0.0
-    public private(set) var glassesBatteryAvg: CGFloat = 0.0
+    public private(set) var glassesBatteryLeft: CGFloat = 100 //Out of 100
+    public private(set) var glassesBatteryRight: CGFloat = 100
     public private(set) var glassesCharging: Bool = false
     
-    public private(set) var caseBatteryLevel: CGFloat = 0.0
     public private(set) var caseCharging: Bool = false
     
     @Published public var brightnessRaw: Int = 0
@@ -117,6 +118,7 @@ class G1BLEManager: NSObject, ObservableObject{
         
         print("Scanning for new advertising devices...")
         connectionStatus = "Scanning..."
+        WidgetCenter.shared.reloadAllTimelines()
         // You can filter by the UART service, but if you need the name to parse left vs right,
         // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
         centralManager.scanForPeripherals(withServices: nil, options: nil)
@@ -238,6 +240,7 @@ class G1BLEManager: NSObject, ObservableObject{
         stopScan()
         
         connectionStatus = ("Connecting pair \(pair.channel ?? 0)...")
+        WidgetCenter.shared.reloadAllTimelines()
         if pair.right != nil {
             // Connect right peripheral if not already connected or connecting
             if rightPeripheral == nil || (rightPeripheral?.state != .connected && rightPeripheral?.state != .connecting) {
@@ -407,6 +410,7 @@ extension G1BLEManager: CBCentralManagerDelegate {
         
         if leftConnected && rightConnected {
             connectionStatus = "Connected"
+            WidgetCenter.shared.reloadAllTimelines()
             withAnimation{
                 connectionState = .connectedBoth
             }
@@ -415,12 +419,14 @@ extension G1BLEManager: CBCentralManagerDelegate {
             centralManager.stopScan()
         } else if leftConnected {
             connectionStatus = "Connected (Left)"
+            WidgetCenter.shared.reloadAllTimelines()
             withAnimation{
                 connectionState = .connectedLeftOnly
             }
         } else if rightConnected {
 
             connectionStatus = "Connected (Right)"
+            WidgetCenter.shared.reloadAllTimelines()
             withAnimation{
                 connectionState = .connectedRightOnly
             }
@@ -457,16 +463,19 @@ extension G1BLEManager: CBCentralManagerDelegate {
                 connectionState = .disconnected
             }
             connectionStatus = "Disconnected"
+            WidgetCenter.shared.reloadAllTimelines()
         } else if leftConnected {
             withAnimation{
                 connectionState = .connectedLeftOnly
             }
             connectionStatus = "Connected (Left)"
+            WidgetCenter.shared.reloadAllTimelines()
         } else if rightConnected {
             withAnimation{
                 connectionState = .connectedRightOnly
             }
             connectionStatus = "Connected (Right)"
+            WidgetCenter.shared.reloadAllTimelines()
         }
 
         // If retry attempts exceeded, stop
@@ -474,6 +483,7 @@ extension G1BLEManager: CBCentralManagerDelegate {
             print("Max reconnect attempts reached for: \(peripheral.name ?? peripheral.identifier.uuidString)")
             if !leftConnected && !rightConnected {
                 connectionStatus = "Failed to connect"
+                WidgetCenter.shared.reloadAllTimelines()
             }
             return
         }
@@ -779,9 +789,10 @@ extension G1BLEManager: CBPeripheralDelegate {
         wearing = true
         print("Put glasses on")
     }
-    private func updateBattery(device: String ,batteryLevel: UInt8){
+    private func updateBattery(device: String, batteryLevel: UInt8){
+        print("updating battery for \(device) to \(batteryLevel)%")
         if device == "case"{
-            caseBatteryLevel = CGFloat(batteryLevel)
+            caseBattery = Int(batteryLevel)
         }else{
             if device.contains("R"){
                 glassesBatteryRight = CGFloat(batteryLevel)
@@ -790,9 +801,10 @@ extension G1BLEManager: CBPeripheralDelegate {
             }
             
             if glassesBatteryLeft != 0.0 && glassesBatteryRight != 0.0{
-                glassesBatteryAvg = (glassesBatteryLeft + glassesBatteryRight)/2
+                glassesBattery = Int((glassesBatteryLeft + glassesBatteryRight)/2)
             }
         }
+        WidgetCenter.shared.reloadAllTimelines()
     }
     private func disconnectFromMessage(){
         disconnect()

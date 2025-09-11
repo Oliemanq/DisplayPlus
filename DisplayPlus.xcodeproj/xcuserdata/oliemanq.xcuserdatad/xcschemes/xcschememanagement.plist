@@ -9,15 +9,38 @@
 			<key>orderHint</key>
 			<integer>1</integer>
 		</dict>
+		<key>DisplayPlusWidgetExtension.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
 		<key>WidgetExtExtension.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
-		<key>WidgetsExtension.xcscheme_^#shared#^_</key>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>4E627B932E72676F00E38E36</key>
 		<dict>
-			<key>orderHint</key>
-			<integer>0</integer>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>4E70104D2DBD6F4800F868F4</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>4E70105A2DBD6F4900F868F4</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>4E7010642DBD6F4900F868F4</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>
