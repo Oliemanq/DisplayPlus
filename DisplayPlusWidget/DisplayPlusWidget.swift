@@ -10,7 +10,7 @@ import SwiftUI
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), emoji: "😀", glassesBattery: 0, caseBattery: 0, connectionStatus: "Disconnected")
+        SimpleEntry(date: Date(), glassesBattery: 0, caseBattery: 0, connectionStatus: "Disconnected")
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
@@ -19,7 +19,7 @@ struct Provider: TimelineProvider {
         let caseBattery = userDefaults?.integer(forKey: "caseBattery") ?? 0
         let connectionStatus = userDefaults?.string(forKey: "connectionStatus") ?? "Disconnected"
         
-        let entry = SimpleEntry(date: Date(), emoji: "😀", glassesBattery: glassesBattery, caseBattery: caseBattery, connectionStatus: connectionStatus)
+        let entry = SimpleEntry(date: Date(), glassesBattery: glassesBattery, caseBattery: caseBattery, connectionStatus: connectionStatus)
         completion(entry)
     }
 
@@ -35,7 +35,7 @@ struct Provider: TimelineProvider {
         let currentDate = Date()
         for minuteOffset in stride(from: 0, through: 60, by: 15) {
             let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, emoji: "😀", glassesBattery: glassesBattery, caseBattery: caseBattery, connectionStatus: connectionStatus)
+            let entry = SimpleEntry(date: entryDate, glassesBattery: glassesBattery, caseBattery: caseBattery, connectionStatus: connectionStatus)
             entries.append(entry)
         }
 
@@ -51,7 +51,6 @@ struct Provider: TimelineProvider {
 
 struct SimpleEntry: TimelineEntry {
     let date: Date
-    let emoji: String
     let glassesBattery: Int
     let caseBattery: Int
     let connectionStatus: String
@@ -93,13 +92,16 @@ struct DisplayPlusWidget: Widget {
             DisplayPlusWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("My Widget")
-        .description("This is an example widget.")
+        .configurationDisplayName("Battery display")
+        .description("Displays the battery status for connected glasses and case.")
     }
 }
 
 #Preview(as: .systemSmall) {
     DisplayPlusWidget()
 } timeline: {
-    SimpleEntry(date: .now, emoji: "😀", glassesBattery: 85, caseBattery: 70, connectionStatus: "Connected")
+    SimpleEntry(date: .now, glassesBattery: 85, caseBattery: 70, connectionStatus: "Connected")
+    SimpleEntry(date: .now, glassesBattery: 100, caseBattery: 100, connectionStatus: "Connected")
+    SimpleEntry(date: .now, glassesBattery: 10, caseBattery: 10, connectionStatus: "Connected")
+    SimpleEntry(date: .now, glassesBattery: 10, caseBattery: 10, connectionStatus: "Disconnected")
 }

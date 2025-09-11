@@ -628,8 +628,7 @@ extension G1BLEManager: CBPeripheralDelegate {
                     print("unknown charging response")
                 }
             case 10: //0A
-                print("Glasses in case, lid closed, case NOT plugged in")
-                disconnectFromMessage()
+                print("Glasses in case, lid closed, case not plugged in") //Maybe? calls constantly and incorrectly
                 caseCharging = false
             case 11: //0B
                 print("Glasses in case, lid closed, case plugged in")
