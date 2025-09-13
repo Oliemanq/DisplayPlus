@@ -77,7 +77,7 @@ struct ContentView: View {
                             
                         
                             //MARK: - buttons
-                            HStack(spacing: 30){
+                            HStack(spacing: 10){
                                 VStack(alignment: .center){
                                     //Silent mode button
                                     Button {
@@ -119,14 +119,28 @@ struct ContentView: View {
                                     }
                                 }
                                 .homeItem(themeIn: theme, subItem: true)
-                                VStack{
-                                    Text("Battery")
-                                    Text("\(Image(systemName: "eyeglasses")) - \(glassesBattery)%")
-                                    Text("\(Image(systemName: "earbuds.case")) - \(caseBattery)%")
+                                Menu {
+                                    Text("Glasses battery levels: ")
+                                    Text(" - Right: \(Int(ble.glassesBatteryRight))%")
+                                    Text(" - Left: \(Int(ble.glassesBatteryLeft))%")
+                                    Text(" - Average: \(glassesBattery)%")
+                                    Divider()
+                                    Text(" - Case: \(caseBattery)%")
+                                    //Disabling because there aren't really any settings rn
+//                                    Divider()
+//                                    NavigationLink(destination: BatterySettings()) {
+//                                        Text("Battery settings")
+//                                    }
+                                } label: {
+                                    VStack{
+                                        Text("Battery")
+                                        Text("\(Image(systemName: "eyeglasses")) - \(glassesBattery)%")
+                                        Text("\(Image(systemName: "earbuds.case")) - \(caseBattery)%")
+                                    }
+                                    .frame(width: 120, height: 110)
+                                    .mainButtonStyle(themeIn: theme)
+                                    .homeItem(themeIn: theme, subItem: true)
                                 }
-                                .frame(width: 90, height: 110)
-                                .mainButtonStyle(themeIn: theme)
-                                .homeItem(themeIn: theme, subItem: true)
                                 
                             }
                             .homeItem(themeIn: theme)
