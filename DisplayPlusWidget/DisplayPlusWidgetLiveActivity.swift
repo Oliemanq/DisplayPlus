@@ -14,8 +14,10 @@ struct LiveActivityView: View {
     var body: some View {
         // Lock screen/banner UI goes here
         VStack(spacing: 15) {
-            HStack{
-                Text("Glasses \(context.state.connectionStatus)")
+            if context.state.connectionStatus != "Connected" {
+                HStack{
+                    Text("Glasses \(context.state.connectionStatus)")
+                }
             }
             if context.state.connectionStatus == "Connected" {
                 HStack {
@@ -80,10 +82,14 @@ struct DisplayPlusWidgetLiveActivity: Widget {
             } compactTrailing: {
                 Text("\(Int(context.state.glassesBattery))%")
             } minimal: {
-                Text("\(Int(context.state.glassesBattery))%")
-                    .font(.system(size: context.state.glassesBattery==100 ? 11 : 14))
+                if context.state.connectionStatus == "Connected" {
+                    Text("\(Int(context.state.glassesBattery))%")
+                        .font(.system(size: context.state.glassesBattery==100 ? 11 : 14))
+                } else {
+                    Image(systemName: "nosign")
+                }
             }
-            //.keylineTint(Color.green)
+            .keylineTint(Color.green)
         }
     }
 }

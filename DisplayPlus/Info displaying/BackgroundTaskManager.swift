@@ -106,16 +106,13 @@ class BackgroundTaskManager: ObservableObject {
             }
             
             HBTriggerCounter += 1
-            if HBTriggerCounter % 40 == 0 || HBTriggerCounter == 1 { //Sending heartbeat command every ~20 seconds to maintain connection
+            if HBTriggerCounter % 48 == 0 || HBTriggerCounter == 1 { //Sending heartbeat command every ~24 seconds to maintain connection
                 ble.sendHeartbeat(counter: HBCounter % 255)
                 HBCounter += 1
             }
             
             if counter % 60 == 0 { // every 30 seconds (60 * 0.5s)
                 ble.fetchGlassesBattery()
-                Task{ try await Task.sleep(nanoseconds: 50_000_000) } // small delay to allow glasses battery fetch to complete before fetching case battery
-                
-                
                 if ((glassesBattery <= 3 && glassesBattery != 0) || ble.glassesBatteryLeft <= 1 || ble.glassesBatteryRight <= 1){
                     Task {
                         await self.lowBatteryDisconnect()
