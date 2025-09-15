@@ -18,6 +18,7 @@ struct SettingsView: View {
     @StateObject private var info: InfoManager
     @EnvironmentObject var theme: ThemeColors
     @StateObject private var la: LiveActivityManager
+    @Environment(\.openURL) private var openURL
     
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
     @AppStorage("headsUpEnabled", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var headsUp: Bool = false
@@ -128,11 +129,52 @@ struct SettingsView: View {
                     }
                 }
             }
+            
             .navigationTitle("Settings")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button {
+                            openURL(URL(string: "https://github.com/Oliemanq/DisplayPlus")!)
+                        } label: {
+                            Label("GitHub Repo", systemImage: "archivebox")
+                        }
+                        .tint(.primary)
+                        Button {
+                            openURL(URL(string: "https://discord.gg/AH2MxHSepn")!)
+                        } label: {
+                            Label("Discord Server", systemImage: "bubble.left.and.bubble.right")
+                        }
+                        .tint(.primary)
+                        Button {
+                            openURL(URL(string: "https://ko-fi.com/oliemanq")!)
+                        } label: {
+                            Label("Support the developer!", systemImage: "heart")
+                        }
+                        .tint(.primary)
+                        Divider()
+                        Button {
+                            openURL(URL(string: "https://github.com/Oliemanq/DisplayPlus/issues")!)
+                        } label: {
+                            Label("Report an Issue", systemImage: "exclamationmark.bubble")
+                        }
+                        .tint(.primary)
+                    } label: {
+                        HStack{
+                            Text("Links")
+                            Image(systemName: "link.circle")
+                                .symbolRenderingMode(.monochrome)
+                        }
+                        .foregroundStyle(.primary)
+                    }
+                    .tint(.primary)
+                }
+            }
             .sheet(isPresented: $showingLocationPicker) {
                 LocationPickerView(location: $fixedLocation, theme: theme)
             }
         }
+        .tint(.primary)
         .onChange(of: fixedLocation) {
             if let newLocation = fixedLocation {
                 fixedLatitude = newLocation.latitude
