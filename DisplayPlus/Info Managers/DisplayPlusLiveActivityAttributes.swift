@@ -17,6 +17,8 @@ struct DisplayPlusWidgetAttributes: ActivityAttributes {
         var glassesBattery: Float
         var caseBattery: Float
         var connectionStatus: String
+        var glassesCharging: Bool
+        var caseCharging: Bool
     }
 
     // Fixed non-changing properties about your activity go here!

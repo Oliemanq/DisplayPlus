@@ -37,6 +37,8 @@ class G1BLEManager: NSObject, ObservableObject{
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
     @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
     @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
+    @AppStorage("glassesCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesCharging: Bool = false
+    @AppStorage("caseCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseCharging: Bool = false
 
     private var la: LiveActivityManager
     
@@ -76,10 +78,7 @@ class G1BLEManager: NSObject, ObservableObject{
     
     public private(set) var glassesBatteryLeft: CGFloat = 100 //Out of 100
     public private(set) var glassesBatteryRight: CGFloat = 100
-    public private(set) var glassesCharging: Bool = false
-    
-    public private(set) var caseCharging: Bool = false
-    
+        
     @Published public var brightnessRaw: Int = 0
     public private(set) var brightnessFloat: CGFloat = 0.0
     @Published public var autoBrightnessEnabled: Bool = false
@@ -620,10 +619,16 @@ extension G1BLEManager: CBPeripheralDelegate {
             case 9: //09
                 switch byteArray[2] {
                 case 0:
-                    glassesCharging = false
+                    withAnimation{
+                        glassesCharging = false
+                    }
+                    la.updateActivity()
                     print("Glasses no longer charging")
                 case 1:
-                    glassesCharging = true
+                    withAnimation{
+                        glassesCharging = true
+                    }
+                    la.updateActivity()
                     print("Glasses charging")
                 default:
                     print("unknown charging response")

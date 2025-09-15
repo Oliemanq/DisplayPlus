@@ -23,6 +23,7 @@ struct ContentView: View {
     @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
     @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
     @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
+    @AppStorage("glassesCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesCharging: Bool = false
     
     
     @Namespace private var namespace
@@ -134,8 +135,17 @@ struct ContentView: View {
                                 } label: {
                                     VStack{
                                         Text("Battery")
-                                        Text("\(Image(systemName: "eyeglasses")) - \(glassesBattery)%")
-                                        Text("\(Image(systemName: "earbuds.case")) - \(caseBattery)%")
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "eyeglasses")
+                                            if glassesCharging {
+                                                Image(systemName: "bolt.fill")
+                                            }
+                                            Text("- \(glassesBattery)%")
+                                        }
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "earbuds.case")
+                                            Text("- \(caseBattery)%")
+                                        }
                                     }
                                     .frame(width: 120, height: 110)
                                     .mainButtonStyle(themeIn: theme)

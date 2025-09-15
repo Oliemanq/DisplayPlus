@@ -23,21 +23,28 @@ struct LiveActivityView: View {
                 HStack {
                     Image(systemName: "eyeglasses")
                         .frame(width: 30)
+                    if context.state.glassesCharging {
+                        Image(systemName: "bolt.fill")
+                    }
                     ProgressView(value: context.state.glassesBattery / 100.0)
                     Text("\(Int(context.state.glassesBattery))%")
                         .frame(width: 60)
-                    
                 }
+                .accentColor(context.state.glassesBattery > 20 ? Color.green : Color.red)
                 HStack {
                     Image(systemName: "earbuds.case")
                         .frame(width: 30)
+                    if context.state.caseCharging {
+                        Image(systemName: "bolt.fill")
+                    }
                     ProgressView(value: context.state.caseBattery / 100.0)
                     Text("\(Int(context.state.caseBattery))%")
                         .frame(width: 60)
                 }
+                .accentColor(context.state.caseBattery > 20 ? Color.green : Color.red)
+
             }
         }
-        .accentColor(Color.green)
         .padding(15)
     }
 }
@@ -51,36 +58,39 @@ struct DisplayPlusWidgetLiveActivity: Widget {
                 .activitySystemActionForegroundColor(Color.green)
         } dynamicIsland: { context in
             DynamicIsland {
-                // Expanded UI goes here.  Compose the expanded UI through
-                // various regions, like leading/trailing/center/bottom
                 DynamicIslandExpandedRegion(.leading) {
                     if context.state.connectionStatus == "Connected" {
                         Image(systemName: "eyeglasses")
-                            .frame(width: 30)
-                            .padding(.top, 5)
+                            .frame(width: 60, height: 30)
                     }
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     if context.state.connectionStatus == "Connected" {
                         Text("\(Int(context.state.glassesBattery))%")
-                            .frame(width: 60)
-                            .padding(.top, 5)
+                            .frame(width: 60, height: 30)
                     }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    if context.state.connectionStatus == "Connected" {
-                        ProgressView(value: Float(Int(context.state.glassesBattery)) / 100.0)
-                            .accentColor(Color.green)
-                            .padding(.top, 2)
-                    } else {
-                        Text("Glasses \(context.state.connectionStatus)")
+                    HStack{
+                        if context.state.glassesCharging {
+                            Image(systemName: "bolt.fill")
+                        }
+                        if context.state.connectionStatus == "Connected" {
+                            ProgressView(value: Float(Int(context.state.glassesBattery)) / 100.0)
+                                .accentColor(context.state.glassesBattery > 20 ? Color.green : Color.red)
+                                .frame(width: 300)
+                        } else {
+                            Text("Glasses \(context.state.connectionStatus)")
+                        }
                     }
-                    // more content
+                    .frame(height: 25)
                 }
             } compactLeading: {
                 Image(systemName: "eyeglasses")
+                    .frame(width: 40)
             } compactTrailing: {
                 Text("\(Int(context.state.glassesBattery))%")
+                    .frame(width: 40)
             } minimal: {
                 if context.state.connectionStatus == "Connected" {
                     Text("\(Int(context.state.glassesBattery))%")
@@ -104,9 +114,10 @@ extension DisplayPlusWidgetAttributes {
 #Preview("Notification", as: .content, using: DisplayPlusWidgetAttributes.preview) {
    DisplayPlusWidgetLiveActivity()
 } contentStates: {
-    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 75, caseBattery: 50, connectionStatus: "Connected")
-    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 75, caseBattery: 50, connectionStatus: "Disconnected")
-    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 100, caseBattery: 100, connectionStatus: "Connected")
-    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 0, caseBattery: 0, connectionStatus: "Connected")
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 75, caseBattery: 50, connectionStatus: "Connected", glassesCharging: true, caseCharging: false)
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 75, caseBattery: 50, connectionStatus: "Disconnected", glassesCharging: false, caseCharging: false)
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 100, caseBattery: 100, connectionStatus: "Connected", glassesCharging: false, caseCharging: true)
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 0, caseBattery: 0, connectionStatus: "Connected", glassesCharging: true, caseCharging: true)
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 15, caseBattery: 20, connectionStatus: "Connected", glassesCharging: false, caseCharging: true)
 }
 

@@ -13,6 +13,10 @@ class LiveActivityManager: ObservableObject {
     @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
     @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var connectionStatus: String = "Disconnected"
+    @AppStorage("glassesCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesCharging: Bool = false
+    @AppStorage("caseCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseCharging: Bool = false
+
+
     
     @Published private var activity: Activity<DisplayPlusWidgetAttributes>? = nil
     
@@ -27,14 +31,14 @@ class LiveActivityManager: ObservableObject {
         }
         
         let attributes = DisplayPlusWidgetAttributes(name: "Main")
-        let state = DisplayPlusWidgetAttributes.ContentState(glassesBattery: Float(glassesBattery), caseBattery: Float(caseBattery), connectionStatus: connectionStatus)
+        let state = DisplayPlusWidgetAttributes.ContentState(glassesBattery: Float(glassesBattery), caseBattery: Float(caseBattery), connectionStatus: connectionStatus, glassesCharging: glassesCharging, caseCharging: caseCharging)
         let content = ActivityContent(state: state, staleDate: Calendar.current.date(byAdding: .minute, value: 30, to: Date())!)
         
         activity = try? Activity<DisplayPlusWidgetAttributes>.request(attributes: attributes, content: content, pushType: nil)
     }
     
     func updateActivity() {
-        let state = DisplayPlusWidgetAttributes.ContentState(glassesBattery: Float(glassesBattery), caseBattery: Float(caseBattery), connectionStatus: connectionStatus)
+        let state = DisplayPlusWidgetAttributes.ContentState(glassesBattery: Float(glassesBattery), caseBattery: Float(caseBattery), connectionStatus: connectionStatus, glassesCharging: glassesCharging, caseCharging: caseCharging)
         
         Task{
             let updatedContent = ActivityContent(state: state, staleDate: Calendar.current.date(byAdding: .minute, value: 30, to: Date())!)
@@ -44,7 +48,7 @@ class LiveActivityManager: ObservableObject {
     }
     
     func stopActivity() {
-        let state = DisplayPlusWidgetAttributes.ContentState(glassesBattery: 0, caseBattery: 0, connectionStatus: "Disconnected")
+        let state = DisplayPlusWidgetAttributes.ContentState(glassesBattery: 0, caseBattery: 0, connectionStatus: "Disconnected", glassesCharging: false, caseCharging: false)
         
         Task{
             let finalContent = ActivityContent(state: state, staleDate: nil)
