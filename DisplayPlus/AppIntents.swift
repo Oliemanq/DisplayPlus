@@ -56,6 +56,25 @@ struct PageIntents{
             return .result(dialog: "Changed view to \(page.rawValue)")
         }
     }
+    
+    struct NextPage: AppIntent {
+        static let title: LocalizedStringResource = "Next page"
+        
+        let currentPage: String = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.string(forKey: "currentPage") ?? "Default"
+
+        func perform() async throws -> some IntentResult & ProvidesDialog {
+            if currentPage == "Default" {
+                UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set("Music", forKey: "currentPage")
+                return .result(dialog: "Changed page to Music")
+            } else if currentPage == "Music" {
+                UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set("Calendar", forKey: "currentPage")
+                return .result(dialog: "Changed page to Calendar")
+            } else {
+                UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set("Default", forKey: "currentPage")
+                return .result(dialog: "Changed page to Default")
+            }
+        }
+    }
 
     struct GetCurrentPage: AppIntent {
         static let title: LocalizedStringResource = "Get current page"
@@ -124,3 +143,4 @@ public struct DisplayIntents {
         }
     }
 }
+

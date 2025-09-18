@@ -25,6 +25,8 @@ struct ContentView: View {
     @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
     @AppStorage("glassesCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesCharging: Bool = false
     
+    @State private var changingSilentMode: Bool = false
+    
     
     @Namespace private var namespace
     
@@ -96,6 +98,7 @@ struct ContentView: View {
                                         }
                                         .padding(.horizontal, buttonPadding)
                                     }
+                                    .disabled(changingSilentMode)
                                     .frame(width: buttonWidth, height: (silentMode ? 90 : 35))
                                     .mainButtonStyle(themeIn: theme)
                                     
@@ -262,8 +265,8 @@ struct ContentView: View {
                 ble.sendText(text: bg.pageHandler(), counter: 0)
             } //^^^
             .onChange(of: silentMode) {
+                changingSilentMode = true
                 Task{
-                    print("silent mode changed")
                     try? await Task.sleep(nanoseconds: 2_000_000_000)
                     if !silentMode {
                         print("silent mode turned off, turning on display")
@@ -277,6 +280,7 @@ struct ContentView: View {
                         }
                     }
                 }
+                changingSilentMode = false
             } //Turning display on and off with silent mode
             .onReceive(ble.$brightnessRaw) { newBrightness in
                 // Only update the slider's visual position if the user is NOT dragging it.

@@ -7,9 +7,14 @@
 import ActivityKit
 import WidgetKit
 import SwiftUI
+import AppIntents
 
 struct LiveActivityView: View {
     let context: ActivityViewContext<DisplayPlusWidgetAttributes>
+    @Environment(\.colorScheme) var colorScheme
+    var darkMode: Bool {
+        colorScheme == .dark
+    }
     
     var body: some View {
         // Lock screen/banner UI goes here
@@ -17,6 +22,12 @@ struct LiveActivityView: View {
             if context.state.connectionStatus != "Connected" {
                 HStack{
                     Text("Glasses \(context.state.connectionStatus)")
+                        .padding(10)
+                        .foregroundStyle(Color.green)
+                        .background(
+                            Capsule(style: .circular)
+                                .foregroundStyle(Color.green.opacity(darkMode ? 0.3 : 0.1))
+                        )
                 }
             }
             if context.state.connectionStatus == "Connected" {
@@ -42,6 +53,24 @@ struct LiveActivityView: View {
                         .frame(width: 60)
                 }
                 .accentColor(context.state.caseBattery > 20 ? Color.green : Color.red)
+                HStack{
+                    Text("Glasses \(context.state.connectionStatus)")
+                        .padding(10)
+                        .foregroundStyle(Color.green)
+                        .background(
+                            Capsule(style: .circular)
+                                .foregroundStyle(Color.green.opacity(darkMode ? 0.3 : 0.1))
+                        )
+                    Spacer()
+                    Button(intent: PageIntents.NextPage()) {
+                        Image(systemName: "book.pages")
+                    }
+                    .accentColor(Color.green)
+                    Button(intent: DisplayIntents.ToggleDisplay()) {
+                        Image(systemName: context.state.displayOn ? "lightswitch.on" : "lightswitch.off")
+                    }
+                    .accentColor(Color.green)
+                }
 
             }
         }
@@ -114,10 +143,9 @@ extension DisplayPlusWidgetAttributes {
 #Preview("Notification", as: .content, using: DisplayPlusWidgetAttributes.preview) {
    DisplayPlusWidgetLiveActivity()
 } contentStates: {
-    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 75, caseBattery: 50, connectionStatus: "Connected", glassesCharging: true, caseCharging: false)
-    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 75, caseBattery: 50, connectionStatus: "Disconnected", glassesCharging: false, caseCharging: false)
-    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 100, caseBattery: 100, connectionStatus: "Connected", glassesCharging: false, caseCharging: true)
-    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 0, caseBattery: 0, connectionStatus: "Connected", glassesCharging: true, caseCharging: true)
-    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 15, caseBattery: 20, connectionStatus: "Connected", glassesCharging: false, caseCharging: true)
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 75, caseBattery: 50, connectionStatus: "Connected", glassesCharging: true, caseCharging: false, displayOn: true)
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 75, caseBattery: 50, connectionStatus: "Disconnected", glassesCharging: false, caseCharging: false, displayOn: false)
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 100, caseBattery: 100, connectionStatus: "Connected", glassesCharging: false, caseCharging: true, displayOn: true)
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 0, caseBattery: 0, connectionStatus: "Connected", glassesCharging: true, caseCharging: true, displayOn: false)
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 15, caseBattery: 20, connectionStatus: "Connected", glassesCharging: false, caseCharging: true, displayOn: true)
 }
-

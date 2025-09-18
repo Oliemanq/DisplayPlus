@@ -139,6 +139,15 @@ class G1BLEManager: NSObject, ObservableObject{
     func disconnect() {
         @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
 
+        withAnimation{
+            connectionState = .disconnected
+            connectionStatus = "Disconnected"
+            
+            WidgetCenter.shared.reloadAllTimelines()
+            la.updateActivity()
+        }
+        
+        
         if let lp = leftPeripheral {
             centralManager.cancelPeripheralConnection(lp)
             leftPeripheral = nil
@@ -153,10 +162,6 @@ class G1BLEManager: NSObject, ObservableObject{
         rightRChar = nil
         
         reconnectAttempts.removeAll()
-        
-        withAnimation{
-            connectionState = .disconnected
-        }
         
         displayOn = false
         
@@ -189,7 +194,7 @@ class G1BLEManager: NSObject, ObservableObject{
         }
     }
     
-    func sendInitCommand(arm: String = "Both") {
+    func sendInitCommand(arm: String = "Both") { //1 to both
         let packet = Data([0x4D, 0x01])
         writeData(packet, to: arm)
     }
@@ -275,7 +280,7 @@ class G1BLEManager: NSObject, ObservableObject{
         packet.append(UInt8(counter))
         
         let data = Data(packet)
-        writeData(data, to: "Both")
+        writeData(data, to: "Both") //1 to both
     }
     
     //MARK: - Glasses communication functions
@@ -295,7 +300,7 @@ class G1BLEManager: NSObject, ObservableObject{
         packet.append(contentsOf: textBytes)
         
         let data = Data(packet)
-        writeData(data, to: arm)
+        writeData(data, to: arm) //both arms
     }
     
     //Sending new text to screen, usually a new page
@@ -447,7 +452,11 @@ extension G1BLEManager: CBCentralManagerDelegate {
             rightWChar = nil
             rightRChar = nil
         }
-
+        withAnimation {
+            connectionStatus = "Reconnecting..."
+            connectionState = .disconnected
+        }
+        
         // Track reconnect attempts
         let id = peripheral.identifier
         let attempts = (reconnectAttempts[id] ?? 0) + 1
@@ -464,18 +473,21 @@ extension G1BLEManager: CBCentralManagerDelegate {
             }
             connectionStatus = "Disconnected"
             WidgetCenter.shared.reloadAllTimelines()
+            la.updateActivity()
         } else if leftConnected {
             withAnimation{
                 connectionState = .connectedLeftOnly
             }
             connectionStatus = "Connected (Left)"
             WidgetCenter.shared.reloadAllTimelines()
+            la.updateActivity()
         } else if rightConnected {
             withAnimation{
                 connectionState = .connectedRightOnly
             }
             connectionStatus = "Connected (Right)"
             WidgetCenter.shared.reloadAllTimelines()
+            la.updateActivity()
         }
 
         // If retry attempts exceeded, stop
@@ -483,7 +495,9 @@ extension G1BLEManager: CBCentralManagerDelegate {
             print("Max reconnect attempts reached for: \(peripheral.name ?? peripheral.identifier.uuidString)")
             if !leftConnected && !rightConnected {
                 connectionStatus = "Failed to connect"
+                connectionState = .disconnected
                 WidgetCenter.shared.reloadAllTimelines()
+                la.updateActivity()
             }
             return
         }
@@ -494,6 +508,8 @@ extension G1BLEManager: CBCentralManagerDelegate {
             guard let self = self else { return }
             self.centralManager.connect(peripheral, options: nil)
         }
+        WidgetCenter.shared.reloadAllTimelines()
+        la.updateActivity()
     }
     
     //Failed to connect to device

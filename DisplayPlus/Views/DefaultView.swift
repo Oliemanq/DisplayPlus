@@ -257,7 +257,7 @@ struct DefaultView: View {
         }
         //Preventing delays from waiting for bg timer when changing pages
         .onChange(of: displayOn) {
-            print("display \(displayOn ? "on" : "off")")
+            la.updateActivity()
             if !displayOn {
                 ble.sendBlank()
             } else {
