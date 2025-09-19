@@ -55,6 +55,7 @@ struct DefaultView: View {
                 SettingsView(bleIn: ble, infoIn: info, liveIn: la)
             }
         }
+        .font(theme.bodyFont)
         .environmentObject(theme)
         .tint(theme.darkMode ? theme.accentLight : theme.accentDark)
         //Custon toolbar
@@ -152,6 +153,7 @@ struct DefaultView: View {
                         }
                     }
                 }
+                .font(theme.bodyFont)
                 .offset(y: -55)
                 
             }else{
@@ -236,6 +238,7 @@ struct DefaultView: View {
 
             }
         }
+        
         //onAppear actions for entire app
         .onAppear(){
             ble.connectionStatus = "Disconnected"
@@ -290,6 +293,9 @@ class ThemeColors: ObservableObject {
     @Published var backgroundDark: Color = Color(hue: 120/360, saturation: 0.0, brightness: 0.12)
     
     @Published var darkMode: Bool = false
+    
+    @Published var bodyFont: Font = .custom("TrebuchetMS",size: 16) //, weight: .light, design: .monospaced
+    @Published var headerFont: Font = .system(size: 24, weight: .black, design: .monospaced)
 }
 
 #Preview {

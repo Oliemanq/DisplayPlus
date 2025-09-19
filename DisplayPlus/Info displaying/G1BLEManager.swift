@@ -39,8 +39,9 @@ class G1BLEManager: NSObject, ObservableObject{
     @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
     @AppStorage("glassesCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesCharging: Bool = false
     @AppStorage("caseCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseCharging: Bool = false
+    @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
 
-    private var la: LiveActivityManager
+    public private(set) var la: LiveActivityManager
     
     private var reconnectAttempts: [UUID: Int] = [:]
     private let maxReconnectAttempts = 5
@@ -82,9 +83,7 @@ class G1BLEManager: NSObject, ObservableObject{
     @Published public var brightnessRaw: Int = 0
     public private(set) var brightnessFloat: CGFloat = 0.0
     @Published public var autoBrightnessEnabled: Bool = false
-
-    @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
-
+    
     init(liveIn: LiveActivityManager) {
         la = liveIn
         super.init()
@@ -122,11 +121,6 @@ class G1BLEManager: NSObject, ObservableObject{
         // You can filter by the UART service, but if you need the name to parse left vs right,
         // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
         centralManager.scanForPeripherals(withServices: nil, options: nil)
-        
-        /*
-         scanTimeout = true
-         }
-         */
     }
     
     /// Stop scanning if desired.
@@ -146,7 +140,6 @@ class G1BLEManager: NSObject, ObservableObject{
             WidgetCenter.shared.reloadAllTimelines()
             la.updateActivity()
         }
-        
         
         if let lp = leftPeripheral {
             centralManager.cancelPeripheralConnection(lp)

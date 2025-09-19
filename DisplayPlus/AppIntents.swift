@@ -88,7 +88,7 @@ struct PageIntents{
 public struct DisplayIntents {
     struct ToggleDisplayOn: AppIntent {
         static let title: LocalizedStringResource = "Turn the display on"
-        let connectionStatus: String = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.value(forKey: "connectionStatus") as! String
+        let connectionStatus: String = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.string(forKey: "connectionStatus") ?? "Disconnected"
 
         func perform() async throws -> some IntentResult & ProvidesDialog {
             if connectionStatus != "Connected" {
@@ -102,7 +102,7 @@ public struct DisplayIntents {
     
     struct ToggleDisplayOff: AppIntent {
         static let title: LocalizedStringResource = "Turn the display off"
-        let connectionStatus: String = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.value(forKey: "connectionStatus") as! String
+        let connectionStatus: String = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.string(forKey: "connectionStatus") ?? "Disconnected"
         
         func perform() async throws -> some IntentResult & ProvidesDialog {
             if connectionStatus == "Connected" {
@@ -116,7 +116,7 @@ public struct DisplayIntents {
     
     struct ToggleDisplay: AppIntent {
         static let title: LocalizedStringResource = "Toggle current display status (On/Off)"
-        let connectionStatus: String = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.value(forKey: "connectionStatus") as! String
+        let connectionStatus: String = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.string(forKey: "connectionStatus") ?? "Disconnected"
                 
         func perform() async throws -> some IntentResult & ProvidesDialog {
             if connectionStatus == "Connected" {
@@ -127,7 +127,6 @@ public struct DisplayIntents {
                 
                 defaults?.set(toggled, forKey: "displayOn")
                 
-                print("Turned display \(toggled ? "on" : "off")")
                 return .result(dialog: "Turned display \(toggled ? "on" : "off")")
             } else {
                 return .result(dialog: "Cannot toggle display while disconnected from the glasses.")

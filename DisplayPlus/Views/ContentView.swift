@@ -124,12 +124,11 @@ struct ContentView: View {
                                 }
                                 .homeItem(themeIn: theme, subItem: true)
                                 Menu {
-                                    Text("Glasses battery levels: ")
-                                    Text(" - Right: \(Int(ble.glassesBatteryRight))%")
-                                    Text(" - Left: \(Int(ble.glassesBatteryLeft))%")
-                                    Text(" - Average: \(glassesBattery)%")
+                                    Label("Average - \(glassesBattery)%", systemImage: "eyeglasses")
+                                    Text(" - Right - \(Int(ble.glassesBatteryRight))%")
+                                    Text(" - Left - \(Int(ble.glassesBatteryLeft))%")
                                     Divider()
-                                    Text(" - Case: \(caseBattery)%")
+                                    Label("Case: \(caseBattery)%", systemImage: "earbuds.case")
                                     //Disabling because there aren't really any settings rn
 //                                    Divider()
 //                                    NavigationLink(destination: BatterySettings()) {
@@ -153,7 +152,11 @@ struct ContentView: View {
                                     .frame(width: 120, height: 110)
                                     .mainButtonStyle(themeIn: theme)
                                     .homeItem(themeIn: theme, subItem: true)
+                                    .onTapGesture {
+                                        ble.fetchGlassesBattery()
+                                    }
                                 }
+                                
                                 
                             }
                             .homeItem(themeIn: theme)

@@ -42,17 +42,17 @@ struct LiveActivityView: View {
                         .frame(width: 60)
                 }
                 .accentColor(context.state.glassesBattery > 20 ? Color.green : Color.red)
-                HStack {
-                    Image(systemName: "earbuds.case")
-                        .frame(width: 30)
-                    if context.state.caseCharging {
-                        Image(systemName: "bolt.fill")
-                    }
-                    ProgressView(value: context.state.caseBattery / 100.0)
-                    Text("\(Int(context.state.caseBattery))%")
-                        .frame(width: 60)
-                }
-                .accentColor(context.state.caseBattery > 20 ? Color.green : Color.red)
+//                HStack {
+//                    Image(systemName: "earbuds.case")
+//                        .frame(width: 30)
+//                    if context.state.caseCharging {
+//                        Image(systemName: "bolt.fill")
+//                    }
+//                    ProgressView(value: context.state.caseBattery / 100.0)
+//                    Text("\(Int(context.state.caseBattery))%")
+//                        .frame(width: 60)
+//                }
+//                .accentColor(context.state.caseBattery > 20 ? Color.green : Color.red)
                 HStack{
                     Text("Glasses \(context.state.connectionStatus)")
                         .padding(10)
@@ -81,6 +81,15 @@ struct LiveActivityView: View {
 struct DisplayPlusWidgetLiveActivity: Widget {
     let kind = "DisplayPlusWidgetLiveActivity"
     
+    @Environment(\.colorScheme) var colorScheme
+    var darkMode: Bool {
+        colorScheme == .dark
+    }
+    
+    let frameWidth: CGFloat = 40
+    let frameHeight: CGFloat = 30
+    let padding: CGFloat = 5
+    
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: DisplayPlusWidgetAttributes.self) { context in
             LiveActivityView(context: context)
@@ -90,13 +99,26 @@ struct DisplayPlusWidgetLiveActivity: Widget {
                 DynamicIslandExpandedRegion(.leading) {
                     if context.state.connectionStatus == "Connected" {
                         Image(systemName: "eyeglasses")
-                            .frame(width: 60, height: 30)
+                            .frame(width: frameWidth*1.5, height: frameHeight)
+                            .padding(padding*2)
+                            .foregroundStyle(Color.green)
+                            .background(
+                                Capsule(style: .circular)
+                                    .foregroundStyle(Color.green.opacity(darkMode ? 0.3 : 0.1))
+                            )
                     }
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     if context.state.connectionStatus == "Connected" {
                         Text("\(Int(context.state.glassesBattery))%")
-                            .frame(width: 60, height: 30)
+                            .frame(width: frameWidth*1.5, height: frameHeight)
+                            .padding(padding*2)
+                            .foregroundStyle(Color.green)
+                            .background(
+                                Capsule(style: .circular)
+                                    .foregroundStyle(Color.green.opacity(darkMode ? 0.3 : 0.1))
+                            )
+                            .padding(.bottom, 2)
                     }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
@@ -116,16 +138,46 @@ struct DisplayPlusWidgetLiveActivity: Widget {
                 }
             } compactLeading: {
                 Image(systemName: "eyeglasses")
-                    .frame(width: 40)
+                    .frame(width: frameWidth, height: frameHeight/2)
+                    .padding(padding)
+                    .foregroundStyle(Color.green)
+                    .background(
+                        Capsule(style: .circular)
+                            .foregroundStyle(Color.green.opacity(darkMode ? 0.3 : 0.1))
+                    )
+
             } compactTrailing: {
                 Text("\(Int(context.state.glassesBattery))%")
-                    .frame(width: 40)
+                    .frame(width: frameWidth, height: frameHeight/2)
+                    .padding(padding)
+                    .foregroundStyle(Color.green)
+                    .background(
+                        Capsule(style: .circular)
+                            .foregroundStyle(Color.green.opacity(darkMode ? 0.3 : 0.1))
+                    )
+
             } minimal: {
                 if context.state.connectionStatus == "Connected" {
                     Text("\(Int(context.state.glassesBattery))%")
                         .font(.system(size: context.state.glassesBattery==100 ? 11 : 14))
+                        .frame(width: frameWidth, height: frameHeight)
+                        .padding(padding*100)
+                        .foregroundStyle(Color.green)
+                        .background(
+                            Capsule(style: .circular)
+                                .foregroundStyle(Color.green.opacity(darkMode ? 0.3 : 0.1))
+                        )
+
                 } else {
                     Image(systemName: "nosign")
+                        .frame(width: frameWidth, height: frameHeight)
+                        .padding(padding)
+                        .foregroundStyle(Color.green)
+                        .background(
+                            Capsule(style: .circular)
+                                .foregroundStyle(Color.green.opacity(darkMode ? 0.3 : 0.1))
+                        )
+
                 }
             }
             .keylineTint(Color.green)

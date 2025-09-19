@@ -92,9 +92,7 @@ class BackgroundTaskManager: ObservableObject {
                 print("Weather updated")
             }
         }
-        
-        forceUpdateInfo = false // Reset after first full update
-        
+                
         if ble.connectionState == .connectedBoth {
             // Less frequent updates
             if counter % 20 == 0 { // Every 10 seconds (20 * 0.5s)
@@ -111,7 +109,7 @@ class BackgroundTaskManager: ObservableObject {
                 HBCounter += 1
             }
             
-            if counter % 60 == 0 { // every 30 seconds (60 * 0.5s)
+            if counter % 60 == 0 || forceUpdateInfo{ // every 30 seconds (60 * 0.5s)
                 ble.fetchGlassesBattery()
                 if ((glassesBattery <= 3 && glassesBattery != 0) || ble.glassesBatteryLeft <= 1 || ble.glassesBatteryRight <= 1){
                     Task {
@@ -138,12 +136,19 @@ class BackgroundTaskManager: ObservableObject {
             let currentDisplayOn = displayOn
             
             //info.changed is to reduce unnecessary updates to the glasses
-            if currentDisplayOn && info.changed {
+            if (currentDisplayOn && info.changed) || forceUpdateInfo { // Only update display if it's on and info has changed
                 let pageText = pageHandler()
                 ble.sendText(text: pageText, counter: counter)
                 info.changed = false
             }
+            
+            forceUpdateInfo = false // Reset after first full update
         }
+        
+        if counter % 20 == 0 { // Every 10 seconds (20 * 0.5s)
+            ble.la.updateActivity()
+        }
+        
         counter += 1
     }
     
