@@ -141,5 +141,24 @@ public struct DisplayIntents {
             return .result(value: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.bool(forKey: "displayOn") ?? false)
         }
     }
+    
+    struct SetDisplayState: SetValueIntent {
+        static let title: LocalizedStringResource = "Set display status"
+        
+        @Parameter(title: "Display On")
+        var value: Bool
+        
+        func perform() async throws -> some IntentResult {
+            let connectionStatus: String = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.string(forKey: "connectionStatus") ?? "Disconnected"
+            
+            if connectionStatus == "Connected" {
+                UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set(value, forKey: "displayOn")
+                return .result()
+            } else {
+                // When disconnected, we can't control the actual display, but we can still update the setting
+                UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set(value, forKey: "displayOn")
+                return .result()
+            }
+        }
+    }
 }
-

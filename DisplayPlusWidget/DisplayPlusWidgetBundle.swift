@@ -12,7 +12,7 @@ import SwiftUI
 struct DisplayPlusWidgetBundle: WidgetBundle {
     var body: some Widget {
         DisplayPlusWidget()
-        //DisplayPlusWidgetControl()
+        DisplayPlusWidgetControl()
         DisplayPlusWidgetLiveActivity()
     }
 }
