@@ -1,7 +1,6 @@
 import Foundation
 import MediaPlayer
 
-@MainActor
 class AMMonitor: ObservableObject {
     private let player = MPMusicPlayerController.systemMusicPlayer
 

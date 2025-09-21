@@ -47,15 +47,25 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     }
     
     //MARK: - Update functions
-    @MainActor public func updateAll() {
+    public func updateAll(counter: Int = 360) {
         updateTime()
         updateBattery()
         updateCalendar()
         updateMusic()
-        Task {
-            await updateWeather()
+        
+        if counter % 360 == 0 { // Every 3 minutes
+            Task {
+                await updateWeather()
+            }
         }
     } //Triggers all update functions
+    
+    public func updateAllSafe() {
+        updateCalendar()
+        updateMusic()
+        updateTime()
+        updateBattery()
+    }
     
     public func updateTime() {
         let newTime = Date().formatted(date: .omitted, time: .shortened)
@@ -66,15 +76,11 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     }
     public func updateBattery() {
         if UIDevice.current.isBatteryMonitoringEnabled && UIDevice.current.batteryLevel >= 0.0 {
-            if batteryLevelFormatted != (Int)(UIDevice.current.batteryLevel * 100){
-                batteryLevelFormatted = (Int)(UIDevice.current.batteryLevel * 100)
-                changed = true
-            }
+            batteryLevelFormatted = Int(UIDevice.current.batteryLevel * 100)
+            changed = true
         } else {
-            if batteryLevelFormatted != 0 {
-                batteryLevelFormatted = 0
-                changed = true
-            }
+            batteryLevelFormatted = 0
+            changed = true
         }
     }
     public func updateCalendar() {
@@ -88,7 +94,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
             }
         }
     }
-    @MainActor public func updateMusic() {
+    public func updateMusic() {
         if getMusicAuthStatus() {
             music.updateCurrentSong()
             if currentSong.title != music.curSong.title || currentSong.isPaused != music.curSong.isPaused || currentSong.currentTime != music.curSong.currentTime {
@@ -228,7 +234,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
      */
     
     
-    @MainActor func getMusicAuthStatus() -> Bool {
+    func getMusicAuthStatus() -> Bool {
         return music.getAuthStatus() // Return the music authorization status
     }
     func getCalendarAuthStatus() -> Bool {

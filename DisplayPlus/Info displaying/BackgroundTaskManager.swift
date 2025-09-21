@@ -61,36 +61,21 @@ class BackgroundTaskManager: ObservableObject {
     // Run one timer tick on the main actor to safely call @MainActor methods and touch @AppStorage.
     @MainActor
     private func tick() {
-        //update time and music (updateMusic is @MainActor)
-        info.updateTime()
-        info.updateMusic()
         
-        //update battery
-        if counter % 20 == 0 || forceUpdateInfo { // Every 10 seconds (20 * 0.5s)
-            info.updateBattery()
-            if logging {
-                print("Battery updated")
-            }
-        }
-        
-        //update calendar
-        if counter % 120 == 0 || forceUpdateInfo { // Every 60 seconds (120 * 0.5s)
-            info.updateCalendar()
-            if logging {
-                print("Calendar updated")
-            }
-        }
-        
-        //update weather
-        if useLocation && (counter % 600 == 0 || forceUpdateInfo) {  // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
-            Task {
-                if self.info.getLocationAuthStatus() {
-                    await self.info.updateWeather()
+        if useLocation {
+            info.updateAllSafe()
+            if (counter % 600 == 0 || forceUpdateInfo) {  // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
+                Task {
+                    if self.info.getLocationAuthStatus() {
+                        await self.info.updateWeather()
+                    }
+                }
+                if logging {
+                    print("Weather updated")
                 }
             }
-            if logging {
-                print("Weather updated")
-            }
+        } else {
+            info.updateAll(counter: counter)
         }
                 
         if ble.connectionState == .connectedBoth {
