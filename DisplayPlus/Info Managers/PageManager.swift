@@ -28,8 +28,11 @@ class PageManager: ObservableObject {
     public var mirror: Bool = false
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
+    @AppStorage("songChanged", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var songChanged: Bool = false
     
     var currentDisplayLines: [String] = []
+    
+    var artistLine: String = ""
     
     init(info: InfoManager){
         self.info = info
@@ -54,44 +57,46 @@ class PageManager: ObservableObject {
 //        print("Title: \(title), Artist: \(artist)")
 //        print(rm.getWidth(text: "\(title) - \(artist)"))
 //        print("Fits on screen: \(rm.doesFitOnScreen(text: "\(title) - \(artist)"))")
-        
-        if !rm.doesFitOnScreen(text: "\(title) - \(artist)") {
-            let separator = " - "
-            let ellipsis = "..."
-
-            // Cache widths used multiple times
-            let separatorWidth = rm.getWidth(text: separator)
-            let ellipsisWidth = rm.getWidth(text: ellipsis)
-            let maxArtistWidth = displayWidth * 0.7
-
-            // Precompute current widths to avoid repeated measurements
-            var artistWidth = rm.getWidth(text: artist)
-            let titleWidth = rm.getWidth(text: title)
-
-            // 1. Shorten artist ONLY if it's longer than 70% of the screen
-            if artistWidth > maxArtistWidth {
-                let newArtistLength = findBestFit(text: artist, availableWidth: maxArtistWidth - ellipsisWidth)
-                if newArtistLength < artist.count { // only mutate if actually shorter
-                    artist = String(artist.prefix(newArtistLength)) + ellipsis
-                    artistWidth = rm.getWidth(text: artist) // update cached width after mutation
+        if  songChanged || artistLine == "" {
+            artistLine = ""
+            if !rm.doesFitOnScreen(text: "\(title) - \(artist)") {
+                let separator = " - "
+                let ellipsis = "..."
+                
+                // Cache widths used multiple times
+                let separatorWidth = rm.getWidth(text: separator)
+                let ellipsisWidth = rm.getWidth(text: ellipsis)
+                let maxArtistWidth = displayWidth * 0.7
+                
+                // Precompute current widths to avoid repeated measurements
+                var artistWidth = rm.getWidth(text: artist)
+                let titleWidth = rm.getWidth(text: title)
+                
+                // 1. Shorten artist ONLY if it's longer than 70% of the screen
+                if artistWidth > maxArtistWidth {
+                    let newArtistLength = findBestFit(text: artist, availableWidth: maxArtistWidth - ellipsisWidth)
+                    if newArtistLength < artist.count { // only mutate if actually shorter
+                        artist = String(artist.prefix(newArtistLength)) + ellipsis
+                        artistWidth = rm.getWidth(text: artist) // update cached width after mutation
+                    }
+                }
+                
+                // 2. Calculate available width for title based on the (potentially shortened) artist
+                let availableTitleWidth = displayWidth - artistWidth - separatorWidth
+                
+                // 3. Shorten title if it doesn't fit in the remaining space
+                if titleWidth > availableTitleWidth {
+                    let newTitleLength = findBestFit(text: title, availableWidth: availableTitleWidth - ellipsisWidth)
+                    if newTitleLength < title.count { // only mutate if actually shorter
+                        title = String(title.prefix(newTitleLength)) + ellipsis
+                        // titleWidth = rm.getWidth(text: title) // not needed later, so skip recompute
+                    }
                 }
             }
-
-            // 2. Calculate available width for title based on the (potentially shortened) artist
-            let availableTitleWidth = displayWidth - artistWidth - separatorWidth
-
-            // 3. Shorten title if it doesn't fit in the remaining space
-            if titleWidth > availableTitleWidth {
-                let newTitleLength = findBestFit(text: title, availableWidth: availableTitleWidth - ellipsisWidth)
-                if newTitleLength < title.count { // only mutate if actually shorter
-                    title = String(title.prefix(newTitleLength)) + ellipsis
-                    // titleWidth = rm.getWidth(text: title) // not needed later, so skip recompute
-                }
-            }
-            
+            artistLine = "\(centerText(text: "\(title)\(artist.isEmpty ? "" : " - ")\(artist)"))"
         }
         
-        currentDisplayLines.append((centerText(text: "\(title)\(artist.isEmpty ? "" : " - ")\(artist)"))) //Appending song info
+        currentDisplayLines.append(artistLine) //Appending song info
         
         if !curSong.isPaused{
             let duration = String(describing: Duration.seconds(curSong.duration).formatted(.time(pattern: .minuteSecond)))

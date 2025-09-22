@@ -90,8 +90,6 @@ class G1BLEManager: NSObject, ObservableObject{
         // Initialize CoreBluetooth central
         centralManager = CBCentralManager(delegate: self, queue: nil)
     }
-    /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
-    /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
 
     //MARK: - Start/stop scan
     func startScan() {
@@ -100,6 +98,18 @@ class G1BLEManager: NSObject, ObservableObject{
             return
         }
         
+        handlePairedDevices()
+        
+        print("Scanning for new advertising devices...")
+        connectionStatus = "Scanning..."
+        WidgetCenter.shared.reloadAllTimelines()
+        // You can filter by the UART service, but if you need the name to parse left vs right,
+        // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
+        centralManager.scanForPeripherals(withServices: nil, options: nil)
+    }
+    
+    ///Connects devices to app that are already paired to phone
+    func handlePairedDevices() {
         print("Checking for already connected peripherals with service: \(uartServiceUUID.uuidString)")
         let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceUUID])
         
@@ -113,14 +123,6 @@ class G1BLEManager: NSObject, ObservableObject{
         } else {
             print("No relevant peripherals already connected.")
         }
-        // --- MODIFICATION END ---
-        
-        print("Scanning for new advertising devices...")
-        connectionStatus = "Scanning..."
-        WidgetCenter.shared.reloadAllTimelines()
-        // You can filter by the UART service, but if you need the name to parse left vs right,
-        // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
-        centralManager.scanForPeripherals(withServices: nil, options: nil)
     }
     
     /// Stop scanning if desired.
@@ -129,7 +131,7 @@ class G1BLEManager: NSObject, ObservableObject{
         print("Stopped scanning.")
     }
     
-    //MARK: - Disconnect from both arms.
+    ///Disconnect from both arms.
     func disconnect() {
         @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
 
@@ -161,7 +163,7 @@ class G1BLEManager: NSObject, ObservableObject{
         print("Disconnected from G1 glasses.")
     }
     
-    //MARK: - Main writeData function
+    ///writeData function
     func writeData(_ data: Data, to arm: String = "Both") {
         switch arm {
         case "L":
@@ -192,7 +194,7 @@ class G1BLEManager: NSObject, ObservableObject{
         writeData(packet, to: arm)
     }
     
-    //MARK: - handleDiscoveredPeripheral function
+    ///handleDiscoveredPeripheral function
     private func handleDiscoveredPeripheral(_ peripheral: CBPeripheral) {
         guard let name = peripheral.name else { return }
         print(name)
@@ -239,6 +241,7 @@ class G1BLEManager: NSObject, ObservableObject{
         
         connectionStatus = ("Connecting pair \(pair.channel ?? 0)...")
         WidgetCenter.shared.reloadAllTimelines()
+        
         if pair.right != nil {
             // Connect right peripheral if not already connected or connecting
             if rightPeripheral == nil || (rightPeripheral?.state != .connected && rightPeripheral?.state != .connecting) {
@@ -459,29 +462,29 @@ extension G1BLEManager: CBCentralManagerDelegate {
         let leftConnected = leftPeripheral?.state == .connected
         let rightConnected = rightPeripheral?.state == .connected
 
-        // Update connectionState based on remaining connected peripherals
-        if !leftConnected && !rightConnected {
-            withAnimation{
-                connectionState = .disconnected
-            }
-            connectionStatus = "Disconnected"
-            WidgetCenter.shared.reloadAllTimelines()
-            la.updateActivity()
-        } else if leftConnected {
-            withAnimation{
-                connectionState = .connectedLeftOnly
-            }
-            connectionStatus = "Connected (Left)"
-            WidgetCenter.shared.reloadAllTimelines()
-            la.updateActivity()
-        } else if rightConnected {
-            withAnimation{
-                connectionState = .connectedRightOnly
-            }
-            connectionStatus = "Connected (Right)"
-            WidgetCenter.shared.reloadAllTimelines()
-            la.updateActivity()
-        }
+//        // Update connectionState based on remaining connected peripherals
+//        if !leftConnected && !rightConnected {
+//            withAnimation{
+//                connectionState = .disconnected
+//            }
+//            connectionStatus = "Disconnected"
+//            WidgetCenter.shared.reloadAllTimelines()
+//            la.updateActivity()
+//        } else if leftConnected {
+//            withAnimation{
+//                connectionState = .connectedLeftOnly
+//            }
+//            connectionStatus = "Connected (Left)"
+//            WidgetCenter.shared.reloadAllTimelines()
+//            la.updateActivity()
+//        } else if rightConnected {
+//            withAnimation{
+//                connectionState = .connectedRightOnly
+//            }
+//            connectionStatus = "Connected (Right)"
+//            WidgetCenter.shared.reloadAllTimelines()
+//            la.updateActivity()
+//        }
 
         // If retry attempts exceeded, stop
         if attempts > maxReconnectAttempts {
@@ -512,6 +515,7 @@ extension G1BLEManager: CBCentralManagerDelegate {
 }
 extension G1BLEManager: CBPeripheralDelegate {
     // MARK: - CBPeripheralDelegate
+    
     //didDiscoverServices handling
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let services = peripheral.services {
@@ -685,6 +689,53 @@ extension G1BLEManager: CBPeripheralDelegate {
             switch byteArray[1]{
             case 201: //C9
                 print("Init response success")
+                if connectionState == .connecting{
+                    if let n = name, n.contains("L") {
+                        withAnimation{
+                            connectionState = .connectedLeftOnly
+                            connectionStatus = "Connected (Left)"
+                            
+                            WidgetCenter.shared.reloadAllTimelines()
+                            la.updateActivity()
+                        }
+                    } else if let n = name, n.contains("R") {
+                        withAnimation{
+                            connectionState = .connectedRightOnly
+                            connectionStatus = "Connected (Right)"
+                            
+                            WidgetCenter.shared.reloadAllTimelines()
+                            la.updateActivity()
+                        }
+                    }
+                } else if connectionState == .connectedLeftOnly{
+                    if let n = name, n.contains("R") {
+                        withAnimation{
+                            connectionState = .connectedBoth
+                            connectionStatus = "Connected"
+                            
+                            WidgetCenter.shared.reloadAllTimelines()
+                            la.updateActivity()
+                        }
+                    }
+                } else if connectionState == .connectedRightOnly{
+                    if let n = name, n.contains("L") {
+                        withAnimation{
+                            connectionState = .connectedBoth
+                            connectionStatus = "Connected"
+                            
+                            WidgetCenter.shared.reloadAllTimelines()
+                            la.updateActivity()
+                        }
+                    }
+                } else {
+                    withAnimation {
+                        connectionState = .connectedBoth
+                        connectionStatus = "Connected"
+                        
+                        WidgetCenter.shared.reloadAllTimelines()
+                        la.updateActivity()
+                    }
+                }
             case 202: //CA
                 print("Init response failed")
             case 203: //CB

@@ -239,6 +239,60 @@ struct DefaultView: View {
             }
         }
         
+        //Popover for devices page
+        .popover(isPresented: $isPresentingScanView) {
+            ZStack {
+                theme.darkMode ? theme.pri.opacity(0.5).ignoresSafeArea() : theme.sec.opacity(0.75).ignoresSafeArea()
+                
+                VStack {
+                    let pairs = Array(ble.discoveredPairs.values)
+                    ForEach(pairs, id: \.channel) { pair in
+                        let hasLeft = (pair.left != nil)
+                        let hasRight = (pair.right != nil)
+                        
+                        VStack{
+                            Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
+                            HStack {
+                                HStack{
+                                    Image(systemName: hasLeft ? "checkmark.circle" : "x.circle")
+                                    Text(hasLeft ? "Left found" : "No left")
+                                }
+                                HStack{
+                                    Image(systemName: hasRight ? "checkmark.circle" : "x.circle")
+                                    Text(hasRight ? "Right found" : "No right")
+                                }
+                            }
+                            
+                            if hasRight && hasLeft {
+                                withAnimation{
+                                    Button("Connect to pair"){
+                                        ble.connectPair(pair: pair)
+                                        isPresentingScanView = false
+                                    }
+                                    .frame(width: 150, height: 50)
+                                    .mainButtonStyle(themeIn: theme)
+                                }
+                            }
+                        }
+                        .foregroundStyle(!theme.darkMode ? theme.pri : theme.sec)
+                        .padding(.horizontal, 50)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 24)
+                                .fill(!theme.darkMode ? Color(theme.pri).opacity(0.05) : Color(theme.sec).opacity(0.1))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .stroke(
+                                            (!theme.darkMode ? theme.pri : theme.sec).opacity(0.3),
+                                            lineWidth: 0.5
+                                        )
+                                )
+                        )
+                    }
+                }
+            }
+        }
+        
         //onAppear actions for entire app
         .onAppear(){
             ble.connectionStatus = "Disconnected"
@@ -246,6 +300,8 @@ struct DefaultView: View {
             theme.darkMode = colorScheme == .dark
             
             info.updateAll()
+            
+            ble.handlePairedDevices()
             
             bg.startTimer() // Start the background task timer
         }

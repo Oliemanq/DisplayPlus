@@ -1,7 +1,11 @@
 import Foundation
 import MediaPlayer
+import SwiftUI
 
 class AMMonitor: ObservableObject {
+    
+    @AppStorage("songChanged", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var songChanged: Bool = false
+    
     private let player = MPMusicPlayerController.systemMusicPlayer
 
     @Published var curSong: Song = Song.empty
@@ -32,18 +36,22 @@ class AMMonitor: ObservableObject {
             curSong = .empty
             return
         }
-
+        
+        if curSong.title != item.title {
+            songChanged = true
+        }
+        
         let title = item.title ?? "No Title"
         let artist = item.artist ?? "No Artist"
         let album = item.albumTitle ?? "No Album"
-
+        
         // Sanitize duration and currentTime. AutoMix / crossfade can return NaN, infinite, or negative values.
         let duration = sanitize(time: item.playbackDuration)
         let currentTime = sanitize(time: player.currentPlaybackTime)
-
+        
         // Treat anything other than .playing as paused for safety
         let isPaused = (player.playbackState != .playing)
-
+        
         curSong = Song(
             title: title,
             artist: artist,

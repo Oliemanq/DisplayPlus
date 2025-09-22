@@ -177,7 +177,6 @@ class BackgroundTaskManager: ObservableObject {
         return textOutput
     }
     
-    @MainActor
     func lowBatteryDisconnect() async {
         print("Low battery disconnect triggered")
         //Stopping timer to stop overwritting eachother
