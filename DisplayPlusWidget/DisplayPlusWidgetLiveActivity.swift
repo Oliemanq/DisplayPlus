@@ -203,7 +203,7 @@ struct DisplayPlusWidgetLiveActivity: Widget {
                         )
                 }
             }
-            .keylineTint(Color.green)
+            .keylineTint(context.state.glassesBattery > 20 ? Color.green : Color.red)
         }
     }
 }
