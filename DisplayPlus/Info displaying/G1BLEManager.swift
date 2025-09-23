@@ -138,9 +138,6 @@ class G1BLEManager: NSObject, ObservableObject{
         withAnimation{
             connectionState = .disconnected
             connectionStatus = "Disconnected"
-            
-            WidgetCenter.shared.reloadAllTimelines()
-            la.updateActivity()
         }
         
         if let lp = leftPeripheral {
@@ -492,8 +489,6 @@ extension G1BLEManager: CBCentralManagerDelegate {
             if !leftConnected && !rightConnected {
                 connectionStatus = "Failed to connect"
                 connectionState = .disconnected
-                WidgetCenter.shared.reloadAllTimelines()
-                la.updateActivity()
             }
             return
         }
@@ -504,8 +499,6 @@ extension G1BLEManager: CBCentralManagerDelegate {
             guard let self = self else { return }
             self.centralManager.connect(peripheral, options: nil)
         }
-        WidgetCenter.shared.reloadAllTimelines()
-        la.updateActivity()
     }
     
     //Failed to connect to device
@@ -635,13 +628,11 @@ extension G1BLEManager: CBPeripheralDelegate {
                     withAnimation{
                         glassesCharging = false
                     }
-                    la.updateActivity()
                     print("Glasses no longer charging")
                 case 1:
                     withAnimation{
                         glassesCharging = true
                     }
-                    la.updateActivity()
                     print("Glasses charging")
                 default:
                     print("unknown charging response")
@@ -694,17 +685,11 @@ extension G1BLEManager: CBPeripheralDelegate {
                         withAnimation{
                             connectionState = .connectedLeftOnly
                             connectionStatus = "Connected (Left)"
-                            
-                            WidgetCenter.shared.reloadAllTimelines()
-                            la.updateActivity()
                         }
                     } else if let n = name, n.contains("R") {
                         withAnimation{
                             connectionState = .connectedRightOnly
                             connectionStatus = "Connected (Right)"
-                            
-                            WidgetCenter.shared.reloadAllTimelines()
-                            la.updateActivity()
                         }
                     }
                 } else if connectionState == .connectedLeftOnly{
@@ -712,9 +697,6 @@ extension G1BLEManager: CBPeripheralDelegate {
                         withAnimation{
                             connectionState = .connectedBoth
                             connectionStatus = "Connected"
-                            
-                            WidgetCenter.shared.reloadAllTimelines()
-                            la.updateActivity()
                         }
                     }
                 } else if connectionState == .connectedRightOnly{
@@ -722,18 +704,12 @@ extension G1BLEManager: CBPeripheralDelegate {
                         withAnimation{
                             connectionState = .connectedBoth
                             connectionStatus = "Connected"
-                            
-                            WidgetCenter.shared.reloadAllTimelines()
-                            la.updateActivity()
                         }
                     }
                 } else {
                     withAnimation {
                         connectionState = .connectedBoth
                         connectionStatus = "Connected"
-                        
-                        WidgetCenter.shared.reloadAllTimelines()
-                        la.updateActivity()
                     }
                 }
             case 202: //CA
@@ -881,8 +857,7 @@ extension G1BLEManager: CBPeripheralDelegate {
                 glassesBattery = Int((glassesBatteryLeft + glassesBatteryRight)/2)
             }
         }
-        WidgetCenter.shared.reloadAllTimelines()
-        la.updateActivity()
+
     }
     private func disconnectFromMessage(){
         disconnect()

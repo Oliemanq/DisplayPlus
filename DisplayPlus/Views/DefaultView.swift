@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import WidgetKit
 
 struct DefaultView: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -19,18 +20,20 @@ struct DefaultView: View {
     @StateObject private var la: LiveActivityManager
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
+    @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
     @AppStorage("isPresentingScanView", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var isPresentingScanView: Bool = false
     @AppStorage("FTUEFinished", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var FTUEFinished: Bool = false //First Time User Experience checker
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
+    @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var glassesBattery: Int = 0
+    @AppStorage("glassesCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var glassesCharging: Bool = false
+
     
     
     @State private var FTUEConnection: Bool = false
-    @State private var FTUEPages: Bool = false
     
     @Namespace private var namespace
     
     init(){
-        
         let laInstance = LiveActivityManager()
         let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
         let bleInstance = G1BLEManager(liveIn: laInstance)
@@ -43,6 +46,7 @@ struct DefaultView: View {
         _bg = StateObject(wrappedValue: bgInstance)
         _la = StateObject(wrappedValue: laInstance)
     }
+    
     var body: some View {
         TabView {
             Tab("Home", systemImage: "eyeglasses") {
@@ -80,41 +84,34 @@ struct DefaultView: View {
                                 }
                             }
                         }
-                            .frame(width: 110)
-                            .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-                            .glassEffectID("toolbar", in: namespace)
+                        .frame(width: 110)
+                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                        .glassEffectID("toolbar", in: namespace)
                         
                         Menu("Pages \(Image(systemName: "folder.badge.gear"))") {
-                            if currentPage == "Calendar"{
-                                Text("Calendar")
-                            }else{
-                                Button("\(Image(systemName: "calendar")) Calendar") {
-                                    withAnimation {
-                                        FTUEPages = true
-                                    }
-                                    currentPage = "Calendar"
+                            Button("\(Image(systemName: "calendar")) Calendar") {
+                                withAnimation {
+                                    FTUEFinished = true
                                 }
+                                currentPage = "Calendar"
                             }
-                            if currentPage == "Music"{
-                                Text("Music")
-                            }else{
-                                Button("\(Image(systemName: "music.note.list")) Music") {
-                                    withAnimation {
-                                        FTUEPages = true
-                                    }
-                                    currentPage = "Music"
+                            .disabled(currentPage == "Calendar")
+                            
+                            Button("\(Image(systemName: "music.note.list")) Music") {
+                                withAnimation {
+                                    FTUEFinished = true
                                 }
+                                currentPage = "Music"
                             }
-                            if currentPage == "Default"{
-                                Text("Default")
-                            }else{
-                                Button("\(Image(systemName: "house.fill")) Default") {
-                                    withAnimation {
-                                        FTUEPages = true
-                                    }
-                                    currentPage = "Default"
+                            .disabled(currentPage == "Music")
+
+                            Button("\(Image(systemName: "house.fill")) Default") {
+                                withAnimation {
+                                    FTUEFinished = true
                                 }
+                                currentPage = "Default"
                             }
+                            .disabled(currentPage == "Default")
                         }
                         .frame(width: 80)
                         .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
@@ -140,7 +137,7 @@ struct DefaultView: View {
                                 .frame(width: 200)
                                 .foregroundStyle(theme.darkMode ? theme.sec : theme.pri)
                             }
-                            if !FTUEPages && ble.connectionState == .connectedBoth {
+                            if ble.connectionState == .connectedBoth {
                                 VStack{
                                     Text("Click 'Pages' to change the active screen on the glasses")
                                         .multilineTextAlignment(.center)
@@ -159,14 +156,6 @@ struct DefaultView: View {
             }else{
                 ZStack{
                     HStack(spacing: 10){
-//                        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
-//                            Button("Toggle FTUEFinished"){
-//                                FTUEFinished.toggle()
-//                            }
-//                            .frame(width: 200)
-//                            .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
-//                        }
-                        
                         Menu("\(ble.connectionStatus)") {
                             if ble.connectionState == .connectedBoth{
                                 Button("Disconnect"){
@@ -190,22 +179,28 @@ struct DefaultView: View {
                         Menu("Pages \(Image(systemName: "folder.badge.gear"))") {
                             Button("\(Image(systemName: "house.fill")) Default") {
                                 withAnimation {
-                                    FTUEPages = true
+                                    FTUEFinished = true
                                 }
                                 currentPage = "Default"
                             }
+                            .disabled(currentPage == "Default")
+
                             Button("\(Image(systemName: "music.note.list")) Music") {
                                 withAnimation {
-                                    FTUEPages = true
+                                    FTUEFinished = true
                                 }
                                 currentPage = "Music"
                             }
+                            .disabled(currentPage == "Music")
+
                             Button("\(Image(systemName: "calendar")) Calendar") {
                                 withAnimation {
-                                    FTUEPages = true
+                                    FTUEFinished = true
                                 }
                                 currentPage = "Calendar"
                             }
+                            .disabled(currentPage == "Calendar")
+
                         }
                         .frame(width: 120)
                         .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
@@ -222,7 +217,7 @@ struct DefaultView: View {
                                 .offset(x: -75, y: -55)
                                 .frame(width: 200)
                             }
-                            if !FTUEPages && ble.connectionState == .connectedBoth {
+                            if ble.connectionState == .connectedBoth {
                                 VStack{
                                     Text("Click 'Pages' to change the active screen on the glasses")
                                         .multilineTextAlignment(.center)
@@ -234,6 +229,7 @@ struct DefaultView: View {
                         }
                     }
                 }
+                .font(theme.bodyFont)
                 .offset(y: -50)
 
             }
@@ -264,14 +260,14 @@ struct DefaultView: View {
                             }
                             
                             if hasRight && hasLeft {
-                                withAnimation{
-                                    Button("Connect to pair"){
-                                        ble.connectPair(pair: pair)
+                                Button("Connect to pair") {
+                                    ble.connectPair(pair: pair)
+                                    withAnimation {
                                         isPresentingScanView = false
                                     }
-                                    .frame(width: 150, height: 50)
-                                    .mainButtonStyle(themeIn: theme)
                                 }
+                                .frame(width: 150, height: 50)
+                                .mainButtonStyle(themeIn: theme)
                             }
                         }
                         .foregroundStyle(!theme.darkMode ? theme.pri : theme.sec)
@@ -310,26 +306,37 @@ struct DefaultView: View {
             // Update the theme whenever the color scheme changes (use newScheme, second param)
             theme.darkMode = (newScheme == .dark)
         }
-        //Toggling main FTUE flag when completing final page
-        .onChange(of: FTUEPages) { newScheme, _ in
-            FTUEFinished = true
-        }
         //Preventing delays from waiting for bg timer when changing pages
         .onChange(of: displayOn) {
-            la.updateActivity()
+            updateWidgets()
+            
             if !displayOn {
                 ble.sendBlank()
             } else {
                 info.changed = true
             }
         }
+        
         .onChange(of: ble.connectionState) { _, newValue in
+            updateWidgets()
+            
             if newValue == .connectedBoth {
                 ble.fetchBrightness()
                 ble.fetchSilentMode()
                 ble.fetchGlassesBattery()
             }
         }
+        .onChange(of: glassesBattery) { _, _ in
+            updateWidgets()
+        }
+        .onChange(of: glassesCharging) { _, _ in
+            updateWidgets()
+        }
+    }
+    
+    func updateWidgets(){
+        WidgetCenter.shared.reloadAllTimelines()
+        la.updateActivity()
     }
 }
 

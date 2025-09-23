@@ -267,11 +267,11 @@ struct ContentView: View {
                 info.changed = true
                 displayOn = true
             }
-            
             .onChange(of: silentMode) {
-                changingSilentMode = true
                 Task{
-                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    changingSilentMode = true
+
+                    try? await Task.sleep(nanoseconds: 5_000_000_000)
                     if !silentMode {
                         print("silent mode turned off, turning on display")
                         withAnimation{
@@ -283,10 +283,11 @@ struct ContentView: View {
                             displayOn = false
                         }
                     }
+                    changingSilentMode = false
+
                 }
-                changingSilentMode = false
             } //Turning display on and off with silent mode
-            
+                        
             .onReceive(ble.$brightnessRaw) { newBrightness in
                 // Only update the slider's visual position if the user is NOT dragging it.
                 // This prevents the slider from jumping back to its old value during a drag.
