@@ -35,7 +35,7 @@ struct InfoView: View {
                         
                         //MARK: - songInfo
                         
-                        if info.currentSong.title == "" {
+                        if info.music.curSong.title == "" {
                             HStack{
                                 Text("No music playing")
                                     .font(.headline)
@@ -45,15 +45,15 @@ struct InfoView: View {
                             // Current playing music
                             VStack(alignment: .center) {
                                 // Use infoManager.currentSong properties
-                                Text("\(info.currentSong.title)")
+                                Text("\(info.music.curSong.title)")
                                 
                                     .font(.headline)
-                                Text("\(info.currentSong.album) - \(info.currentSong.artist)")
+                                Text("\(info.music.curSong.album) - \(info.music.curSong.artist)")
                                     .font(.subheadline)
                                     .multilineTextAlignment(.center)
                                 
-                                let formattedCurrentTime = Duration.seconds(info.currentSong.currentTime).formatted(.time(pattern: .minuteSecond))
-                                let formattedduration = Duration.seconds(info.currentSong.duration).formatted(.time(pattern: .minuteSecond))
+                                let formattedCurrentTime = Duration.seconds(info.music.curSong.currentTime).formatted(.time(pattern: .minuteSecond))
+                                let formattedduration = Duration.seconds(info.music.curSong.duration).formatted(.time(pattern: .minuteSecond))
                                 
                                 Text("\(formattedCurrentTime) - \(formattedduration)")
                                     .font(.caption)
@@ -100,6 +100,6 @@ struct InfoView: View {
 
 
 #Preview {
-    InfoView(infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter()), bleIn: G1BLEManager(liveIn: LiveActivityManager()))
+    InfoView(infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager()), bleIn: G1BLEManager(liveIn: LiveActivityManager())) //, health: HealthInfoGetter()
         .environmentObject(ThemeColors())
 }

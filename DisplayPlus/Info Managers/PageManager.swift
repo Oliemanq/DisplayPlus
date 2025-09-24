@@ -17,12 +17,10 @@ import OpenMeteoSdk
 class PageManager: ObservableObject {
     var timer: Timer?
     
+    var info: InfoManager
     var rm = RenderingManager() //Has all measurements from calibration
     let displayWidth: CGFloat = 100.0
-    
-    //Info manager
-    var info: InfoManager
-    
+        
     var songProgAsBars: String = ""
     
     public var mirror: Bool = false

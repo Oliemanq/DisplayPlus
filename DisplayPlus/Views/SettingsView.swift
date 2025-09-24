@@ -32,6 +32,7 @@ struct SettingsView: View {
     @State private var debounceTimer: Timer?
     
     @State private var showingActivity = false
+    @State private var showingSupportAlert = false
     
     // Display helper for fixed location city (uses published weather.currentCity)
     private var fixedCityDisplay: String {
@@ -147,7 +148,7 @@ struct SettingsView: View {
                         }
                         .tint(.primary)
                         Button {
-                            openURL(URL(string: "https://ko-fi.com/oliemanq")!)
+                            showingSupportAlert = true
                         } label: {
                             Label("Support the developer!", systemImage: "heart")
                         }
@@ -169,6 +170,11 @@ struct SettingsView: View {
                     }
                     .tint(.primary)
                 }
+            }
+            .alert("Support the developer!", isPresented: $showingSupportAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Thank you for considering supporting my work! If you'd like to contribute, please visit my GitHub page or my Discord for more info.")
             }
             .sheet(isPresented: $showingLocationPicker) {
                 LocationPickerView(location: $fixedLocation, theme: theme)
@@ -193,7 +199,7 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter()), liveIn: LiveActivityManager())
+    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager()), liveIn: LiveActivityManager()) //, health: HealthInfoGetter()
         .environmentObject(ThemeColors())
 
 }

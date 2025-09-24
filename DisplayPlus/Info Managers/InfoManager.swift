@@ -13,7 +13,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     let cal: CalendarManager
     let music: AMMonitor
     let weather: WeatherManager
-    let health: HealthInfoGetter
+//    let health: HealthInfoGetter
     
     @Published var changed: Bool = false
     
@@ -31,16 +31,13 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     @Published var batteryLevelFormatted: Int = 0 // Mark with @Published
     
     // Health var
-    @Published var healthData: RingData = RingData(steps: 0, exercise: 0, standHours: 0) // Mark with @Published
+//    @Published var healthData: RingData = RingData(steps: 0, exercise: 0, standHours: 0) // Mark with @Published
 
-    // Music var
-    @Published var currentSong: Song = Song(title: "", artist: "", album: "", duration: 0.0, currentTime: 0.0, isPaused: true) // Mark with @Published, provide default
-
-    init (cal: CalendarManager, music: AMMonitor, weather: WeatherManager, health: HealthInfoGetter) {
+    init (cal: CalendarManager, music: AMMonitor, weather: WeatherManager) { //, health: HealthInfoGetter
         self.cal = cal
         self.music = music
         self.weather = weather
-        self.health = health
+//        self.health = health
         time = Date().formatted(date: .omitted, time: .shortened)
         UIDevice.current.isBatteryMonitoringEnabled = true // Enable battery monitoring
         
@@ -97,8 +94,8 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     public func updateMusic() {
         if getMusicAuthStatus() {
             music.updateCurrentSong()
-            if currentSong.title != music.curSong.title || currentSong.isPaused != music.curSong.isPaused || currentSong.currentTime != music.curSong.currentTime {
-                currentSong = music.curSong
+            
+            if music.curSong.title != music.curSong.title || music.curSong.isPaused != music.curSong.isPaused || music.curSong.currentTime != music.curSong.currentTime {
                 changed = true
             }
         }
@@ -114,7 +111,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     
     //MARK: - Music functions
     public func getCurSong() -> Song {
-        return currentSong // Return the @Published property
+        return music.getCurSong() // Return the @Published property
     }
     
     //MARK: - Time functions
@@ -205,23 +202,23 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     }
     
     //MARK: - HealthKit Functions - Unused
-    func getHealthData() -> RingData {
-        // Simply return the current value - no async operations
-        print("Steps \(healthData.steps), Exercise \(healthData.exercise), Stand Hours \(healthData.standHours)")
-        return healthData
-    }
-    // Separate function to handle fetching health data asynchronously
-    func fetchHealthData() async {
-        do {
-            let fetchedData = try await health.getRingData()
-            // Use MainActor to update the @Published property on the main thread
-            await MainActor.run {
-                self.healthData = fetchedData
-            }
-        } catch {
-            print("Error fetching health data: \(error)")
-        }
-    }
+//    func getHealthData() -> RingData {
+//        // Simply return the current value - no async operations
+//        print("Steps \(healthData.steps), Exercise \(healthData.exercise), Stand Hours \(healthData.standHours)")
+//        return healthData
+//    }
+//    // Separate function to handle fetching health data asynchronously
+//    func fetchHealthData() async {
+//        do {
+//            let fetchedData = try await health.getRingData()
+//            // Use MainActor to update the @Published property on the main thread
+//            await MainActor.run {
+//                self.healthData = fetchedData
+//            }
+//        } catch {
+//            print("Error fetching health data: \(error)")
+//        }
+//    }
     
     
     //MARK: - Auth funcs

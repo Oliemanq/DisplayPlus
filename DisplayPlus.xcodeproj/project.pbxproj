@@ -11,6 +11,7 @@
 		4E627B972E72676F00E38E36 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E8DA2912E1EFDFF00934ED3 /* SwiftUI.framework */; };
 		4E627BA62E72677000E38E36 /* DisplayPlusWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4E627B942E72676F00E38E36 /* DisplayPlusWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4EB23FCD2DF89699005A2750 /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 4EB23FCC2DF89699005A2750 /* OpenMeteoSdk */; };
+		4EE28AFB2E839A7B00438919 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4EE28AFA2E839A7B00438919 /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,6 +59,7 @@
 		4E70105B2DBD6F4900F868F4 /* DisplayPlusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DisplayPlusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E7010652DBD6F4900F868F4 /* DisplayPlusUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DisplayPlusUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E8DA2912E1EFDFF00934ED3 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		4EE28AFA2E839A7B00438919 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4EEE7E8B2E72759A0008B2CA /* DisplayPlusWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DisplayPlusWidgetExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -154,6 +156,7 @@
 		4E7010452DBD6F4700F868F4 = {
 			isa = PBXGroup;
 			children = (
+				4EE28AFA2E839A7B00438919 /* LaunchScreen.storyboard */,
 				4EEE7E8B2E72759A0008B2CA /* DisplayPlusWidgetExtension.entitlements */,
 				4E7010502DBD6F4800F868F4 /* DisplayPlus */,
 				4E70105E2DBD6F4900F868F4 /* DisplayPlusTests */,
@@ -343,6 +346,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EE28AFB2E839A7B00438919 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -617,17 +621,13 @@
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Needed to get current playing song data";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Needed to comunicate with glasses";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Needed to access upcoming events for displaying on glasses";
-				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Needed to access daily ring information";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads your step count and heart rate to show activity trends.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app saves your workout data to your health profile.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app needs your location to provide weather updates even when the app is in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to provide weather updates.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
-				INFOPLIST_KEY_UIStatusBarStyle = "";
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -662,17 +662,13 @@
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Needed to get current playing song data";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Needed to comunicate with glasses";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Needed to access upcoming events for displaying on glasses";
-				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Needed to access daily ring information";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads your step count and heart rate to show activity trends.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app saves your workout data to your health profile.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app needs your location to provide weather updates even when the app is in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to provide weather updates.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
-				INFOPLIST_KEY_UIStatusBarStyle = "";
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
