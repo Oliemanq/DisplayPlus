@@ -26,11 +26,13 @@ class PageManager: ObservableObject {
     public var mirror: Bool = false
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
-    @AppStorage("songChanged", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var songChanged: Bool = false
     
     var currentDisplayLines: [String] = []
     
     var artistLine: String = ""
+    var artistLineRaw: String = ""
+    
+    var lastSong: Song = Song.empty
     
     init(info: InfoManager){
         self.info = info
@@ -48,15 +50,18 @@ class PageManager: ObservableObject {
     }
     
     func musicDisplay() -> [String]{
-        let curSong = info.getCurSong()
+        var curSong = info.getCurSong()
         var artist: String = curSong.artist
         var title: String = curSong.title
+
         
-//        print("Title: \(title), Artist: \(artist)")
-//        print(rm.getWidth(text: "\(title) - \(artist)"))
-//        print("Fits on screen: \(rm.doesFitOnScreen(text: "\(title) - \(artist)"))")
-        if  songChanged || artistLine == "" {
-            artistLine = ""
+        if curSong.title != lastSong.title {
+            curSong.songChanged = true
+        }
+        
+        if curSong.songChanged || artistLineRaw == "" {
+            print("Song changed, rebuilding artist line\n")
+            artistLineRaw = ""
             if !rm.doesFitOnScreen(text: "\(title) - \(artist)") {
                 let separator = " - "
                 let ellipsis = "..."
@@ -91,10 +96,12 @@ class PageManager: ObservableObject {
                     }
                 }
             }
-            artistLine = "\(centerText(text: "\(title)\(artist.isEmpty ? "" : " - ")\(artist)"))"
+            // Store the raw (uncentered) line and center it on append so mirror/centering behave correctly.
+            artistLineRaw = "\(title)\(artist.isEmpty ? "" : " - ")\(artist)"
+            // We've rebuilt the cached display line — clear the shared flag so repeated renders don't retrigger rebuild.
         }
         
-        currentDisplayLines.append(artistLine) //Appending song info
+        currentDisplayLines.append(centerText(text: artistLineRaw)) //Appending song info (always center here)
         
         if !curSong.isPaused{
             let duration = String(describing: Duration.seconds(curSong.duration).formatted(.time(pattern: .minuteSecond)))
@@ -105,6 +112,8 @@ class PageManager: ObservableObject {
         }else{
             currentDisplayLines.append(centerText(text: "--Paused--"))
         } //Hiding progress bar if song is paused, showing paused text
+        
+        lastSong = curSong
         
         return currentDisplayLines
     }

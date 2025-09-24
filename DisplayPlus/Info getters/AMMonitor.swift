@@ -3,12 +3,10 @@ import MediaPlayer
 import SwiftUI
 
 class AMMonitor: ObservableObject {
-    
-    @AppStorage("songChanged", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var songChanged: Bool = false
-    
     private let player = MPMusicPlayerController.systemMusicPlayer
 
     @Published var curSong: Song = Song.empty
+    var prevSong: Song = Song.empty
 
     private var isObserving = false
 
@@ -32,13 +30,8 @@ class AMMonitor: ObservableObject {
 
     public func updateCurrentSong() {
         guard let item = player.nowPlayingItem else {
-            // If no item, reset to an empty/paused Song
             curSong = .empty
             return
-        }
-        
-        if curSong.title != item.title {
-            songChanged = true
         }
         
         let title = item.title ?? "No Title"
@@ -52,14 +45,29 @@ class AMMonitor: ObservableObject {
         // Treat anything other than .playing as paused for safety
         let isPaused = (player.playbackState != .playing)
         
+        // Determine whether the track actually changed (compare normalized metadata).
+        // Compare against the current curSong (last known song).
+        let songChanged = curSong.title != title || curSong.artist != artist || curSong.album != album
+        
         curSong = Song(
             title: title,
             artist: artist,
             album: album,
             duration: duration,
             currentTime: currentTime,
-            isPaused: isPaused
+            isPaused: isPaused,
+            songChanged: songChanged
         )
+        
+        if curSong.songChanged {
+            print("\nCurrent song updated: \n\(curSong.title) by \(curSong.artist)\n\(String(describing: Duration.seconds(curSong.currentTime).formatted(.time(pattern: .minuteSecond))))/\(String(describing: Duration.seconds(curSong.duration).formatted(.time(pattern: .minuteSecond))))")
+            
+        }
+    }
+    
+    public func getCurSong() -> Song {
+        curSong.songChanged = false // Reset after being read
+        return curSong
     }
 
     func getAuthStatus() -> Bool {
@@ -91,8 +99,9 @@ struct Song{
     var duration: TimeInterval
     var currentTime: TimeInterval
     var isPaused: Bool
+    var songChanged: Bool
 
-    static let empty = Song(title: "", artist: "", album: "", duration: 0, currentTime: 0, isPaused: true)
+    static let empty = Song(title: "", artist: "", album: "", duration: 0, currentTime: 0, isPaused: true, songChanged: false)
 
     var percentagePlayed: Double {
         guard duration.isFinite && duration > 0 else { return 0 }
