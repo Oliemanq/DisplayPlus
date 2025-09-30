@@ -12,6 +12,7 @@ I set up a Ko-Fi! If you would like to support me, please consider donating!
  - Siri shortcuts/AppIntents support for a few actions 
  - Current weather
  - glasses brightness
+ - Live Activities/Widgets/Control center actions
 
 
 ## This app is built from the ground up on Swift and SwiftUI, ideally as a replacement for the stock Even app
@@ -20,5 +21,6 @@ I mainly wanted to do this to familiarize myself with swift/swiftui and many fra
  - MediaPlayer
  - BLE Communication
  - CoreLocation
+ - ActivityKit/WidgetKit/ControlKit
 
 ## I am working on this fully in my free time, so don't expect a regular update cycle
