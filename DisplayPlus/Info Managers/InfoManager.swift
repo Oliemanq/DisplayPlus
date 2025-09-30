@@ -44,23 +44,42 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     
     //MARK: - Update functions
     public func updateAll(counter: Int = 360) {
-        things[0].update() // Time
-        things[1].update() // Date
         updateCalendar()
         updateMusic()
-        
-        if counter % 360 == 0 { // Every 3 minutes
-            Task {
-                await updateWeather()
-            }
-        }
+        updateThings(counter: counter)
     } //Triggers all update functions
     
     public func updateAllSafe() {
         updateCalendar()
         updateMusic()
-        things[0].update() // Time
-        things[1].update() // Date
+        updateThingsSafe()
+    }
+    
+    func updateThings(counter: Int) {
+        for thing in things {
+            if thing.type == "Weather" {
+                if counter % 360 == 0 {
+                    thing.update()
+                }
+            }else {
+                thing.update()
+            }
+            
+            if thing.updated {
+                updated = true
+            }
+        }
+    }
+    
+    func updateThingsSafe() {
+        for thing in things {
+            if thing.type != "Weather" {
+                thing.update()
+            }
+            if thing.updated {
+                updated = true
+            }
+        }
     }
     
     public func updateCalendar() {
