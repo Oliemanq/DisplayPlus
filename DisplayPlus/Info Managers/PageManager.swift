@@ -17,12 +17,10 @@ import OpenMeteoSdk
 class PageManager: ObservableObject {
     var timer: Timer?
     
+    var info: InfoManager
     var rm = RenderingManager() //Has all measurements from calibration
     let displayWidth: CGFloat = 100.0
-    
-    //Info manager
-    var info: InfoManager
-    
+        
     var songProgAsBars: String = ""
     
     public var mirror: Bool = false
@@ -30,6 +28,11 @@ class PageManager: ObservableObject {
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     
     var currentDisplayLines: [String] = []
+    
+    var artistLine: String = ""
+    var artistLineRaw: String = ""
+    
+    var lastSong: Song = Song.empty
     
     init(info: InfoManager){
         self.info = info
@@ -47,51 +50,58 @@ class PageManager: ObservableObject {
     }
     
     func musicDisplay() -> [String]{
-        let curSong = info.getCurSong()
+        var curSong = info.getCurSong()
         var artist: String = curSong.artist
         var title: String = curSong.title
+
         
-//        print("Title: \(title), Artist: \(artist)")
-//        print(rm.getWidth(text: "\(title) - \(artist)"))
-//        print("Fits on screen: \(rm.doesFitOnScreen(text: "\(title) - \(artist)"))")
-        
-        if !rm.doesFitOnScreen(text: "\(title) - \(artist)") {
-            var artistShortened = false
-            var titleShortened = false
-            
-            let separatorWidth = rm.getWidth(text: " - ")
-            let dotWidth = rm.getWidth(text: "...")
-            
-            // Iteratively shorten artist/title until it fits or strings are empty
-            while true {
-                let titleWidth = rm.getWidth(text: title)
-                let artistWidth = rm.getWidth(text: artist)
-                
-                if titleWidth + artistWidth + dotWidth*2 <= displayWidth - separatorWidth {
-                    break
-                }
-                
-                // Prefer shortening the longer one first; keep artist above a small threshold before switching
-                if artistWidth + dotWidth > 50, !artist.isEmpty {
-                    artist = String(artist.dropLast())
-                    artistShortened = true
-                } else if !title.isEmpty {
-                    title = String(title.dropLast())
-                    titleShortened = true
-                } else {
-                    break
-                }
-            }
-            
-            if artistShortened {
-                artist.append("...")
-            }
-            if titleShortened {
-                title.append("...")
-            }
+        if curSong.title != lastSong.title {
+            curSong.songChanged = true
         }
         
-        currentDisplayLines.append((centerText(text: "\(title) - \(artist)"))) //Appening song info
+        if curSong.songChanged || artistLineRaw == "" {
+            print("Song changed, rebuilding artist line\n")
+            artistLineRaw = ""
+            if !rm.doesFitOnScreen(text: "\(title) - \(artist)") {
+                let separator = " - "
+                let ellipsis = "..."
+                
+                // Cache widths used multiple times
+                let separatorWidth = rm.getWidth(text: separator)
+                let ellipsisWidth = rm.getWidth(text: ellipsis)
+                let maxArtistWidth = displayWidth * 0.7
+                
+                // Precompute current widths to avoid repeated measurements
+                var artistWidth = rm.getWidth(text: artist)
+                let titleWidth = rm.getWidth(text: title)
+                
+                // 1. Shorten artist ONLY if it's longer than 70% of the screen
+                if artistWidth > maxArtistWidth {
+                    let newArtistLength = findBestFit(text: artist, availableWidth: maxArtistWidth - ellipsisWidth)
+                    if newArtistLength < artist.count { // only mutate if actually shorter
+                        artist = String(artist.prefix(newArtistLength)) + ellipsis
+                        artistWidth = rm.getWidth(text: artist) // update cached width after mutation
+                    }
+                }
+                
+                // 2. Calculate available width for title based on the (potentially shortened) artist
+                let availableTitleWidth = displayWidth - artistWidth - separatorWidth
+                
+                // 3. Shorten title if it doesn't fit in the remaining space
+                if titleWidth > availableTitleWidth {
+                    let newTitleLength = findBestFit(text: title, availableWidth: availableTitleWidth - ellipsisWidth)
+                    if newTitleLength < title.count { // only mutate if actually shorter
+                        title = String(title.prefix(newTitleLength)) + ellipsis
+                        // titleWidth = rm.getWidth(text: title) // not needed later, so skip recompute
+                    }
+                }
+            }
+            // Store the raw (uncentered) line and center it on append so mirror/centering behave correctly.
+            artistLineRaw = "\(title)\(artist.isEmpty ? "" : " - ")\(artist)"
+            // We've rebuilt the cached display line — clear the shared flag so repeated renders don't retrigger rebuild.
+        }
+        
+        currentDisplayLines.append(centerText(text: artistLineRaw)) //Appending song info (always center here)
         
         if !curSong.isPaused{
             let duration = String(describing: Duration.seconds(curSong.duration).formatted(.time(pattern: .minuteSecond)))
@@ -102,6 +112,8 @@ class PageManager: ObservableObject {
         }else{
             currentDisplayLines.append(centerText(text: "--Paused--"))
         } //Hiding progress bar if song is paused, showing paused text
+        
+        lastSong = curSong
         
         return currentDisplayLines
     }
@@ -142,17 +154,19 @@ class PageManager: ObservableObject {
     func progressBar(percentDone: CGFloat, value: CGFloat, max: CGFloat) -> String {
         var fullBar: String = ""
         let percentage = percentDone
-        let constantWidth = CGFloat(rm.getWidth(text: "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
         
-        let workingWidth = (displayWidth-constantWidth)
-        
-        let percentCompleted = workingWidth * percentage
-        let percentRemaining = workingWidth * (1.0-percentage)
-        
-        let completed = String(repeating: "-", count: Int((percentCompleted / rm.getWidth(text: "-"))))
-        let remaining = String(repeating: "_", count: Int((percentRemaining / rm.getWidth(text: "_", overrideProgressBar: mirror))))
-        fullBar = "[" + completed + "|" + remaining + "]"
-        
+        do {
+            let constantWidth = CGFloat(rm.getWidth(text: "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
+            
+            let workingWidth = (displayWidth-constantWidth)
+            
+            let percentCompleted = workingWidth * percentage
+            let percentRemaining = workingWidth * (1.0-percentage)
+            
+            let completed = String(repeating: "-", count: Int((percentCompleted / rm.getWidth(text: "-"))))
+            let remaining = String(repeating: "_", count: Int((percentRemaining / rm.getWidth(text: "_", overrideProgressBar: mirror))))
+            fullBar = "[" + completed + "|" + remaining + "]"
+        }
         
         return fullBar
     }
@@ -170,4 +184,23 @@ class PageManager: ObservableObject {
             return FinalText
         }
     }
+    
+    func findBestFit(text: String, availableWidth: CGFloat) -> Int {
+        var lowerBound = 0
+        var upperBound = text.count
+        var bestFit = 0
+
+        while lowerBound <= upperBound {
+            let mid = (lowerBound + upperBound) / 2
+            let prefix = String(text.prefix(mid))
+            if rm.getWidth(text: prefix) <= availableWidth {
+                bestFit = mid
+                lowerBound = mid + 1
+            } else {
+                upperBound = mid - 1
+            }
+        }
+        return bestFit
+    }
 }
+

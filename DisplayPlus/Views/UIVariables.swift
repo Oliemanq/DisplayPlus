@@ -303,8 +303,8 @@ extension View {
         
         if #available(iOS 26, *) {
             self
-                .glassEffect(.regular.interactive(true))
-                //.foregroundStyle(!darkMode ? pri : sec)
+                .glassEffect(.regular.interactive())
+                .foregroundStyle(!darkMode ? pri : sec)
                 //.foregroundColor(accent)
 
         } else {
@@ -323,7 +323,7 @@ extension View {
             self
                 .foregroundStyle(!darkMode ? pri : sec)
                 .padding(8)
-                .glassEffect(.clear.interactive())
+                .glassEffect(darkMode ? .clear.interactive() : .regular.interactive())
         }else{
             let rounding: CGFloat = 12
             

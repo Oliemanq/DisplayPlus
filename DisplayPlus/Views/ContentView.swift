@@ -21,6 +21,11 @@ struct ContentView: View {
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
     @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
+    @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
+    @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
+    @AppStorage("glassesCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesCharging: Bool = false
+    
+    @State private var changingSilentMode: Bool = false
     
     
     @Namespace private var namespace
@@ -75,7 +80,7 @@ struct ContentView: View {
                             
                         
                             //MARK: - buttons
-                            HStack(spacing: 30){
+                            HStack(spacing: 10){
                                 VStack(alignment: .center){
                                     //Silent mode button
                                     Button {
@@ -93,6 +98,7 @@ struct ContentView: View {
                                         }
                                         .padding(.horizontal, buttonPadding)
                                     }
+                                    .disabled(changingSilentMode)
                                     .frame(width: buttonWidth, height: (silentMode ? 90 : 35))
                                     .mainButtonStyle(themeIn: theme)
                                     
@@ -117,14 +123,40 @@ struct ContentView: View {
                                     }
                                 }
                                 .homeItem(themeIn: theme, subItem: true)
-                                VStack{
-                                    Text("Battery")
-                                    Text("\(Image(systemName: "eyeglasses")) - \(Int(ble.glassesBatteryAvg))%")
-                                    Text("\(Image(systemName: "earbuds.case")) - \(Int(ble.caseBatteryLevel))%")
+                                Menu {
+                                    Label("Average - \(glassesBattery)%", systemImage: "eyeglasses")
+                                    Text(" - Right - \(Int(ble.glassesBatteryRight))%")
+                                    Text(" - Left - \(Int(ble.glassesBatteryLeft))%")
+                                    Divider()
+                                    Label("Case: \(caseBattery)%", systemImage: "earbuds.case")
+                                    //Disabling because there aren't really any settings rn
+//                                    Divider()
+//                                    NavigationLink(destination: BatterySettings()) {
+//                                        Text("Battery settings")
+//                                    }
+                                } label: {
+                                    VStack{
+                                        Text("Battery")
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "eyeglasses")
+                                            if glassesCharging {
+                                                Image(systemName: "bolt.fill")
+                                            }
+                                            Text("- \(glassesBattery)%")
+                                        }
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "earbuds.case")
+                                            Text("- \(caseBattery)%")
+                                        }
+                                    }
+                                    .frame(width: 120, height: 110)
+                                    .mainButtonStyle(themeIn: theme)
+                                    .homeItem(themeIn: theme, subItem: true)
+                                    .onTapGesture {
+                                        ble.fetchGlassesBattery()
+                                    }
                                 }
-                                .frame(width: 90, height: 110)
-                                .mainButtonStyle(themeIn: theme)
-                                .homeItem(themeIn: theme, subItem: true)
+                                
                                 
                             }
                             .homeItem(themeIn: theme)
@@ -233,12 +265,13 @@ struct ContentView: View {
             //MARK: - onChange
             .onChange(of: currentPage) {
                 info.changed = true
-                ble.sendText(text: bg.pageHandler(), counter: 0)
-            } //^^^
+                displayOn = true
+            }
             .onChange(of: silentMode) {
                 Task{
-                    print("silent mode changed")
-                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    changingSilentMode = true
+
+                    try? await Task.sleep(nanoseconds: 5_000_000_000)
                     if !silentMode {
                         print("silent mode turned off, turning on display")
                         withAnimation{
@@ -250,8 +283,11 @@ struct ContentView: View {
                             displayOn = false
                         }
                     }
+                    changingSilentMode = false
+
                 }
             } //Turning display on and off with silent mode
+                        
             .onReceive(ble.$brightnessRaw) { newBrightness in
                 // Only update the slider's visual position if the user is NOT dragging it.
                 // This prevents the slider from jumping back to its old value during a drag.
@@ -259,60 +295,6 @@ struct ContentView: View {
                     brightnessSlider = Double(newBrightness)
                 }
             } //Preventing weird updates with brightness slider
-            //MARK: - popovers
-            .popover(isPresented: $isPresentingScanView) {
-                
-                ZStack {
-                    theme.darkMode ? theme.pri.opacity(0.5).ignoresSafeArea() : theme.sec.opacity(0.75).ignoresSafeArea()
-                    
-                    VStack {
-                        let pairs = Array(ble.discoveredPairs.values)
-                        ForEach(pairs, id: \.channel) { pair in
-                            let hasLeft = (pair.left != nil)
-                            let hasRight = (pair.right != nil)
-                            
-                            VStack{
-                                Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
-                                HStack {
-                                    HStack{
-                                        Image(systemName: hasLeft ? "checkmark.circle" : "x.circle")
-                                        Text(hasLeft ? "Left found" : "No left")
-                                    }
-                                    HStack{
-                                        Image(systemName: hasRight ? "checkmark.circle" : "x.circle")
-                                        Text(hasRight ? "Right found" : "No right")
-                                    }
-                                }
-                                
-                                if hasRight && hasLeft {
-                                    withAnimation{
-                                        Button("Connect to pair"){
-                                            ble.connectPair(pair: pair)
-                                            isPresentingScanView = false
-                                        }
-                                        .frame(width: 150, height: 50)
-                                        .mainButtonStyle(themeIn: theme)
-                                    }
-                                }
-                            }
-                            .foregroundStyle(!theme.darkMode ? theme.pri : theme.sec)
-                            .padding(.horizontal, 50)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .fill(!theme.darkMode ? Color(theme.pri).opacity(0.05) : Color(theme.sec).opacity(0.1))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 24)
-                                            .stroke(
-                                                (!theme.darkMode ? theme.pri : theme.sec).opacity(0.3),
-                                                lineWidth: 0.5
-                                            )
-                                    )
-                            )
-                        }
-                    }
-                }
-            }
         }
     }
 }
@@ -322,8 +304,9 @@ struct ContentView: View {
 
 
 #Preview {
-    let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager(), health: HealthInfoGetter())
-    let bleInstance = G1BLEManager() 
+    let laInstance = LiveActivityManager()
+    let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager()) //, health: HealthInfoGetter()
+    let bleInstance = G1BLEManager(liveIn: laInstance)
     let pageInstance = PageManager(info: infoInstance)
     let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
     

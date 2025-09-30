@@ -14,6 +14,7 @@
 import CoreBluetooth
 import SwiftData
 import SwiftUI
+import WidgetKit
 
 struct G1DiscoveredPair {
     var channel: Int? = nil
@@ -34,8 +35,13 @@ class G1BLEManager: NSObject, ObservableObject{
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
     @AppStorage("headsUpEnabled", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var headsUp: Bool = false
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
+    @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
+    @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
+    @AppStorage("glassesCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesCharging: Bool = false
+    @AppStorage("caseCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseCharging: Bool = false
+    @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
 
-
+    public private(set) var la: LiveActivityManager
     
     private var reconnectAttempts: [UUID: Int] = [:]
     private let maxReconnectAttempts = 5
@@ -71,27 +77,19 @@ class G1BLEManager: NSObject, ObservableObject{
     //Vars altered by messages from processIncomingData, easy access throughout app
     public private(set) var wearing: Bool = false
     
-    public private(set) var glassesBatteryLeft: CGFloat = 0.0
-    public private(set) var glassesBatteryRight: CGFloat = 0.0
-    public private(set) var glassesBatteryAvg: CGFloat = 0.0
-    public private(set) var glassesCharging: Bool = false
-    
-    public private(set) var caseBatteryLevel: CGFloat = 0.0
-    public private(set) var caseCharging: Bool = false
-    
+    public private(set) var glassesBatteryLeft: CGFloat = 100 //Out of 100
+    public private(set) var glassesBatteryRight: CGFloat = 100
+        
     @Published public var brightnessRaw: Int = 0
     public private(set) var brightnessFloat: CGFloat = 0.0
     @Published public var autoBrightnessEnabled: Bool = false
-
-    @AppStorage("silentMode", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var silentMode: Bool = false
-
-    override init() {
+    
+    init(liveIn: LiveActivityManager) {
+        la = liveIn
         super.init()
         // Initialize CoreBluetooth central
         centralManager = CBCentralManager(delegate: self, queue: nil)
     }
-    /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
-    /// Start scanning for G1 glasses. We'll look for names containing "_L_" or "_R_".
 
     //MARK: - Start/stop scan
     func startScan() {
@@ -100,6 +98,18 @@ class G1BLEManager: NSObject, ObservableObject{
             return
         }
         
+        handlePairedDevices()
+        
+        print("Scanning for new advertising devices...")
+        connectionStatus = "Scanning..."
+        WidgetCenter.shared.reloadAllTimelines()
+        // You can filter by the UART service, but if you need the name to parse left vs right,
+        // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
+        centralManager.scanForPeripherals(withServices: nil, options: nil)
+    }
+    
+    ///Connects devices to app that are already paired to phone
+    func handlePairedDevices() {
         print("Checking for already connected peripherals with service: \(uartServiceUUID.uuidString)")
         let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceUUID])
         
@@ -113,18 +123,6 @@ class G1BLEManager: NSObject, ObservableObject{
         } else {
             print("No relevant peripherals already connected.")
         }
-        // --- MODIFICATION END ---
-        
-        print("Scanning for new advertising devices...")
-        connectionStatus = "Scanning..."
-        // You can filter by the UART service, but if you need the name to parse left vs right,
-        // you might pass nil to discover all. Then we manually look for the substring in didDiscover.
-        centralManager.scanForPeripherals(withServices: nil, options: nil)
-        
-        /*
-         scanTimeout = true
-         }
-         */
     }
     
     /// Stop scanning if desired.
@@ -133,10 +131,15 @@ class G1BLEManager: NSObject, ObservableObject{
         print("Stopped scanning.")
     }
     
-    //MARK: - Disconnect from both arms.
+    ///Disconnect from both arms.
     func disconnect() {
         @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
 
+        withAnimation{
+            connectionState = .disconnected
+            connectionStatus = "Disconnected"
+        }
+        
         if let lp = leftPeripheral {
             centralManager.cancelPeripheralConnection(lp)
             leftPeripheral = nil
@@ -152,16 +155,12 @@ class G1BLEManager: NSObject, ObservableObject{
         
         reconnectAttempts.removeAll()
         
-        withAnimation{
-            connectionState = .disconnected
-        }
-        
         displayOn = false
         
         print("Disconnected from G1 glasses.")
     }
     
-    //MARK: - Main writeData function
+    ///writeData function
     func writeData(_ data: Data, to arm: String = "Both") {
         switch arm {
         case "L":
@@ -187,12 +186,12 @@ class G1BLEManager: NSObject, ObservableObject{
         }
     }
     
-    func sendInitCommand(arm: String = "Both") {
+    func sendInitCommand(arm: String = "Both") { //1 to both
         let packet = Data([0x4D, 0x01])
         writeData(packet, to: arm)
     }
     
-    //MARK: - handleDiscoveredPeripheral function
+    ///handleDiscoveredPeripheral function
     private func handleDiscoveredPeripheral(_ peripheral: CBPeripheral) {
         guard let name = peripheral.name else { return }
         print(name)
@@ -238,6 +237,8 @@ class G1BLEManager: NSObject, ObservableObject{
         stopScan()
         
         connectionStatus = ("Connecting pair \(pair.channel ?? 0)...")
+        WidgetCenter.shared.reloadAllTimelines()
+        
         if pair.right != nil {
             // Connect right peripheral if not already connected or connecting
             if rightPeripheral == nil || (rightPeripheral?.state != .connected && rightPeripheral?.state != .connecting) {
@@ -272,7 +273,7 @@ class G1BLEManager: NSObject, ObservableObject{
         packet.append(UInt8(counter))
         
         let data = Data(packet)
-        writeData(data, to: "Both")
+        writeData(data, to: "Both") //1 to both
     }
     
     //MARK: - Glasses communication functions
@@ -292,7 +293,7 @@ class G1BLEManager: NSObject, ObservableObject{
         packet.append(contentsOf: textBytes)
         
         let data = Data(packet)
-        writeData(data, to: arm)
+        writeData(data, to: arm) //both arms
     }
     
     //Sending new text to screen, usually a new page
@@ -407,6 +408,7 @@ extension G1BLEManager: CBCentralManagerDelegate {
         
         if leftConnected && rightConnected {
             connectionStatus = "Connected"
+            WidgetCenter.shared.reloadAllTimelines()
             withAnimation{
                 connectionState = .connectedBoth
             }
@@ -415,12 +417,14 @@ extension G1BLEManager: CBCentralManagerDelegate {
             centralManager.stopScan()
         } else if leftConnected {
             connectionStatus = "Connected (Left)"
+            WidgetCenter.shared.reloadAllTimelines()
             withAnimation{
                 connectionState = .connectedLeftOnly
             }
         } else if rightConnected {
 
             connectionStatus = "Connected (Right)"
+            WidgetCenter.shared.reloadAllTimelines()
             withAnimation{
                 connectionState = .connectedRightOnly
             }
@@ -441,7 +445,11 @@ extension G1BLEManager: CBCentralManagerDelegate {
             rightWChar = nil
             rightRChar = nil
         }
-
+        withAnimation {
+            connectionStatus = "Reconnecting..."
+            connectionState = .disconnected
+        }
+        
         // Track reconnect attempts
         let id = peripheral.identifier
         let attempts = (reconnectAttempts[id] ?? 0) + 1
@@ -451,29 +459,36 @@ extension G1BLEManager: CBCentralManagerDelegate {
         let leftConnected = leftPeripheral?.state == .connected
         let rightConnected = rightPeripheral?.state == .connected
 
-        // Update connectionState based on remaining connected peripherals
-        if !leftConnected && !rightConnected {
-            withAnimation{
-                connectionState = .disconnected
-            }
-            connectionStatus = "Disconnected"
-        } else if leftConnected {
-            withAnimation{
-                connectionState = .connectedLeftOnly
-            }
-            connectionStatus = "Connected (Left)"
-        } else if rightConnected {
-            withAnimation{
-                connectionState = .connectedRightOnly
-            }
-            connectionStatus = "Connected (Right)"
-        }
+//        // Update connectionState based on remaining connected peripherals
+//        if !leftConnected && !rightConnected {
+//            withAnimation{
+//                connectionState = .disconnected
+//            }
+//            connectionStatus = "Disconnected"
+//            WidgetCenter.shared.reloadAllTimelines()
+//            la.updateActivity()
+//        } else if leftConnected {
+//            withAnimation{
+//                connectionState = .connectedLeftOnly
+//            }
+//            connectionStatus = "Connected (Left)"
+//            WidgetCenter.shared.reloadAllTimelines()
+//            la.updateActivity()
+//        } else if rightConnected {
+//            withAnimation{
+//                connectionState = .connectedRightOnly
+//            }
+//            connectionStatus = "Connected (Right)"
+//            WidgetCenter.shared.reloadAllTimelines()
+//            la.updateActivity()
+//        }
 
         // If retry attempts exceeded, stop
         if attempts > maxReconnectAttempts {
             print("Max reconnect attempts reached for: \(peripheral.name ?? peripheral.identifier.uuidString)")
             if !leftConnected && !rightConnected {
                 connectionStatus = "Failed to connect"
+                connectionState = .disconnected
             }
             return
         }
@@ -493,6 +508,7 @@ extension G1BLEManager: CBCentralManagerDelegate {
 }
 extension G1BLEManager: CBPeripheralDelegate {
     // MARK: - CBPeripheralDelegate
+    
     //didDiscoverServices handling
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let services = peripheral.services {
@@ -607,20 +623,34 @@ extension G1BLEManager: CBPeripheralDelegate {
             case 8: //08
                 print("Glasses in case, lid open")
             case 9: //09
-                print("Charging")
+                switch byteArray[2] {
+                case 0:
+                    withAnimation{
+                        glassesCharging = false
+                    }
+                    print("Glasses no longer charging")
+                case 1:
+                    withAnimation{
+                        glassesCharging = true
+                    }
+                    print("Glasses charging")
+                default:
+                    print("unknown charging response")
+                }
             case 10: //0A
-                //Sent a lot for an unknown reason
-                let _ = false
+                print("Glasses in case, lid closed, case not plugged in") //Maybe? calls constantly and incorrectly
+                caseCharging = false
             case 11: //0B
-                print("Glasses in case, lid closed")
+                print("Glasses in case, lid closed, case plugged in")
                 disconnectFromMessage()
+                caseCharging = true
             case 12: //0C
                 print("not documented 0C")
             case 13: //0D
                 print("Not documented 0D")
             case 14: //0E
                 print("Case charging")
-                
+                caseCharging = true
             case 15: //0F
                 print("Case battery percentage \(byteArray[2])%")
                 updateBattery(device: "case", batteryLevel: byteArray[2])
@@ -629,7 +659,8 @@ extension G1BLEManager: CBPeripheralDelegate {
             case 17: //11
                 print("Bluetooth pairing success \(name ?? "no name")")
             case 18: //12
-                print("Right held and released")
+                let _ = 1 //filler
+                //print("Right held and released")
             case 23: //17
                 print("Left held")
             case 24: //18
@@ -649,6 +680,38 @@ extension G1BLEManager: CBPeripheralDelegate {
             switch byteArray[1]{
             case 201: //C9
                 print("Init response success")
+                if connectionState == .connecting{
+                    if let n = name, n.contains("L") {
+                        withAnimation{
+                            connectionState = .connectedLeftOnly
+                            connectionStatus = "Connected (Left)"
+                        }
+                    } else if let n = name, n.contains("R") {
+                        withAnimation{
+                            connectionState = .connectedRightOnly
+                            connectionStatus = "Connected (Right)"
+                        }
+                    }
+                } else if connectionState == .connectedLeftOnly{
+                    if let n = name, n.contains("R") {
+                        withAnimation{
+                            connectionState = .connectedBoth
+                            connectionStatus = "Connected"
+                        }
+                    }
+                } else if connectionState == .connectedRightOnly{
+                    if let n = name, n.contains("L") {
+                        withAnimation{
+                            connectionState = .connectedBoth
+                            connectionStatus = "Connected"
+                        }
+                    }
+                } else {
+                    withAnimation {
+                        connectionState = .connectedBoth
+                        connectionStatus = "Connected"
+                    }
+                }
             case 202: //CA
                 print("Init response failed")
             case 203: //CB
@@ -678,7 +741,7 @@ extension G1BLEManager: CBPeripheralDelegate {
                     updateBattery(device: name!, batteryLevel: byteArray[2])
                 }
             default:
-                print("Unknown message, header from battery fetch \(byteArray)")
+                print("Unknown message from battery fetch \(byteArray)")
             }
         
         //MARK: - Silent mode
@@ -779,9 +842,10 @@ extension G1BLEManager: CBPeripheralDelegate {
         wearing = true
         print("Put glasses on")
     }
-    private func updateBattery(device: String ,batteryLevel: UInt8){
+    private func updateBattery(device: String, batteryLevel: UInt8){
+        print("updating battery for \(device) to \(batteryLevel)%")
         if device == "case"{
-            caseBatteryLevel = CGFloat(batteryLevel)
+            caseBattery = Int(batteryLevel)
         }else{
             if device.contains("R"){
                 glassesBatteryRight = CGFloat(batteryLevel)
@@ -790,9 +854,10 @@ extension G1BLEManager: CBPeripheralDelegate {
             }
             
             if glassesBatteryLeft != 0.0 && glassesBatteryRight != 0.0{
-                glassesBatteryAvg = (glassesBatteryLeft + glassesBatteryRight)/2
+                glassesBattery = Int((glassesBatteryLeft + glassesBatteryRight)/2)
             }
         }
+
     }
     private func disconnectFromMessage(){
         disconnect()

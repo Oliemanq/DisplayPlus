@@ -17,23 +17,26 @@
           "value" : "screen"
         }
       ],
-      "blur-material" : 0.5,
+      "blur-material" : null,
       "layers" : [
         {
           "fill" : "automatic",
+          "glass" : true,
           "image-name" : "G1_App_Icon.png",
-          "name" : "G1_App_Icon"
+          "name" : "G1_App_Icon",
+          "opacity" : 1
         }
       ],
       "lighting" : "individual",
+      "name" : "Group",
       "shadow" : {
         "kind" : "layer-color",
-        "opacity" : 0.65
+        "opacity" : 0.45
       },
       "specular" : false,
       "translucency" : {
         "enabled" : true,
-        "value" : 0.24
+        "value" : 0.25
       }
     }
   ],
