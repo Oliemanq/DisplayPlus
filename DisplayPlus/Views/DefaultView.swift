@@ -313,7 +313,7 @@ struct DefaultView: View {
             if !displayOn {
                 ble.sendBlank()
             } else {
-                info.changed = true
+                info.updated = true
             }
         }
         

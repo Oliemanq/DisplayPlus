@@ -28,7 +28,7 @@ struct InfoView: View {
                         Spacer(minLength: 16)
                         
                         VStack {
-                            Text("\(info.time)")
+                            Text(info.getTime())
                             Text(info.getTodayDate())
                         }
                         .infoItem(themeIn: theme)

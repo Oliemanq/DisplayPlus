@@ -264,7 +264,7 @@ struct ContentView: View {
             
             //MARK: - onChange
             .onChange(of: currentPage) {
-                info.changed = true
+                info.updated = true
                 displayOn = true
             }
             .onChange(of: silentMode) {

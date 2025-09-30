@@ -13,12 +13,11 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     let cal: CalendarManager
     let music: AMMonitor
     let weather: WeatherManager
-//    let health: HealthInfoGetter
+    //    let health: HealthInfoGetter
     
-    @Published var changed: Bool = false
+    @Published var updated: Bool = false
     
-    //Time vars
-    @Published var time: String
+    var things: [Thing]
     
     //Event vars
     @Published var eventsFormatted: [event] = []
@@ -27,26 +26,26 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     @Published var authorizationStatus = ""
     @Published var errorMessage: String = ""
     
-    //Battery var
-    @Published var batteryLevelFormatted: Int = 0 // Mark with @Published
     
-    // Health var
-//    @Published var healthData: RingData = RingData(steps: 0, exercise: 0, standHours: 0) // Mark with @Published
-
     init (cal: CalendarManager, music: AMMonitor, weather: WeatherManager) { //, health: HealthInfoGetter
         self.cal = cal
         self.music = music
         self.weather = weather
 //        self.health = health
-        time = Date().formatted(date: .omitted, time: .shortened)
         UIDevice.current.isBatteryMonitoringEnabled = true // Enable battery monitoring
         
+        self.things = [
+            TimeThing(name: "timeHeader"),
+            DateThing(name: "dateHeader"),
+            BatteryThing(name: "batteryHeader"),
+            WeatherThing(name: "weatherHeader", weather: weather)
+        ]
     }
     
     //MARK: - Update functions
     public func updateAll(counter: Int = 360) {
-        updateTime()
-        updateBattery()
+        things[0].update() // Time
+        things[1].update() // Date
         updateCalendar()
         updateMusic()
         
@@ -60,33 +59,17 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     public func updateAllSafe() {
         updateCalendar()
         updateMusic()
-        updateTime()
-        updateBattery()
+        things[0].update() // Time
+        things[1].update() // Date
     }
     
-    public func updateTime() {
-        let newTime = Date().formatted(date: .omitted, time: .shortened)
-        if time != newTime {
-            time = newTime
-            changed = true
-        }
-    }
-    public func updateBattery() {
-        if UIDevice.current.isBatteryMonitoringEnabled && UIDevice.current.batteryLevel >= 0.0 {
-            batteryLevelFormatted = Int(UIDevice.current.batteryLevel * 100)
-            changed = true
-        } else {
-            batteryLevelFormatted = 0
-            changed = true
-        }
-    }
     public func updateCalendar() {
         if getCalendarAuthStatus() {
             let tempEventHolder = eventsFormatted.count
             loadEvents {
                 if tempEventHolder != self.eventsFormatted.count {
-                    self.changed = true
-                    print("Calendar changed \(tempEventHolder) -> \(self.eventsFormatted.count)")
+                    self.updated = true
+                    print("Calendar updated \(tempEventHolder) -> \(self.eventsFormatted.count)")
                 }
             }
         }
@@ -96,17 +79,12 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
             music.updateCurrentSong()
             
             if music.curSong.title != music.curSong.title || music.curSong.isPaused != music.curSong.isPaused || music.curSong.currentTime != music.curSong.currentTime {
-                changed = true
+                updated = true
             }
         }
     }
     public func updateWeather() async{
-        do{
-            try await weather.fetchWeatherData()
-            print("Weather with\(!weather.useLocation ? "out" : "") location, fetch successful, InfoManager updated: Temp=\(weather.currentTemp)")
-        }catch {
-            print("failed weather fetch \(error)")
-        }
+        things[3].update() // Weather
     }
     
     //MARK: - Music functions
@@ -116,7 +94,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     
     //MARK: - Time functions
     public func getTime() -> String {
-        return time
+        return things[0].toString()
     }
     
     //MARK: - Weather functions
@@ -197,8 +175,8 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     }
     
     //MARK: - Getting PHONE battery
-    func getBattery() -> Int {
-        return batteryLevelFormatted
+    func getBattery() -> String {
+        return things[2].toString()
     }
     
     //MARK: - HealthKit Functions - Unused

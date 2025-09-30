@@ -121,10 +121,10 @@ class BackgroundTaskManager: ObservableObject {
             let currentDisplayOn = displayOn
             
             //info.changed is to reduce unnecessary updates to the glasses
-            if (currentDisplayOn && info.changed) || forceUpdateInfo { // Only update display if it's on and info has changed
+            if (currentDisplayOn && info.updated) || forceUpdateInfo { // Only update display if it's on and info has changed
                 let pageText = pageHandler()
                 ble.sendText(text: pageText, counter: counter)
-                info.changed = false
+                info.updated = false
             }
             
             forceUpdateInfo = false // Reset after first full update
