@@ -98,7 +98,6 @@ class PageManager: ObservableObject {
             }
             // Store the raw (uncentered) line and center it on append so mirror/centering behave correctly.
             artistLineRaw = "\(title)\(artist.isEmpty ? "" : " - ")\(artist)"
-            // We've rebuilt the cached display line — clear the shared flag so repeated renders don't retrigger rebuild.
         }
         
         currentDisplayLines.append(centerText(text: artistLineRaw)) //Appending song info (always center here)
@@ -120,7 +119,7 @@ class PageManager: ObservableObject {
     
     func calendarDisplay() -> [String]{
         if (info.getEvents().count != 0) {
-            for event in info.eventsFormatted {
+            for event in info.getEvents() {
                 let title = (event.titleLine.count > 25 ? (String(event.titleLine.prefix(25)) + "...") : event.titleLine)
                 currentDisplayLines.append(centerText(text: "\(title)"))
                 currentDisplayLines.append(centerText(text: (event.subtitleLine)))

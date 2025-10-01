@@ -19,8 +19,4 @@ class TimeThing: Thing {
             updated = true
         }
     }
-
-    override func toString() -> String {
-        return data
-    }
 }

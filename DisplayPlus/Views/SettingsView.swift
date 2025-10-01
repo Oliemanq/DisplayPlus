@@ -199,7 +199,14 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager()), liveIn: LiveActivityManager()) //, health: HealthInfoGetter()
+    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), infoIn: InfoManager(things: [
+        TimeThing(name: "timeHeader"),
+        DateThing(name: "dateHeader"),
+        BatteryThing(name: "batteryHeader"),
+        WeatherThing(name: "weatherHeader"),
+        CalendarThing(name: "calendarHeader"),
+        MusicThing(name: "musicHeader")
+    ]), liveIn: LiveActivityManager()) //, health: HealthInfoGetter()
         .environmentObject(ThemeColors())
 
 }

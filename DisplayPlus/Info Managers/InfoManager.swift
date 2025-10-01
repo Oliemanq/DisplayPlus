@@ -10,50 +10,20 @@ import EventKit
 import UIKit
 
 class InfoManager: ObservableObject { // Conform to ObservableObject
-    let cal: CalendarManager
-    let music: AMMonitor
-    let weather: WeatherManager
-    //    let health: HealthInfoGetter
-    
     @Published var updated: Bool = false
     
-    var things: [Thing]
+    @Published var things: [Thing]
     
-    //Event vars
+    @Published var curSong: Song = Song.empty
     @Published var eventsFormatted: [event] = []
-    var events: [EKEvent] = []
-    @Published var numOfEvents: Int = 0
-    @Published var authorizationStatus = ""
-    @Published var errorMessage: String = ""
     
-    
-    init (cal: CalendarManager, music: AMMonitor, weather: WeatherManager) { //, health: HealthInfoGetter
-        self.cal = cal
-        self.music = music
-        self.weather = weather
-//        self.health = health
+    init (things: [Thing]) { //, health: HealthInfoGetter
         UIDevice.current.isBatteryMonitoringEnabled = true // Enable battery monitoring
         
-        self.things = [
-            TimeThing(name: "timeHeader"),
-            DateThing(name: "dateHeader"),
-            BatteryThing(name: "batteryHeader"),
-            WeatherThing(name: "weatherHeader", weather: weather)
-        ]
+        self.things = things
     }
     
     //MARK: - Update functions
-    public func updateAll(counter: Int = 360) {
-        updateCalendar()
-        updateMusic()
-        updateThings(counter: counter)
-    } //Triggers all update functions
-    
-    public func updateAllSafe() {
-        updateCalendar()
-        updateMusic()
-        updateThingsSafe()
-    }
     
     func updateThings(counter: Int) {
         for thing in things {
@@ -63,6 +33,13 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
                 }
             }else {
                 thing.update()
+                if thing.type == "Music" {
+                    let temp: MusicThing = thing as! MusicThing
+                    self.curSong = temp.getCurSong()
+                } else if thing.type == "Calendar" {
+                    let temp: CalendarThing = thing as! CalendarThing
+                    eventsFormatted = temp.getEvents()
+                }
             }
             
             if thing.updated {
@@ -82,182 +59,49 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         }
     }
     
-    public func updateCalendar() {
-        if getCalendarAuthStatus() {
-            let tempEventHolder = eventsFormatted.count
-            loadEvents {
-                if tempEventHolder != self.eventsFormatted.count {
-                    self.updated = true
-                    print("Calendar updated \(tempEventHolder) -> \(self.eventsFormatted.count)")
-                }
-            }
-        }
-    }
-    public func updateMusic() {
-        if getMusicAuthStatus() {
-            music.updateCurrentSong()
-            
-            if music.curSong.title != music.curSong.title || music.curSong.isPaused != music.curSong.isPaused || music.curSong.currentTime != music.curSong.currentTime {
-                updated = true
-            }
-        }
-    }
-    public func updateWeather() async{
-        things[3].update() // Weather
+    //MARK: - Get functions
+    func getTime() -> String {
+        return things.first(where: { $0.type == "Time" })?.toString() ?? ""
     }
     
-    //MARK: - Music functions
-    public func getCurSong() -> Song {
-        return music.getCurSong() // Return the @Published property
+    func getTodayDate() -> String {
+        return things.first(where: { $0.type == "Date" })?.toString() ?? ""
     }
     
-    //MARK: - Time functions
-    public func getTime() -> String {
-        return things[0].toString()
+    func getBattery() -> Int {
+        return Int(things.first(where: { $0.type == "Battery" })?.toString() ?? "0")!
     }
     
-    //MARK: - Weather functions
+    func getSongTitle() -> String {
+        let temp: MusicThing = things.first(where: { $0.type == "Music" }) as! MusicThing
+        return temp.getTitle()
+    }
+    func getSongArtist() -> String {
+        let temp: MusicThing = things.first(where: { $0.type == "Music" }) as! MusicThing
+        return temp.getArtist()
+    }
+    func getSongAlbum() -> String {
+        let temp: MusicThing = things.first(where: { $0.type == "Music" }) as! MusicThing
+        return temp.getAlbum()
+    }
+    func getCurSong() -> Song {
+        let temp: MusicThing = things.first(where: { $0.type == "Music" }) as! MusicThing
+        return temp.getCurSong()
+    }
+    
     func getCurrentTemp() -> Int {
-        return weather.currentTemp
-    }
-    func getCurrentWind() -> Int {
-        return weather.currentWind
+        let temp: WeatherThing = things.first(where: { $0.type == "Weather" }) as! WeatherThing
+        return temp.getCurrentTemp()
     }
     
-    //MARK: - Cal functions
-    private func loadEvents(completion: (() -> Void)? = nil) {
-        let timeFormatter = DateFormatter()
-        timeFormatter.dateFormat = "h:mm a"
-        
-        cal.fetchEventsForNextDay { result in
-            DispatchQueue.main.async { [self] in
-                self.updateAuthorizationStatus() // This updates a @Published property
-                switch result {
-                case .success(let fetchedEvents):
-                    var tempEventsFormatted: [event] = [] // Build locally then assign to @Published
-                    events = fetchedEvents
-                    numOfEvents = 0
-                    for event in events {
-                        numOfEvents += 1
-                        
-                        var eventTemp: event = .init(
-                            titleLine: "",
-                            subtitleLine: ""
-                        )
-                        
-                        if event.title != nil {
-                            let title = event.title
-                            
-                            if (title! == "Shift as Computer Maintenance at TechCenter at TC/Lib/Comp Maint") {
-                                eventTemp.titleLine = ("Work")
-                            } else {
-                                eventTemp.titleLine = ("\(title!)")
-                            }
-                        }
-                        
-                        if event.startDate != nil && event.endDate != nil {
-                            let startDate = event.startDate
-                            let endDate = event.endDate
-                            
-                            eventTemp.subtitleLine = ("\(timeFormatter.string(from: startDate!)) - \(timeFormatter.string(from: endDate!))")
-                        }
-                        
-                        tempEventsFormatted.append(eventTemp)
-                    }
-                    self.eventsFormatted = tempEventsFormatted // Assign to @Published property
-                    
-                    completion?()
-                    
-                case .failure(let error):
-                    self.errorMessage = error.localizedDescription // This updates a @Published property
-                    completion?()
-                }
-            }
-        }
-    }
     func getEvents() -> [event] {
-        return self.eventsFormatted
+        let temp: CalendarThing = things.first(where: { $0.type == "Calendar" }) as! CalendarThing
+        return temp.getEvents()
     }
-    func getTodayDate()-> String{
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "EEE"
-        let weekDay = dateFormatter.string(from: Date())
-        
-        let date = Date()
-        
-        dateFormatter.dateFormat = "MMMM"
-        let month = dateFormatter.string(from: date)
-        dateFormatter.dateFormat = "d"
-        let day = dateFormatter.string(from: date)
-        
-        return "\(weekDay), \(month) \(day)"
+    func getNumOfEvents() -> Int {
+        let temp: CalendarThing = things.first(where: { $0.type == "Calendar" }) as! CalendarThing
+        return temp.getNumOfEvents()
     }
-    
-    //MARK: - Getting PHONE battery
-    func getBattery() -> String {
-        return things[2].toString()
-    }
-    
-    //MARK: - HealthKit Functions - Unused
-//    func getHealthData() -> RingData {
-//        // Simply return the current value - no async operations
-//        print("Steps \(healthData.steps), Exercise \(healthData.exercise), Stand Hours \(healthData.standHours)")
-//        return healthData
-//    }
-//    // Separate function to handle fetching health data asynchronously
-//    func fetchHealthData() async {
-//        do {
-//            let fetchedData = try await health.getRingData()
-//            // Use MainActor to update the @Published property on the main thread
-//            await MainActor.run {
-//                self.healthData = fetchedData
-//            }
-//        } catch {
-//            print("Error fetching health data: \(error)")
-//        }
-//    }
-    
-    
-    //MARK: - Auth funcs
-    
-    
-    /* Removing until I implement it fully
-    func getHealthAuthStatus() -> Bool {
-        return (health.getAuthStatus()[0] == true && health.getAuthStatus()[1] == true && health.getAuthStatus()[2] == true) //return true if all health data is authorized, otherwise returns false
-    }
-     */
-    
-    
-    func getMusicAuthStatus() -> Bool {
-        return music.getAuthStatus() // Return the music authorization status
-    }
-    func getCalendarAuthStatus() -> Bool {
-        if cal.getAuthStatus() {
-            return true
-        } else {
-            // If calendar access is denied, run this func to force request
-            cal.fetchEventsForNextDay { result in
-                let _ = result // just need to trigger function to force request access
-            }
-            return false
-        }
-    }
-    func getLocationAuthStatus() -> Bool {
-        return weather.getAuthStatus() // Return the location authorization status
-    }
-    
-    private func updateAuthorizationStatus() {
-            let status = EKEventStore.authorizationStatus(for: .event)
-            switch status {
-            case .authorized: authorizationStatus = "Authorized"
-            case .denied: authorizationStatus = "Denied"
-            case .notDetermined: authorizationStatus = "Not Determined" // This updates a @Published property
-            case .restricted: authorizationStatus = "Restricted" // This updates a @Published property
-            case .fullAccess: authorizationStatus = "Full Access" // This updates a @Published property
-            case .writeOnly: authorizationStatus = "Write Only" // This updates a @Published property
-            @unknown default: authorizationStatus = "Unknown" // This updates a @Published property
-            }
-        }
 }
 
 

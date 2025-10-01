@@ -10,6 +10,11 @@ class Thing {
     var type: String
     var data: String
     
+    var enabled: Bool = false
+    var page: String = ""
+    var row: Int = 0
+    var placeInRow: Int = 0
+    
     var updated: Bool = false
     
     init(name: String, type: String, data: String = ""){
@@ -23,11 +28,22 @@ class Thing {
         self.data = ""
     }
     
+    func initForPage(page: String, row: Int = 0, placeInRow: Int = 0){
+        self.enabled = true
+        self.page = page
+        self.row = row
+        self.placeInRow = placeInRow
+    }
+    
     func update() {
         updated = true
     }
     
+    func getAuthStatus() -> Bool {
+        return false
+    }
+    
     func toString() -> String {
-       return ("Thing: \(name), Type: \(type)")
+       return data
     }
 }

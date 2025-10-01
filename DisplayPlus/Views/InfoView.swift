@@ -15,6 +15,8 @@ struct InfoView: View {
     init(infoIn: InfoManager, bleIn: G1BLEManager){
         _info = StateObject(wrappedValue: infoIn)
         _ble = StateObject(wrappedValue: bleIn)
+        
+        
     }
     var body: some View {
         NavigationStack {
@@ -35,7 +37,7 @@ struct InfoView: View {
                         
                         //MARK: - songInfo
                         
-                        if info.music.curSong.title == "" {
+                        if info.getSongTitle() == "" {
                             HStack{
                                 Text("No music playing")
                                     .font(.headline)
@@ -45,15 +47,15 @@ struct InfoView: View {
                             // Current playing music
                             VStack(alignment: .center) {
                                 // Use infoManager.currentSong properties
-                                Text("\(info.music.curSong.title)")
+                                Text("\(info.curSong.title)")
                                 
                                     .font(.headline)
-                                Text("\(info.music.curSong.album) - \(info.music.curSong.artist)")
+                                Text("\(info.curSong.album) - \(info.curSong.artist)")
                                     .font(.subheadline)
                                     .multilineTextAlignment(.center)
                                 
-                                let formattedCurrentTime = Duration.seconds(info.music.curSong.currentTime).formatted(.time(pattern: .minuteSecond))
-                                let formattedduration = Duration.seconds(info.music.curSong.duration).formatted(.time(pattern: .minuteSecond))
+                                let formattedCurrentTime = Duration.seconds(info.curSong.currentTime).formatted(.time(pattern: .minuteSecond))
+                                let formattedduration = Duration.seconds(info.curSong.duration).formatted(.time(pattern: .minuteSecond))
                                 
                                 Text("\(formattedCurrentTime) - \(formattedduration)")
                                     .font(.caption)
@@ -71,7 +73,7 @@ struct InfoView: View {
                             .infoItem(themeIn: theme)
                         }else{
                             VStack(alignment: .leading) {
-                                Text("Calendar events (\(info.numOfEvents)): ")
+                                Text("Calendar events (\(info.getNumOfEvents()): ")
                                     .infoItem(themeIn: theme, subItem: true)
                                 
                                 // Use infoManager.eventsFormatted for ForEach{
@@ -100,6 +102,13 @@ struct InfoView: View {
 
 
 #Preview {
-    InfoView(infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager()), bleIn: G1BLEManager(liveIn: LiveActivityManager())) //, health: HealthInfoGetter()
+    InfoView(infoIn: InfoManager(things: [
+        TimeThing(name: "timeHeader"),
+        DateThing(name: "dateHeader"),
+        BatteryThing(name: "batteryHeader"),
+        WeatherThing(name: "weatherHeader"),
+        CalendarThing(name: "calendarHeader"),
+        MusicThing(name: "musicHeader")
+    ]), bleIn: G1BLEManager(liveIn: LiveActivityManager())) //, health: HealthInfoGetter()
         .environmentObject(ThemeColors())
 }

@@ -63,19 +63,9 @@ class BackgroundTaskManager: ObservableObject {
     private func tick() {
         
         if useLocation {
-            info.updateAllSafe()
-            if (counter % 600 == 0 || forceUpdateInfo) {  // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
-                Task {
-                    if self.info.getLocationAuthStatus() {
-                        await self.info.updateWeather()
-                    }
-                }
-                if logging {
-                    print("Weather updated")
-                }
-            }
+            info.updateThingsSafe()
         } else {
-            info.updateAll(counter: counter)
+            info.updateThings(counter: counter)
         }
                 
         if ble.connectionState == .connectedBoth {
@@ -158,7 +148,7 @@ class BackgroundTaskManager: ObservableObject {
             
             if displayLines.isEmpty {
                 textOutput = "Broken"
-            } else if info.numOfEvents >= 2 {
+            } else if info.getNumOfEvents() >= 2 {
                 for index in 0..<3 {
                     print(displayLines[index])
                     if index == 2 {

@@ -19,6 +19,8 @@ struct DefaultView: View {
     @StateObject private var bg: BackgroundTaskManager
     @StateObject private var la: LiveActivityManager
     
+    @State var things: [Thing]
+    
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
     @AppStorage("isPresentingScanView", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var isPresentingScanView: Bool = false
@@ -34,11 +36,22 @@ struct DefaultView: View {
     @Namespace private var namespace
     
     init(){
+        self.things = [
+            TimeThing(name: "timeHeader"),
+            DateThing(name: "dateHeader"),
+            BatteryThing(name: "batteryHeader"),
+            WeatherThing(name: "weatherHeader"),
+            CalendarThing(name: "calendarHeader"),
+            MusicThing(name: "musicHeader")
+        ]
+        
         let laInstance = LiveActivityManager()
-        let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager()) //, health: HealthInfoGetter()
+        let infoInstance = InfoManager(things) //, health: HealthInfoGetter()
         let bleInstance = G1BLEManager(liveIn: laInstance)
         let pageInstance = PageManager(info: infoInstance)
         let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
+        
+        
         
         _info = StateObject(wrappedValue: infoInstance)
         _ble = StateObject(wrappedValue: bleInstance)
@@ -54,6 +67,9 @@ struct DefaultView: View {
             }
             Tab("Info", systemImage: "info.square") {
                 InfoView(infoIn: info, bleIn: ble)
+            }
+            Tab("Page Editor", systemImage: "pencil.tip") {
+                PageEditorView(things: things)
             }
             Tab("Settings", systemImage: "gear") {
                 SettingsView(bleIn: ble, infoIn: info, liveIn: la)

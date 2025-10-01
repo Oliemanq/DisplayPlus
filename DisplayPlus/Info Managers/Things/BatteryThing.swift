@@ -29,4 +29,7 @@ class BatteryThing: Thing {
     override func toString() -> String {
         return String(battery)
     }
+    func toInt() -> Int {
+        return battery
+    }
 }

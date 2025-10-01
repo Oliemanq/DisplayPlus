@@ -1,10 +1,9 @@
 import Foundation
 
 class WeatherThing: Thing {
-    var weather: WeatherManager
+    var weather: WeatherManager = WeatherManager()
     
-    init(name: String, weather: WeatherManager) {
-        self.weather = weather
+    init(name: String) {
         super.init(name: name, type: "Weather")
     }
     
@@ -13,6 +12,18 @@ class WeatherThing: Thing {
             try await weather.fetchWeatherData()
         }
         print("Weather with\(!weather.useLocation ? "out" : "") location, fetch successful")
+    }
+    
+    func getCurrentTemp() -> Int {
+        return weather.currentTemp
+    }
+    
+    func getAuth() -> Bool {
+        return weather.getAuthStatus()
+    }
+    
+    func toggleLocation(){
+        weather.toggleLocationUsage(on: !weather.useLocation)
     }
 
     override func toString() -> String {
