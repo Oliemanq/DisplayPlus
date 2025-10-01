@@ -36,8 +36,4 @@ class DateThing: Thing {
         
         return "\(weekDay), \(month) \(day)"
     }
-    
-    override func toString() -> String {
-        return data
-    }
 }

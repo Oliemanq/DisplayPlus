@@ -43,6 +43,16 @@ class Thing {
         return false
     }
     
+    func getData() -> String {
+        return data
+    }
+    func getData() -> Int {
+        return Int(data) ?? 0
+    }
+    func getData() -> Float {
+        return Float(data) ?? 0.0
+    }
+    
     func toString() -> String {
        return data
     }

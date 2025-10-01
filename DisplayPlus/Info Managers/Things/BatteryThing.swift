@@ -27,7 +27,7 @@ class BatteryThing: Thing {
     }
     
     override func toString() -> String {
-        return String(battery)
+        return "\(battery)%"
     }
     func toInt() -> Int {
         return battery

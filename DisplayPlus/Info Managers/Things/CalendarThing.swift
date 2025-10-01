@@ -139,7 +139,6 @@ class CalendarThing: Thing {
             output += "\n\(tm.centerText("\(event.titleLine) - \(event.subtitleLine)"))"
         }
         
-        print("Calendar toString output: \(output)")
         return output
     }
 }

@@ -29,13 +29,6 @@
 			remoteGlobalIDString = 4E70104D2DBD6F4800F868F4;
 			remoteInfo = DisplayPlus;
 		};
-		4E7010662DBD6F4900F868F4 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4E7010462DBD6F4700F868F4 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 4E70104D2DBD6F4800F868F4;
-			remoteInfo = DisplayPlus;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -57,7 +50,6 @@
 		4E627B952E72676F00E38E36 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		4E70104E2DBD6F4800F868F4 /* DisplayPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DisplayPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E70105B2DBD6F4900F868F4 /* DisplayPlusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DisplayPlusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		4E7010652DBD6F4900F868F4 /* DisplayPlusUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DisplayPlusUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E8DA2912E1EFDFF00934ED3 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		4EE28AFA2E839A7B00438919 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4EEE7E8B2E72759A0008B2CA /* DisplayPlusWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DisplayPlusWidgetExtension.entitlements; sourceTree = "<group>"; };
@@ -69,8 +61,16 @@
 			membershipExceptions = (
 				AppIntents.swift,
 				"Info Managers/DisplayPlusLiveActivityAttributes.swift",
+				"Info Managers/TextModifiers.swift",
 			);
 			target = 4E627B932E72676F00E38E36 /* DisplayPlusWidgetExtension */;
+		};
+		4E3CD24B2E8D81BE0073BBC4 /* Exceptions for "DisplayPlus" folder in "DisplayPlusTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Info Managers/TextModifiers.swift",
+			);
+			target = 4E70105A2DBD6F4900F868F4 /* DisplayPlusTests */;
 		};
 		4E627BAA2E72677000E38E36 /* Exceptions for "DisplayPlusWidget" folder in "DisplayPlusWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -101,6 +101,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				4EC790A92DDFC63700DE5DB2 /* Exceptions for "DisplayPlus" folder in "DisplayPlus" target */,
+				4E3CD24B2E8D81BE0073BBC4 /* Exceptions for "DisplayPlus" folder in "DisplayPlusTests" target */,
 				4E01F5A62E733A9900104D9E /* Exceptions for "DisplayPlus" folder in "DisplayPlusWidgetExtension" target */,
 			);
 			path = DisplayPlus;
@@ -109,11 +110,6 @@
 		4E70105E2DBD6F4900F868F4 /* DisplayPlusTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = DisplayPlusTests;
-			sourceTree = "<group>";
-		};
-		4E7010682DBD6F4900F868F4 /* DisplayPlusUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DisplayPlusUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -143,13 +139,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		4E7010622DBD6F4900F868F4 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -160,7 +149,6 @@
 				4EEE7E8B2E72759A0008B2CA /* DisplayPlusWidgetExtension.entitlements */,
 				4E7010502DBD6F4800F868F4 /* DisplayPlus */,
 				4E70105E2DBD6F4900F868F4 /* DisplayPlusTests */,
-				4E7010682DBD6F4900F868F4 /* DisplayPlusUITests */,
 				4E627B982E72676F00E38E36 /* DisplayPlusWidget */,
 				4E7010912DBD70F400F868F4 /* Frameworks */,
 				4E70104F2DBD6F4800F868F4 /* Products */,
@@ -172,7 +160,6 @@
 			children = (
 				4E70104E2DBD6F4800F868F4 /* DisplayPlus.app */,
 				4E70105B2DBD6F4900F868F4 /* DisplayPlusTests.xctest */,
-				4E7010652DBD6F4900F868F4 /* DisplayPlusUITests.xctest */,
 				4E627B942E72676F00E38E36 /* DisplayPlusWidgetExtension.appex */,
 			);
 			name = Products;
@@ -260,29 +247,6 @@
 			productReference = 4E70105B2DBD6F4900F868F4 /* DisplayPlusTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		4E7010642DBD6F4900F868F4 /* DisplayPlusUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4E7010752DBD6F4900F868F4 /* Build configuration list for PBXNativeTarget "DisplayPlusUITests" */;
-			buildPhases = (
-				4E7010612DBD6F4900F868F4 /* Sources */,
-				4E7010622DBD6F4900F868F4 /* Frameworks */,
-				4E7010632DBD6F4900F868F4 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				4E7010672DBD6F4900F868F4 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				4E7010682DBD6F4900F868F4 /* DisplayPlusUITests */,
-			);
-			name = DisplayPlusUITests;
-			packageProductDependencies = (
-			);
-			productName = DisplayPlusUITests;
-			productReference = 4E7010652DBD6F4900F868F4 /* DisplayPlusUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -300,10 +264,6 @@
 						CreatedOnToolsVersion = 16.3;
 					};
 					4E70105A2DBD6F4900F868F4 = {
-						CreatedOnToolsVersion = 16.3;
-						TestTargetID = 4E70104D2DBD6F4800F868F4;
-					};
-					4E7010642DBD6F4900F868F4 = {
 						CreatedOnToolsVersion = 16.3;
 						TestTargetID = 4E70104D2DBD6F4800F868F4;
 					};
@@ -328,7 +288,6 @@
 			targets = (
 				4E70104D2DBD6F4800F868F4 /* DisplayPlus */,
 				4E70105A2DBD6F4900F868F4 /* DisplayPlusTests */,
-				4E7010642DBD6F4900F868F4 /* DisplayPlusUITests */,
 				4E627B932E72676F00E38E36 /* DisplayPlusWidgetExtension */,
 			);
 		};
@@ -351,13 +310,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		4E7010592DBD6F4900F868F4 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4E7010632DBD6F4900F868F4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -388,13 +340,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		4E7010612DBD6F4900F868F4 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -407,11 +352,6 @@
 			isa = PBXTargetDependency;
 			target = 4E70104D2DBD6F4800F868F4 /* DisplayPlus */;
 			targetProxy = 4E70105C2DBD6F4900F868F4 /* PBXContainerItemProxy */;
-		};
-		4E7010672DBD6F4900F868F4 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 4E70104D2DBD6F4800F868F4 /* DisplayPlus */;
-			targetProxy = 4E7010662DBD6F4900F868F4 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -723,40 +663,6 @@
 			};
 			name = Release;
 		};
-		4E7010762DBD6F4900F868F4 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 339H2WC2Z9;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlusUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = DisplayPlus;
-			};
-			name = Debug;
-		};
-		4E7010772DBD6F4900F868F4 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 339H2WC2Z9;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlusUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = DisplayPlus;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -792,15 +698,6 @@
 			buildConfigurations = (
 				4E7010732DBD6F4900F868F4 /* Debug */,
 				4E7010742DBD6F4900F868F4 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		4E7010752DBD6F4900F868F4 /* Build configuration list for PBXNativeTarget "DisplayPlusUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				4E7010762DBD6F4900F868F4 /* Debug */,
-				4E7010772DBD6F4900F868F4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -59,6 +59,17 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         }
     }
     
+    func updateWeather() {
+        for thing in things {
+            if thing.type == "Weather" {
+                thing.update()
+                if thing.updated {
+                    updated = true
+                }
+            }
+        }
+    }
+    
     //MARK: - Get functions
     func getTime() -> String {
         return things.first(where: { $0.type == "Time" })?.toString() ?? ""
@@ -92,6 +103,14 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     func getCurrentTemp() -> Int {
         let temp: WeatherThing = things.first(where: { $0.type == "Weather" }) as! WeatherThing
         return temp.getCurrentTemp()
+    }
+    func getCity() -> String {
+        let temp: WeatherThing = things.first(where: { $0.type == "Weather" }) as! WeatherThing
+        return temp.weather.currentCity ?? "Resolving..."
+    }
+    func toggleLocation(){
+        let temp: WeatherThing = things.first(where: { $0.type == "Weather" }) as! WeatherThing
+        temp.toggleLocation()
     }
     
     func getEvents() -> [event] {

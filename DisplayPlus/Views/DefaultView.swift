@@ -36,7 +36,7 @@ struct DefaultView: View {
     @Namespace private var namespace
     
     init(){
-        self.things = [
+        let thingsTemp = [
             TimeThing(name: "timeHeader"),
             DateThing(name: "dateHeader"),
             BatteryThing(name: "batteryHeader"),
@@ -46,7 +46,7 @@ struct DefaultView: View {
         ]
         
         let laInstance = LiveActivityManager()
-        let infoInstance = InfoManager(things) //, health: HealthInfoGetter()
+        let infoInstance = InfoManager(things: thingsTemp) //, health: HealthInfoGetter()
         let bleInstance = G1BLEManager(liveIn: laInstance)
         let pageInstance = PageManager(info: infoInstance)
         let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
@@ -58,6 +58,7 @@ struct DefaultView: View {
         _page = StateObject(wrappedValue: pageInstance)
         _bg = StateObject(wrappedValue: bgInstance)
         _la = StateObject(wrappedValue: laInstance)
+        self.things = thingsTemp
     }
     
     var body: some View {
@@ -311,7 +312,7 @@ struct DefaultView: View {
             ble.connectionState = .disconnected
             theme.darkMode = colorScheme == .dark
             
-            info.updateAll()
+            info.updateThingsSafe()
             
             ble.handlePairedDevices()
             

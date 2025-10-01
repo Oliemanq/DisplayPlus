@@ -10,83 +10,19 @@ import SwiftUI
 @testable import DisplayPlus
 
 final class DisplayPlusTests: XCTestCase {
-    func testCenterText() throws {
-        //Given
-        let textToCenter = "Hello World"
-        let displayManager = DisplayManager(weather: weatherManager())
+    func testCalendarThing() throws {
+        let c: CalendarThing = CalendarThing(name: "Test")
+        c.eventsFormatted = [
+            event(titleLine: "Test", subtitleLine: "10:00 AM - 11:00 AM"),
+            event(titleLine: "Test 2", subtitleLine: "10:00 PM - 11:00 PM"),
+        ]
         
-        //When
-        let centeredText = displayManager.centerText(text: textToCenter)
-        let centeredSpace = displayManager.centerText(text: "")
-        
-        //Then
-        XCTAssertEqual(centeredText, "                                      Hello World")
-        XCTAssertEqual(centeredSpace, String(repeating: " ", count: 45))
-        
+        XCTAssertEqual(c.toString() , "\n\(tm.centerText("Test - 10:00 AM - 11:00 AM"))\n\(tm.centerText("Test 2 - 10:00 PM - 11:00 PM"))" )
     }
-
-    
-    func testProgressBar() throws {
-        //Given
-        let d = DisplayManager(weather: weatherManager())
-        let progress = 0.5
-        let max = 1.0
+    func testBatteryThing() throws {
+        let b: BatteryThing = BatteryThing(name: "Test")
+        b.battery = 75
         
-        //When
-        let bar = d.progressBar(value: progress, max: max)
-        
-        //Then
-        XCTAssertEqual(bar, "[-----------------------|_____________________________]")
-            //Does not look even because of rendering on glasses not rendering characters of equal width
+        XCTAssertEqual(b.toString() , "75%" )
     }
-    
-    func testDefaultDisplay() throws {
-        //Given
-        let time = Date().formatted(date: .omitted, time: .shortened)
-        let displayManager = DisplayManager(weather: weatherManager())
-        var textOutput: [String] = []
-        var textOutputManual: [String] = []
-        
-        var batteryLevel: Float { UIDevice.current.batteryLevel }
-        let batteryLevelFormatted = (Int)(batteryLevel * 100)
-        
-        //When
-        textOutput = displayManager.defaultDisplay()
-        
-        textOutputManual.append(displayManager.centerText(text: "\(time)  \(displayManager.getTodayDate()) | Phone - \(batteryLevelFormatted)%"))
-        
-        //Then
-        XCTAssertEqual(textOutput, textOutputManual)
-    }
-    
-    func testCalendar() throws {
-        //Given
-        let d = DisplayManager(weather: weatherManager())
-        let expectation = XCTestExpectation(description: "Events loaded")
-        
-        //When
-        d.loadEvents {
-            expectation.fulfill()
-        }
-        wait(for: [expectation], timeout: 5.0)
-        
-        //Then
-        XCTAssertFalse(d.eventsFormatted.isEmpty)
-        XCTAssertNotNil(d.eventsFormatted.last?.titleLine)
-        XCTAssertNotNil(d.eventsFormatted.last)
-        XCTAssertEqual(d.eventsFormatted.last?.titleLine, "Test event")
-    }
-    
-    func testMainDisplayLoop() throws {
-        //Given
-        let ml = MainLoop(displayManager: DisplayManager(weather: weatherManager()))
-        @AppStorage("currentPage") var currentPage = "Default"
-
-        //When
-        ml.HandleText()
-        
-        //Then
-        XCTAssertNotNil(ml.textOutput)
-    }
-    
 }

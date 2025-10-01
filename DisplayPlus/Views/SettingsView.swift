@@ -37,7 +37,7 @@ struct SettingsView: View {
     // Display helper for fixed location city (uses published weather.currentCity)
     private var fixedCityDisplay: String {
         if fixedLatitude == 0 && fixedLongitude == 0 { return "Not set" }
-        return info.weather.currentCity ?? "Resolving..."
+        return info.getCity()
     }
     
     init(bleIn: G1BLEManager, infoIn: InfoManager, liveIn: LiveActivityManager){
@@ -185,14 +185,12 @@ struct SettingsView: View {
             if let newLocation = fixedLocation {
                 fixedLatitude = newLocation.latitude
                 fixedLongitude = newLocation.longitude
-                Task {
-                    await info.updateWeather() // This will trigger reverse geocode via WeatherManager
-                }
+                info.updateWeather() // This will trigger reverse geocode via WeatherManager
             }
         }
         .task(id: location) {
-            info.weather.toggleLocationUsage(on: location)
-            await info.updateWeather()
+            info.toggleLocation()
+            info.updateWeather()
         }
         .animation(.default, value: location)
     }
