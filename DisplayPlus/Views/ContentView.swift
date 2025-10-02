@@ -61,7 +61,7 @@ struct ContentView: View {
                             ZStack{
                                 if displayOn{
                                     VStack(alignment: .center){
-                                        Text(bg.pageHandler(mirror: true))
+                                        Text("broken rn")
                                             .multilineTextAlignment(.center)
                                             .font(.system(size: 11))
                                             .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
@@ -304,17 +304,19 @@ struct ContentView: View {
 
 
 #Preview {
-    let laInstance = LiveActivityManager()
-    let infoInstance = InfoManager(things: [
+    let things = [
         TimeThing(name: "timeHeader"),
         DateThing(name: "dateHeader"),
         BatteryThing(name: "batteryHeader"),
         WeatherThing(name: "weatherHeader"),
         CalendarThing(name: "calendarHeader"),
         MusicThing(name: "musicHeader")
-    ]) //, health: HealthInfoGetter()
+    ]
+    
+    let laInstance = LiveActivityManager()
+    let infoInstance = InfoManager(things: things) //, health: HealthInfoGetter()
     let bleInstance = G1BLEManager(liveIn: laInstance)
-    let pageInstance = PageManager(info: infoInstance)
+    let pageInstance = PageManager()
     let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
     
     ContentView(infoInstance: infoInstance, bleInstance: bleInstance, bgInstance: bgInstance)

@@ -10,29 +10,15 @@ class Thing {
     var type: String
     var data: String
     
-    var enabled: Bool = false
-    var page: String = ""
-    var row: Int = 0
-    var placeInRow: Int = 0
+    var thingSize: String
     
     var updated: Bool = false
     
-    init(name: String, type: String, data: String = ""){
+    init(name: String, type: String, data: String = "", thingSize: String = "Small"){
         self.name = name
         self.type = type
         self.data = data
-    }
-    init(name: String, type: String){
-        self.name = name
-        self.type = type
-        self.data = ""
-    }
-    
-    func initForPage(page: String, row: Int = 0, placeInRow: Int = 0){
-        self.enabled = true
-        self.page = page
-        self.row = row
-        self.placeInRow = placeInRow
+        self.thingSize = thingSize
     }
     
     func update() {
@@ -41,16 +27,6 @@ class Thing {
     
     func getAuthStatus() -> Bool {
         return false
-    }
-    
-    func getData() -> String {
-        return data
-    }
-    func getData() -> Int {
-        return Int(data) ?? 0
-    }
-    func getData() -> Float {
-        return Float(data) ?? 0.0
     }
     
     func toString() -> String {

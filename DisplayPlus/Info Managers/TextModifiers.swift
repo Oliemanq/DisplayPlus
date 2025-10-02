@@ -24,7 +24,7 @@ public enum tm {
     public static func progressBar(
         percentDone: CGFloat,
         value: CGFloat,
-        total: CGFloat,
+        max: CGFloat,
         displayWidth: CGFloat = 100,
         mirror: Bool = false,
         renderingManager: RenderingManager? = nil
@@ -32,7 +32,7 @@ public enum tm {
         let rm = renderingManager ?? RenderingManager()
         let percentage = Swift.max(CGFloat(0), Swift.min(CGFloat(1), percentDone))
 
-        let constantText = "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(total)).formatted(.time(pattern: .minuteSecond)))"
+        let constantText = "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))"
         let constantWidth = rm.getWidth(text: constantText)
 
         let workingWidth = Swift.max(0, displayWidth - constantWidth)

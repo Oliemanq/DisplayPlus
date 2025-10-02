@@ -8,11 +8,15 @@
 import Foundation
 import EventKit
 import UIKit
+import SwiftUI
 
 class InfoManager: ObservableObject { // Conform to ObservableObject
     @Published var updated: Bool = false
     
     @Published var things: [Thing]
+    
+    @AppStorage("pages", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var pagesString: String = "Default,Music,Calendar"
+    @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     
     @Published var curSong: Song = Song.empty
     @Published var eventsFormatted: [event] = []
@@ -22,6 +26,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
         
         self.things = things
     }
+        
     
     //MARK: - Update functions
     
@@ -71,6 +76,9 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     }
     
     //MARK: - Get functions
+    func getThings() -> [Thing] {
+        return things
+    }
     func getTime() -> String {
         return things.first(where: { $0.type == "Time" })?.toString() ?? ""
     }

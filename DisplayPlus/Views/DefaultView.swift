@@ -48,7 +48,7 @@ struct DefaultView: View {
         let laInstance = LiveActivityManager()
         let infoInstance = InfoManager(things: thingsTemp) //, health: HealthInfoGetter()
         let bleInstance = G1BLEManager(liveIn: laInstance)
-        let pageInstance = PageManager(info: infoInstance)
+        let pageInstance = PageManager()
         let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
         
         
@@ -69,9 +69,9 @@ struct DefaultView: View {
             Tab("Info", systemImage: "info.square") {
                 InfoView(infoIn: info, bleIn: ble)
             }
-            Tab("Page Editor", systemImage: "pencil.tip") {
-                PageEditorView(things: things)
-            }
+//            Tab("Page Editor", systemImage: "pencil.tip") {
+//                PageEditorView(things: things)
+//            }
             Tab("Settings", systemImage: "gear") {
                 SettingsView(bleIn: ble, infoIn: info, liveIn: la)
             }

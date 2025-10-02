@@ -112,7 +112,7 @@ class BackgroundTaskManager: ObservableObject {
             
             //info.changed is to reduce unnecessary updates to the glasses
             if (currentDisplayOn && info.updated) || forceUpdateInfo { // Only update display if it's on and info has changed
-                let pageText = pageHandler()
+                let pageText = "broken rn"
                 ble.sendText(text: pageText, counter: counter)
                 info.updated = false
             }
@@ -127,45 +127,46 @@ class BackgroundTaskManager: ObservableObject {
         counter += 1
     }
     
-    func pageHandler(mirror: Bool = false) -> String {
-        page.mirror = mirror //Checking if handler is being called from display mirror, stops centering text if true
-        textOutput = page.header()
-        
-        if currentPage == "Default" { // DEFAULT PAGE HANDLER
-            let _ = 1 //placeholder cause this is stupid and shouldn't have to exist
-            
-        } else if currentPage == "Music" { // MUSIC PAGE HANDLER
-            let displayLines = page.musicDisplay()
-            
-            if displayLines.isEmpty {
-                textOutput = "broken"
-            } else {
-                textOutput.append(displayLines.joined(separator: "\n"))
-            }
-            
-        } else if currentPage == "Calendar" { // CALENDAR PAGE HANDLER
-            let displayLines = page.calendarDisplay()
-            
-            if displayLines.isEmpty {
-                textOutput = "Broken"
-            } else if info.getNumOfEvents() >= 2 {
-                for index in 0..<3 {
-                    print(displayLines[index])
-                    if index == 2 {
-                        textOutput.append(displayLines[index])
-                    } else {
-                        textOutput.append(displayLines[index] + "\n")
-                    }
-                }
-            } else {
-                textOutput.append(displayLines.joined(separator: "\n"))
-            }
-        } else {
-            textOutput = "No page selected"
-        }
-        
-        return textOutput
-    }
+//    func pageHandler(mirror: Bool = false) -> String {
+//        page.mirror = mirror //Checking if handler is being called from display mirror, stops centering text if true
+//        textOutput = page.header()
+//        
+//        
+//        if currentPage == "Default" { // DEFAULT PAGE HANDLER
+//            let _ = 1 //placeholder cause this is stupid and shouldn't have to exist
+//            
+//        } else if currentPage == "Music" { // MUSIC PAGE HANDLER
+//            let displayLines = page.musicDisplay()
+//            
+//            if displayLines.isEmpty {
+//                textOutput = "broken"
+//            } else {
+//                textOutput.append(displayLines.joined(separator: "\n"))
+//            }
+//            
+//        } else if currentPage == "Calendar" { // CALENDAR PAGE HANDLER
+//            let displayLines = page.calendarDisplay()
+//            
+//            if displayLines.isEmpty {
+//                textOutput = "Broken"
+//            } else if info.getNumOfEvents() >= 2 {
+//                for index in 0..<3 {
+//                    print(displayLines[index])
+//                    if index == 2 {
+//                        textOutput.append(displayLines[index])
+//                    } else {
+//                        textOutput.append(displayLines[index] + "\n")
+//                    }
+//                }
+//            } else {
+//                textOutput.append(displayLines.joined(separator: "\n"))
+//            }
+//        } else {
+//            textOutput = "No page selected"
+//        }
+//        
+//        return textOutput
+//    }
     
     func lowBatteryDisconnect() async {
         print("Low battery disconnect triggered")
@@ -177,13 +178,13 @@ class BackgroundTaskManager: ObservableObject {
         //Looping animation drawing attention to disconnecting glasses
         var i = 0
         while i < 3 {
-            textOutput = page.centerText(text: "Battery low, disconnecting") + "."
+            textOutput = tm.centerText( "Battery low, disconnecting") + "."
             ble.sendTextCommand(seq: 1, text: textOutput)
             try? await Task.sleep(nanoseconds: 500_000_000)
-            textOutput = page.centerText(text: "Battery low, disconnecting") + ".."
+            textOutput = tm.centerText( "Battery low, disconnecting") + ".."
             ble.sendTextCommand(seq: 2, text: textOutput)
             try? await Task.sleep(nanoseconds: 500_000_000)
-            textOutput = page.centerText(text: "Battery low, disconnecting") + "..."
+            textOutput = tm.centerText( "Battery low, disconnecting") + "..."
             ble.sendTextCommand(seq: 3, text: textOutput)
             try? await Task.sleep(nanoseconds: 500_000_000)
             i += 1
@@ -203,13 +204,13 @@ class BackgroundTaskManager: ObservableObject {
         //Looping animation drawing attention to disconnecting glasses
         var i = 0
         while i < 3 {
-            textOutput = page.centerText(text: "Disconnecting") + "."
+            textOutput = tm.centerText( "Disconnecting") + "."
             ble.sendTextCommand(seq: 1, text: textOutput)
             try? await Task.sleep(nanoseconds: 500_000_000)
-            textOutput = page.centerText(text: "Disconnecting") + ".."
+            textOutput = tm.centerText( "Disconnecting") + ".."
             ble.sendTextCommand(seq: 2, text: textOutput)
             try? await Task.sleep(nanoseconds: 500_000_000)
-            textOutput = page.centerText(text: "Disconnecting") + "..."
+            textOutput = tm.centerText( "Disconnecting") + "..."
             ble.sendTextCommand(seq: 3, text: textOutput)
             try? await Task.sleep(nanoseconds: 500_000_000)
             i += 1

@@ -15,191 +15,192 @@ import OpenMeteoSdk
 
 
 class PageManager: ObservableObject {
-    var timer: Timer?
-    
-    var info: InfoManager
-    var rm = RenderingManager() //Has all measurements from calibration
-    let displayWidth: CGFloat = 100.0
-        
-    var songProgAsBars: String = ""
-    
-    public var mirror: Bool = false
-    
+    @AppStorage("pages", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var pagesString: String = "Default,Music,Calendar"
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
+    @AppStorage("PageStorageRAW", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var pageStorageRAW: String = ""
     
-    var currentDisplayLines: [String] = []
-    
-    var artistLine: String = ""
-    var artistLineRaw: String = ""
-    
-    var lastSong: Song = Song.empty
-    
-    init(info: InfoManager){
-        self.info = info
-    }
-    
-    func header(mirror: Bool = false) -> String {
-        currentDisplayLines.removeAll()
-        currentDisplayLines.append("")
-
-        return centerText(text: ("\(info.getTime()) | \(info.getTodayDate()) | Phone - \(info.getBattery())% \(info.getCurrentTemp() != 0 ? ("| \(info.getCurrentTemp())°F") : "")"))
-    }
-    
-    func defaultDisplay() -> [String] {
-        return(currentDisplayLines)
-    }
-    
-    func musicDisplay() -> [String]{
-        var curSong = info.getCurSong()
-        var artist: String = curSong.artist
-        var title: String = curSong.title
-
+    func tempDefaultPageCreator() {
+        let t = TimeThing(name: "TimeDefaultPage")
+        let d = DateThing(name: "DateDefaultPage")
+        let b = BatteryThing(name: "BatteryDefaultPage")
+        let w = WeatherThing(name: "WeatherDefaultPage")
         
-        if curSong.title != lastSong.title {
-            curSong.songChanged = true
+        let p = Page(name: "Default")
+        p.newRow(thingsInOrder: [t,d,b,w], row: 0)
+        
+    }
+    
+    @Published var pages: [Page] = []
+    
+    init(loadPagesOnStart: Bool = true) {
+        if loadPagesOnStart {
+            loadPages()
         }
-        
-        if curSong.songChanged || artistLineRaw == "" {
-            print("Song changed, rebuilding artist line\n")
-            artistLineRaw = ""
-            if !rm.doesFitOnScreen(text: "\(title) - \(artist)") {
-                let separator = " - "
-                let ellipsis = "..."
-                
-                // Cache widths used multiple times
-                let separatorWidth = rm.getWidth(text: separator)
-                let ellipsisWidth = rm.getWidth(text: ellipsis)
-                let maxArtistWidth = displayWidth * 0.7
-                
-                // Precompute current widths to avoid repeated measurements
-                var artistWidth = rm.getWidth(text: artist)
-                let titleWidth = rm.getWidth(text: title)
-                
-                // 1. Shorten artist ONLY if it's longer than 70% of the screen
-                if artistWidth > maxArtistWidth {
-                    let newArtistLength = findBestFit(text: artist, availableWidth: maxArtistWidth - ellipsisWidth)
-                    if newArtistLength < artist.count { // only mutate if actually shorter
-                        artist = String(artist.prefix(newArtistLength)) + ellipsis
-                        artistWidth = rm.getWidth(text: artist) // update cached width after mutation
-                    }
-                }
-                
-                // 2. Calculate available width for title based on the (potentially shortened) artist
-                let availableTitleWidth = displayWidth - artistWidth - separatorWidth
-                
-                // 3. Shorten title if it doesn't fit in the remaining space
-                if titleWidth > availableTitleWidth {
-                    let newTitleLength = findBestFit(text: title, availableWidth: availableTitleWidth - ellipsisWidth)
-                    if newTitleLength < title.count { // only mutate if actually shorter
-                        title = String(title.prefix(newTitleLength)) + ellipsis
-                        // titleWidth = rm.getWidth(text: title) // not needed later, so skip recompute
-                    }
-                }
-            }
-            // Store the raw (uncentered) line and center it on append so mirror/centering behave correctly.
-            artistLineRaw = "\(title)\(artist.isEmpty ? "" : " - ")\(artist)"
-        }
-        
-        currentDisplayLines.append(centerText(text: artistLineRaw)) //Appending song info (always center here)
-        
-        if !curSong.isPaused{
-            let duration = String(describing: Duration.seconds(curSong.duration).formatted(.time(pattern: .minuteSecond)))
-            let currentTime = String(describing: Duration.seconds(curSong.currentTime).formatted(.time(pattern: .minuteSecond)))
-            
-            let progressBar = progressBar(percentDone: curSong.percentagePlayed ,value: curSong.currentTime, max: curSong.duration)
-            currentDisplayLines.append(centerText(text:"\(currentTime) \(progressBar) \(duration)"))
-        }else{
-            currentDisplayLines.append(centerText(text: "--Paused--"))
-        } //Hiding progress bar if song is paused, showing paused text
-        
-        lastSong = curSong
-        
-        return currentDisplayLines
     }
     
-    func calendarDisplay() -> [String]{
-        if (info.getEvents().count != 0) {
-            for event in info.getEvents() {
-                let title = (event.titleLine.count > 25 ? (String(event.titleLine.prefix(25)) + "...") : event.titleLine)
-                currentDisplayLines.append(centerText(text: "\(title)"))
-                currentDisplayLines.append(centerText(text: (event.subtitleLine)))
-            }
-        }else{
-            currentDisplayLines.append(centerText(text: "No events"))
-        }
-        return currentDisplayLines
+    func addPage(p: Page) {
+        pages.append(p)
     }
     
-    /*
-    func debugDisplay(index: Int) -> [String] {
-        currentDisplayLines.removeAll()
-        let offsetIndex = index + 31
-        
-        
-        if rm.key != nil {
-            
-            currentDisplayLines.append(String(repeating: selectedChar, count: keys[keys[offsetIndex]] ))
-            currentDisplayLines.append(String(repeating: keys[offsetIndex+31], count: 80))
-            
-        }else{
-            currentDisplayLines.append("No key found")
-            print("rm.key is nil, UserDefaults empty")
-        } //Printing out full row of character,
-        
-        return currentDisplayLines
-    }
-     */
-    
-    func progressBar(percentDone: CGFloat, value: CGFloat, max: CGFloat) -> String {
-        var fullBar: String = ""
-        let percentage = percentDone
-        
-        do {
-            let constantWidth = CGFloat(rm.getWidth(text: "\(Duration.seconds(Double(value)).formatted(.time(pattern: .minuteSecond))) [|] \(Duration.seconds(Double(max)).formatted(.time(pattern: .minuteSecond)))")) //Constant characters in the progress bar
-            
-            let workingWidth = (displayWidth-constantWidth)
-            
-            let percentCompleted = workingWidth * percentage
-            let percentRemaining = workingWidth * (1.0-percentage)
-            
-            let completed = String(repeating: "-", count: Int((percentCompleted / rm.getWidth(text: "-"))))
-            let remaining = String(repeating: "_", count: Int((percentRemaining / rm.getWidth(text: "_", overrideProgressBar: mirror))))
-            fullBar = "[" + completed + "|" + remaining + "]"
-        }
-        
-        return fullBar
-    }
-    
-    func centerText(text: String) -> String {
-        if mirror {
-            return text
+    func getPage(num: Int) -> Page {
+        if num < pages.count {
+            return pages[num]
         } else {
-            let widthOfText = rm.getWidth(text: text)
-            
-            let widthRemaining: CGFloat = max(0, displayWidth-widthOfText)
-            let padding = String(repeating: " ", count: Int(widthRemaining/rm.getWidth(text: " "))/2)
-            
-            let FinalText = padding + text
-            return FinalText
+            print("Invalid page num, exceeded limit of pages")
+            return Page(name: "Error")
         }
     }
     
-    func findBestFit(text: String, availableWidth: CGFloat) -> Int {
-        var lowerBound = 0
-        var upperBound = text.count
-        var bestFit = 0
+    //~Music | /time:Time:Small / battery:Battery:Small | /music:Music:Large
+    //     A page named "Music" with 2 rows, the first with a Time and Battery thing, the second with a Music thing:
+    //~Calendar | /calendar:Calendar:Large | /weather:Weather:Small / battery:Battery:Small
+    //     A page named "Calendar" with 2 rows, the first with one Calendar thing, the second with a Weather and Battery thing.
+    //
+    //Template for loading pages from string
+    func loadPages() {
+        var loadedPages: [Page] = []
+        var rawPages = pageStorageRAW.components(separatedBy: "~") //Splitting up pages with ~ character
+        rawPages.removeFirst() //Removing the empty first element from the array
+        for page in rawPages {
+            var pageName = ""
+            let _ = pageName
+            
+            var rows = page.components(separatedBy: "|") //Splitting up rows with | character
+            pageName = rows[0]
+            rows.removeFirst() //Removing the page name from the rows array
+            
+            let p = Page(name: pageName)
+            
+            for i in rows.indices {
+                let row = rows[i]
+                
+                var rowThings: [Thing] = []
+                var things = row.components(separatedBy: "/") //Splitting up things with / character
+                things.removeFirst() //Removing the empty first element from the array
+                for thing in things {
+                    let attributes = thing.components(separatedBy: ":") //Splitting up attributes with : character
+                    switch attributes[1] {
+                    case "Time":
+                        let t = TimeThing(name: attributes[0])
+                        t.thingSize = attributes[2]
+                        rowThings.append(t)
+                    case "Date":
+                        let d = DateThing(name: attributes[0])
+                        d.thingSize = attributes[2]
+                        rowThings.append(d)
+                    case "Battery":
+                        let b = BatteryThing(name: attributes[0])
+                        b.thingSize = attributes[2]
+                        rowThings.append(b)
+                    case "Music":
+                        let m = MusicThing(name: attributes[0])
+                        m.thingSize = attributes[2]
+                        rowThings.append(m)
+                    case "Calendar":
+                        let c = CalendarThing(name: attributes[0])
+                        c.thingSize = attributes[2]
+                        rowThings.append(c)
+                    case "Weather":
+                        let w = WeatherThing(name: attributes[0])
+                        w.thingSize = attributes[2]
+                        rowThings.append(w)
+                    default:
+                        print("Invalid thing type found when loading pages")
+                    }
+                }
+                p.newRow(thingsInOrder: rowThings, row: i)
+            }
+            
+            loadedPages.append(p)
+        }
+        
+        pages = loadedPages
+    }
+    
+    func savePages(testing: Bool = false) {
+        if testing {
+            pageStorageRAW = "" //Clearing previous saved pages
+        }
+        var output: String = ""
+        for page in pages {
+            output += page.printPageForSaving()
+        }
+        pageStorageRAW = output
+        if testing {
+            pages = [] //Clearing pages after saving to test loading
+        }
+    }
+}
 
-        while lowerBound <= upperBound {
-            let mid = (lowerBound + upperBound) / 2
-            let prefix = String(text.prefix(mid))
-            if rm.getWidth(text: prefix) <= availableWidth {
-                bestFit = mid
-                lowerBound = mid + 1
-            } else {
-                upperBound = mid - 1
+class Page {
+    var PageName: String
+    
+    var thingOrder: [[Thing]] = [[],[],[],[]]
+    
+    init(name: String) {
+        self.PageName = name
+    }
+    func updateAllThingsFromPage() {
+        for row in thingOrder {
+            for thing in row {
+                thing.update()
             }
         }
-        return bestFit
     }
+    func newRow(thingsInOrder: [Thing], row: Int) {
+        thingOrder[row].removeAll() //Clearing previous row
+        thingOrder[row] = thingsInOrder
+    }
+    
+    //MARK: - Getter functions
+    func getRow(row: Int) -> [Thing] {
+        if row < thingOrder.count {
+            return thingOrder[row]
+        }else {
+            print("Invalid row num, exceeded limit of rows")
+            return []
+        }
+    }
+    
+    func printPageForSaving() -> String {
+        var output: String = ""
+        output += "~\(PageName)"
+        
+        for row in thingOrder {
+            //adding | to seperate out rows
+            output += "|"
+            for thing in row {
+                //Adding / to seperate things in row
+                output += "/\(thing.name):\(thing.type):\(thing.thingSize)" //. inbetween to seperate attributes
+            }
+        }
+        //~PageName | /name:type:size /name:type:size | /name:type:size /name:type:size
+        //~Music | /time:Time:Small / battery:Battery:Small | /music:Music:Large
+        
+        //A row called "name" with 2 rows, each with 2 things.
+        print(output)
+        return output
+    }
+    
+    //MARK: - display output function
+    func outputPage() -> String {
+            var output: String = ""
+            for row in thingOrder {
+                guard !row.isEmpty else { continue }
+                
+                var rowText = ""
+                for thing in row {
+                    rowText += "\(thing.toString()) | "
+                }
+                if !rowText.isEmpty {
+                    rowText.removeLast(3) // remove trailing " | "
+                }
+                
+                // Center only this row, not the entire accumulated output
+                rowText = tm.centerText(rowText)
+                output += rowText + "\n"
+            }
+            return output
+        }
 }
 

@@ -4,8 +4,8 @@ class MusicThing: Thing {
     var music: AMMonitor = AMMonitor()
     let rm = RenderingManager()
     
-    init(name: String) {        
-        super.init(name: name, type: "Music")
+    init(name: String, thingSize: String = "Small") {
+        super.init(name: name, type: "Music", thingSize: thingSize)
     }
     
     override func update() {
@@ -16,6 +16,10 @@ class MusicThing: Thing {
                 updated = true
             }
         }
+    }
+    
+    func setCurSong(song: Song) {
+        music.curSong = song
     }
     
     func getTitle() -> String {
@@ -79,11 +83,25 @@ class MusicThing: Thing {
     
     
     override func toString() -> String {
-        var output: String = ""
-        output += buildArtistLine()
-        output += "\n"
-        output += tm.centerText(tm.progressBar(percentDone: music.curSong.percentagePlayed, value: music.curSong.currentTime, total: music.curSong.duration))
-        
-        return output
+        if thingSize == "Small" {
+            if music.curSong.isPaused {
+                return "♪\\0-0/♪ (Paused)"
+            } else {
+                if music.curSong.title.count > 20 {
+                    return "♪\\0-0/♪ \(music.curSong.title.prefix(17))..."
+                } else {
+                    return "♪\\0-0/♪ \(music.curSong.title)"
+                }
+            }
+        } else if thingSize == "Big" {
+            var output: String = ""
+            output += buildArtistLine()
+//            output += "\n"
+            output += tm.centerText("\(tm.progressBar(percentDone: music.curSong.percentagePlayed, value: music.curSong.currentTime, max: music.curSong.duration, displayWidth: 50.0))")
+            
+            return output
+        } else {
+            return "INPUT CORRECT SIZE (Small/Big)"
+        }
     }
 }
