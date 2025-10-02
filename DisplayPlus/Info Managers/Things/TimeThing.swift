@@ -8,8 +8,8 @@ import Foundation
 //
 
 class TimeThing: Thing {
-    init(name: String) {
-        super.init(name: name, type: "Time", data: Date().formatted(date: .omitted, time: .shortened))
+    init(name: String, size: String = "Small") {
+        super.init(name: name, type: "Time", data: Date().formatted(date: .omitted, time: .shortened), thingSize: size)
     }
     
     override func update() {

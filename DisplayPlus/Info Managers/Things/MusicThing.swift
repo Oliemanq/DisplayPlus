@@ -4,8 +4,8 @@ class MusicThing: Thing {
     var music: AMMonitor = AMMonitor()
     let rm = RenderingManager()
     
-    init(name: String, thingSize: String = "Small") {
-        super.init(name: name, type: "Music", thingSize: thingSize)
+    init(name: String, size: String = "Small") {
+        super.init(name: name, type: "Music", thingSize: size)
     }
     
     override func update() {
@@ -97,7 +97,7 @@ class MusicThing: Thing {
             var output: String = ""
             output += buildArtistLine()
 //            output += "\n"
-            output += tm.centerText("\(tm.progressBar(percentDone: music.curSong.percentagePlayed, value: music.curSong.currentTime, max: music.curSong.duration, displayWidth: 50.0))")
+            output += tm.centerText("\(tm.progressBar(percentDone: music.curSong.percentagePlayed, value: music.curSong.currentTime, max: music.curSong.duration, displayWidth: 100.0))")
             
             return output
         } else {

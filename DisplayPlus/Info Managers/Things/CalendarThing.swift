@@ -20,7 +20,7 @@ import Combine
 
 class CalendarThing: Thing {
     
-    var calendar: CalendarManager
+    var calendar: CalendarManager = CalendarManager()
     
     var events: [EKEvent] = []
     var eventsFormatted: [event] = []
@@ -28,10 +28,8 @@ class CalendarThing: Thing {
     @Published var authorizationStatus = ""
     @Published var errorMessage: String = ""
     
-    init(name: String, calendar: CalendarManager = CalendarManager()) {
-        self.calendar = calendar
-
-        super.init(name: name, type: "Calendar")
+    init(name: String, size: String = "Small") {
+        super.init(name: name, type: "Calendar", thingSize: size)
     }
     
     private func loadEvents(completion: (() -> Void)? = nil) {

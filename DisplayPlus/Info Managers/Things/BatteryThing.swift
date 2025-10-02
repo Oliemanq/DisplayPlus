@@ -11,8 +11,8 @@ import UIKit
 class BatteryThing: Thing {
     var battery: Int = 0
     
-    init(name: String) {
-        super.init(name: name, type: "Battery")
+    init(name: String, size: String = "Small") {
+        super.init(name: name, type: "Battery", thingSize: size)
         
     }
     

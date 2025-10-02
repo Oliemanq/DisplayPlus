@@ -69,9 +69,9 @@ struct DefaultView: View {
             Tab("Info", systemImage: "info.square") {
                 InfoView(infoIn: info, bleIn: ble)
             }
-//            Tab("Page Editor", systemImage: "pencil.tip") {
-//                PageEditorView(things: things)
-//            }
+            Tab("Page Editor", systemImage: "pencil.tip") {
+                PageEditorView(things: things, themeIn: theme)
+            }
             Tab("Settings", systemImage: "gear") {
                 SettingsView(bleIn: ble, infoIn: info, liveIn: la)
             }
@@ -375,7 +375,7 @@ class ThemeColors: ObservableObject {
     @Published var darkMode: Bool = false
     
     @Published var bodyFont: Font = .custom("TrebuchetMS",size: 16) //, weight: .light, design: .monospaced
-    @Published var headerFont: Font = .system(size: 24, weight: .black, design: .monospaced)
+    @Published var headerFont: Font = .system(size: 20, weight: .black, design: .monospaced)
 }
 
 #Preview {

@@ -60,7 +60,7 @@ final class DisplayPlusTests: XCTestCase {
         let time: TimeThing = TimeThing(name: "Time Test")
         let date: DateThing = DateThing(name: "Date Test")
         let battery: BatteryThing = BatteryThing(name: "Battery Test")
-        let music: MusicThing = MusicThing(name: "Music Test", thingSize: "Big")
+        let music: MusicThing = MusicThing(name: "Music Test", size: "Big")
         
         p1.newRow(thingsInOrder: [time, date], row: 0)
         p1.newRow(thingsInOrder: [battery], row: 1)

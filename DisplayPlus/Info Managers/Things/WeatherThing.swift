@@ -3,8 +3,8 @@ import Foundation
 class WeatherThing: Thing {
     var weather: WeatherManager = WeatherManager()
     
-    init(name: String) {
-        super.init(name: name, type: "Weather")
+    init(name: String, size: String = "Small") {
+        super.init(name: name, type: "Weather", thingSize: size)
     }
     
     override func update() {

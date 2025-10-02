@@ -8,8 +8,8 @@ import Foundation
 //
 
 class DateThing: Thing {
-    init(name: String) {
-        super.init(name: name, type: "Date")
+    init(name: String, size: String = "Small") {
+        super.init(name: name, type: "Date", thingSize: size)
         
         self.data = getTodayDate()
     }
@@ -20,6 +20,10 @@ class DateThing: Thing {
             data = newDate
             updated = true
         }
+    }
+    
+    func getDate() -> Int {
+        return (Int)(data.split(separator: ",")[0]) ?? 1
     }
 
     private func getTodayDate()-> String{
