@@ -33,12 +33,11 @@ final class DisplayPlusTests: XCTestCase {
         let battery: BatteryThing = BatteryThing(name: "Battery Test")
         battery.setBatteryLevel(level: 50)
         
-        let music: MusicThing = MusicThing(name: "Music Test", )
+        let music: MusicThing = MusicThing(name: "Music Test", size: "Small")
         music.setCurSong(song: Song(title: "Test Song", artist: "Me", album: "Dev", duration: 200, currentTime: 100, isPaused: false, songChanged: false))
         
         
         let p: Page = Page(name: "Test")
-        
         
             
         p.newRow(thingsInOrder: [

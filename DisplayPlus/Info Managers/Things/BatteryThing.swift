@@ -17,14 +17,18 @@ class BatteryThing: Thing {
     }
     
     override func update() {
-        if UIDevice.current.isBatteryMonitoringEnabled && UIDevice.current.batteryLevel >= 0.0 {
-            battery = Int(UIDevice.current.batteryLevel * 100)
-            data = "\(battery)%"
-            updated = true
+        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"{
+            battery = 75
         } else {
-            battery = 0
-            data = "0%"
-            updated = true
+            if UIDevice.current.isBatteryMonitoringEnabled && UIDevice.current.batteryLevel >= 0.0 {
+                battery = Int(UIDevice.current.batteryLevel * 100)
+                data = "\(battery)%"
+                updated = true
+            } else {
+                battery = 0
+                data = "0%"
+                updated = true
+            }
         }
     }
     

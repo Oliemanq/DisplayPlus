@@ -105,6 +105,19 @@ public enum tm {
         }
         return bestFit
     }
+    
+    public static func getWidth(_ text: String) -> CGFloat {
+        let rm = RenderingManager()
+        return rm.getWidth(text: text)
+    }
+    public static func doesFitOnScreen(text: String) -> Bool {
+        let rm = RenderingManager()
+        return rm.doesFitOnScreen(text: text)
+    }
+    public static func isJapanese(char: Character) -> Bool {
+        let rm = RenderingManager()
+        return rm.isJapanese(char: char)
+    }
 }
 
 public class RenderingManager {

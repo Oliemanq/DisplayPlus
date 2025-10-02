@@ -56,7 +56,7 @@ struct ContentView: View {
                 ScrollView(.vertical) {
                     VStack {
                         Spacer(minLength: 16)
-                        if ble.connectionState == .connectedBoth || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+                        if ble.connectionState == .connectedBoth || isNotPhone() {
                             //MARK: - Glasses mirror
                             ZStack{
                                 if displayOn{

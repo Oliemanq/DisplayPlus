@@ -15,12 +15,10 @@ struct DefaultView: View {
     
     @StateObject private var info: InfoManager
     @StateObject private var ble: G1BLEManager
-    @StateObject private var page: PageManager
+    @StateObject private var pm: PageManager
     @StateObject private var bg: BackgroundTaskManager
     @StateObject private var la: LiveActivityManager
-    
-    @State var things: [Thing]
-    
+        
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
     @AppStorage("isPresentingScanView", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var isPresentingScanView: Bool = false
@@ -29,8 +27,6 @@ struct DefaultView: View {
     @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var glassesBattery: Int = 0
     @AppStorage("glassesCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var glassesCharging: Bool = false
 
-    
-    
     @State private var FTUEConnection: Bool = false
     
     @Namespace private var namespace
@@ -55,10 +51,9 @@ struct DefaultView: View {
         
         _info = StateObject(wrappedValue: infoInstance)
         _ble = StateObject(wrappedValue: bleInstance)
-        _page = StateObject(wrappedValue: pageInstance)
+        _pm = StateObject(wrappedValue: pageInstance)
         _bg = StateObject(wrappedValue: bgInstance)
         _la = StateObject(wrappedValue: laInstance)
-        self.things = thingsTemp
     }
     
     var body: some View {
@@ -70,7 +65,7 @@ struct DefaultView: View {
                 InfoView(infoIn: info, bleIn: ble)
             }
             Tab("Page Editor", systemImage: "pencil.tip") {
-                PageEditorView(things: things, themeIn: theme)
+                PageEditorView(PageManager: pm, themeIn: theme)
             }
             Tab("Settings", systemImage: "gear") {
                 SettingsView(bleIn: ble, infoIn: info, liveIn: la)
@@ -380,4 +375,18 @@ class ThemeColors: ObservableObject {
 
 #Preview {
     DefaultView()
+}
+
+func isSimulator() -> Bool {
+    #if targetEnvironment(simulator)
+    return true
+    #else
+    return false
+    #endif
+}
+func isPreview() -> Bool {
+    return ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+}
+func isNotPhone() -> Bool {
+    return isSimulator() || isPreview()
 }
