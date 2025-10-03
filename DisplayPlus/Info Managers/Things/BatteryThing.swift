@@ -11,7 +11,7 @@ import UIKit
 class BatteryThing: Thing {
     var battery: Int = 0
     
-    init(name: String, size: String = "Small") {
+    init(name: String, size: String = "Medium") {
         super.init(name: name, type: "Battery", thingSize: size)
         
     }
@@ -38,8 +38,14 @@ class BatteryThing: Thing {
     }
         
     
-    override func toString() -> String {
-        return data
+    override func toString(mirror: Bool = false) -> String {
+        if thingSize == "Small" {
+            return "\(battery)%"
+        } else if thingSize == "Medium" {
+            return "Phone - \(data)"
+        } else {
+            return "INPUT PROPER SIZE (Small/Medium)"
+        }
     }
     func toInt() -> Int {
         return battery

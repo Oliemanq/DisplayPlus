@@ -29,7 +29,7 @@ class Thing {
         return false
     }
     
-    func toString() -> String {
+    func toString(mirror: Bool = false) -> String {
        return data
     }
 }

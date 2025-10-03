@@ -23,10 +23,8 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
     
     init (things: [Thing]) { //, health: HealthInfoGetter
         UIDevice.current.isBatteryMonitoringEnabled = true // Enable battery monitoring
-        
         self.things = things
     }
-        
     
     //MARK: - Update functions
     
@@ -36,7 +34,7 @@ class InfoManager: ObservableObject { // Conform to ObservableObject
                 if counter % 360 == 0 {
                     thing.update()
                 }
-            }else {
+            } else {
                 thing.update()
                 if thing.type == "Music" {
                     let temp: MusicThing = thing as! MusicThing

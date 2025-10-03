@@ -131,10 +131,10 @@ class CalendarThing: Thing {
         }
     }
     
-    override func toString() -> String {
+    override func toString(mirror: Bool = false) -> String {
         var output = ""
         for event in eventsFormatted {
-            output += "\n\(tm.centerText("\(event.titleLine) - \(event.subtitleLine)"))"
+            output += "\n\(tm.centerText("\(event.titleLine) - \(event.subtitleLine)", mirror: mirror))"
         }
         
         return output

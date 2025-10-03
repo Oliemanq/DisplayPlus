@@ -2,16 +2,20 @@ import Foundation
 
 class WeatherThing: Thing {
     var weather: WeatherManager = WeatherManager()
+    var updateCounter = 0
     
     init(name: String, size: String = "Small") {
         super.init(name: name, type: "Weather", thingSize: size)
     }
     
     override func update() {
-        Task{
-            try await weather.fetchWeatherData()
+        if updateCounter % 360 == 0 {
+            Task{
+                try await weather.fetchWeatherData()
+            }
+            print("Weather with\(!weather.useLocation ? "out" : "") location, fetch successful")
         }
-        print("Weather with\(!weather.useLocation ? "out" : "") location, fetch successful")
+        updateCounter += 1
     }
     
     func getCurrentTemp() -> Int {
@@ -26,7 +30,7 @@ class WeatherThing: Thing {
         weather.toggleLocationUsage(on: !weather.useLocation)
     }
 
-    override func toString() -> String {
+    override func toString(mirror: Bool = false) -> String {
         return "\(weather.currentTemp)°F"
     }
 }

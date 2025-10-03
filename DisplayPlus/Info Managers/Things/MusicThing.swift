@@ -16,7 +16,10 @@ class MusicThing: Thing {
             updated = true
         }else {
             if getAuthStatus() {
+//                print("Updating music info...\n")
                 music.updateCurrentSong()
+//                print("Music info updated.")
+//                print("Title: \(music.curSong.title), Duration: \(music.curSong.duration), Current Time: \(music.curSong.currentTime), Is Paused: \(music.curSong.isPaused), Song Changed: \(music.curSong.songChanged)\n")
                 
                 if music.curSong.title != music.curSong.title || music.curSong.isPaused != music.curSong.isPaused || music.curSong.currentTime != music.curSong.currentTime {
                     updated = true
@@ -50,68 +53,69 @@ class MusicThing: Thing {
         var title = music.curSong.title
         var artist = music.curSong.artist
         let displayWidth: CGFloat = widthIn
+        
+        
+        if displayWidth >= 30 {
+            if rm.doesFitOnScreen(text: "\(title) - \(artist)") {
+                let separator = " - "
+                let ellipsis = "..."
                 
-        if music.curSong.songChanged {
-            print("Song changed, rebuilding artist line\n")
-            if displayWidth >= 30 {
-                if rm.doesFitOnScreen(text: "\(title) - \(artist)") {
-                    let separator = " - "
-                    let ellipsis = "..."
-                    
-                    // Cache widths used multiple times
-                    let separatorWidth = rm.getWidth(text: separator)
-                    let ellipsisWidth = rm.getWidth(text: ellipsis)
-                    let maxArtistWidth = displayWidth * 0.7
-                    
-                    var artistWidth = rm.getWidth(text: artist)
-                    let titleWidth = rm.getWidth(text: title)
-                    
-                    // 1. Shorten artist ONLY if it's longer than 70% of the screen
-                    if artistWidth > maxArtistWidth {
-                        let newArtistLength = tm.findBestFit(artist, availableWidth: maxArtistWidth - ellipsisWidth)
-                        if newArtistLength < artist.count { // only mutate if actually shorter
-                            artist = String(artist.prefix(newArtistLength)) + ellipsis
-                            artistWidth = rm.getWidth(text: artist) // update cached width after mutation
-                        }
-                    }
-                    
-                    // 2. Calculate available width for title based on the (potentially shortened) artist
-                    let availableTitleWidth = displayWidth - artistWidth - separatorWidth
-                    
-                    // 3. Shorten title if it doesn't fit in the remaining space
-                    if titleWidth > availableTitleWidth {
-                        let newTitleLength = tm.findBestFit(title, availableWidth: availableTitleWidth - ellipsisWidth)
-                        if newTitleLength < title.count { // only mutate if actually shorter
-                            title = String(title.prefix(newTitleLength)) + ellipsis
-                            // titleWidth = rm.getWidth(text: title) // not needed later, so skip recompute
-                        }
+                // Cache widths used multiple times
+                let separatorWidth = rm.getWidth(text: separator)
+                let ellipsisWidth = rm.getWidth(text: ellipsis)
+                let maxArtistWidth = displayWidth * 0.7
+                
+                var artistWidth = rm.getWidth(text: artist)
+                let titleWidth = rm.getWidth(text: title)
+                
+                // 1. Shorten artist ONLY if it's longer than 70% of the screen
+                if artistWidth > maxArtistWidth {
+                    let newArtistLength = tm.findBestFit(artist, availableWidth: maxArtistWidth - ellipsisWidth)
+                    if newArtistLength < artist.count { // only mutate if actually shorter
+                        artist = String(artist.prefix(newArtistLength)) + ellipsis
+                        artistWidth = rm.getWidth(text: artist) // update cached width after mutation
                     }
                 }
-                artistLine = "\(title)\(artist.isEmpty ? "" : " - ")\(artist)"
-            } else {
-                var titleShortened = false
-                while tm.getWidth(title) > displayWidth {
-                    title = String(title.prefix(title.count - 1))
-                    titleShortened = true
+                
+                // 2. Calculate available width for title based on the (potentially shortened) artist
+                let availableTitleWidth = displayWidth - artistWidth - separatorWidth
+                
+                // 3. Shorten title if it doesn't fit in the remaining space
+                if titleWidth > availableTitleWidth {
+                    let newTitleLength = tm.findBestFit(title, availableWidth: availableTitleWidth - ellipsisWidth)
+                    if newTitleLength < title.count { // only mutate if actually shorter
+                        title = String(title.prefix(newTitleLength)) + ellipsis
+                        // titleWidth = rm.getWidth(text: title) // not needed later, so skip recompute
+                    }
                 }
-                if titleShortened {
-                    title += "..."
-                }
-                artistLine = title
             }
+            artistLine = "\(title)\(artist.isEmpty ? "" : " - ")\(artist)"
+            music.curSong.songChanged = false // Reset change flag after rebuilding
+        } else {
+            var titleShortened = false
+            while tm.getWidth(title) > displayWidth {
+                title = String(title.prefix(title.count - 1))
+                titleShortened = true
+            }
+            if titleShortened {
+                title += "..."
+            }
+            artistLine = title
+            
         }
         return artistLine
     }
     
     
-    override func toString() -> String {
+    override func toString(mirror: Bool = false) -> String {
         if thingSize == "Small" {
             if music.curSong.isPaused {
                 return "♪\\0-0/♪ (Paused)"
             } else {
                 return  "♪\\0-0/♪ \(buildArtistLine(widthIn: 20.0))"
             }
-        } else if thingSize == "Medium" {
+        }
+        else if thingSize == "Medium" {
             var tempTitle = music.curSong.title
             var titleChanged: Bool = false
             var tempArtist = music.curSong.artist
@@ -144,14 +148,22 @@ class MusicThing: Thing {
                 
                 return output
             }
-        } else if thingSize == "Big" {
+        }
+        else if thingSize == "Big" {
             var output: String = ""
-            output += tm.centerText(buildArtistLine())
+            output += tm.centerText(buildArtistLine(), mirror: mirror)
+            
             output += "\n"
-            output += tm.centerText("\(tm.progressBar(percentDone: music.curSong.percentagePlayed, value: music.curSong.currentTime, max: music.curSong.duration, displayWidth: 100.0))")
+            let duration = String(describing: Duration.seconds(music.curSong.duration).formatted(.time(pattern: .minuteSecond)))
+            let currentTime = String(describing: Duration.seconds(music.curSong.currentTime).formatted(.time(pattern: .minuteSecond)))
+                        
+            let progressBar = tm.progressBar(percentDone: music.curSong.percentagePlayed ,value: music.curSong.currentTime, max: music.curSong.duration)
+
+            output += "\(currentTime) \(progressBar) \(duration)"
             
             return output
-        } else {
+        }
+        else {
             return "INPUT CORRECT SIZE (Small/Medium/Big)"
         }
     }

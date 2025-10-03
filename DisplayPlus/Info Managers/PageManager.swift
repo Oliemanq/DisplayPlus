@@ -26,7 +26,7 @@ class PageManager: ObservableObject {
             loadPages()
         }
         if pages.isEmpty {
-            DefaultPageCreator()
+            DefaultPageCreator() //Creating default page if no pages found
         }
     }
     
@@ -41,6 +41,22 @@ class PageManager: ObservableObject {
             print("Invalid page num, exceeded limit of pages")
             return Page(name: "Error")
         }
+    }
+    
+    func getCurrentPage() -> Page {
+        for page in pages {
+            if page.PageName == currentPage {
+                return page
+            }
+        }
+        print("No page found, returning default page")
+        return DefaultPageCreatorWOutput()
+    }
+    
+    func updateCurrentPage() {
+        print("Updating current page from pm")
+        let p = getCurrentPage()
+        p.updateAllThingsFromPage()
     }
     
     func getPages() -> [Page] {
@@ -58,6 +74,18 @@ class PageManager: ObservableObject {
         p.newRow(thingsInOrder: [t,d,b,w], row: 0)
         pages.append(p)
     }
+    func DefaultPageCreatorWOutput() -> Page {
+        print("Creating default page and adding it to pm pages")
+        let t = TimeThing(name: "TimeDefaultPage")
+        let d = DateThing(name: "DateDefaultPage")
+        let b = BatteryThing(name: "BatteryDefaultPage")
+        let w = WeatherThing(name: "WeatherDefaultPage")
+        
+        let p = Page(name: "Default")
+        p.newRow(thingsInOrder: [t,d,b,w], row: 0)
+        return p
+    }
+    
     func MusicPageCreator() {
         print("Creating music page and adding it to pm pages")
         let t = TimeThing(name: "TimeMusicPage")
@@ -186,9 +214,11 @@ class Page: Observable {
     func updateAllThingsFromPage() {
         for row in thingOrder {
             for thing in row {
+                print("updating \(thing.name) from page \(PageName)")
                 thing.update()
             }
         }
+        print("Finished updating all things from page \(PageName)")
     }
     func newRow(thingsInOrder: [Thing], row: Int) {
         print("Adding new row to page \(PageName) at row \(row)")
@@ -228,6 +258,7 @@ class Page: Observable {
     
     //MARK: - display output function
     func outputPage() -> String {
+            print("\nOutputing page \(PageName)\n")
             var output: String = ""
             for row in thingOrder {
                 guard !row.isEmpty else { continue }
@@ -246,5 +277,26 @@ class Page: Observable {
             }
             return output
         }
+    
+    func outputPageForMirror() -> String {
+        var output: String = ""
+        for row in thingOrder {
+            guard !row.isEmpty else { continue }
+            
+            var rowText = ""
+            for thing in row {
+                rowText += "\(thing.toString()) | "
+            }
+            if !rowText.isEmpty {
+                rowText.removeLast(3) // remove trailing " | "
+            }
+            
+            // Center only this row, not the entire accumulated output
+            rowText = tm.centerText(rowText, mirror: true)
+            output += rowText + "\n"
+        }
+        return output
+
+    }
 }
 
