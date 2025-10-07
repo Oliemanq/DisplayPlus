@@ -34,7 +34,7 @@ class PageManager: ObservableObject {
     
     private func findWeatherThing() -> WeatherThing {
         for page in pages {
-            for row in page.thingOrder {
+            for row in page.thingsOrdered {
                 for thing in row {
                     if thing.type == "Weather" {
                         return thing as! WeatherThing
@@ -70,7 +70,7 @@ class PageManager: ObservableObject {
         return pages
     }
     func getPageThings() -> [[Thing]] {
-        return getCurrentPage().thingOrder
+        return getCurrentPage().thingsOrdered
     }
 
     
@@ -117,7 +117,7 @@ class PageManager: ObservableObject {
         let d = DateThing(name: "DateMusicPage")
         let b = BatteryThing(name: "BatteryMusicPage")
         let w = WeatherThing(name: "WeatherMusicPage")
-        let m = MusicThing(name: "MusicMusicPage", size: "Large")
+        let m = MusicThing(name: "MusicMusicPage", size: "XL")
         
         let p = Page(name: "Music")
         
@@ -131,7 +131,7 @@ class PageManager: ObservableObject {
         let d = DateThing(name: "DateMusicPage")
         let b = BatteryThing(name: "BatteryMusicPage")
         let w = WeatherThing(name: "WeatherMusicPage")
-        let m = MusicThing(name: "MusicMusicPage", size: "Large")
+        let m = MusicThing(name: "MusicMusicPage", size: "XL")
         
         let p = Page(name: "Music")
         
@@ -154,6 +154,22 @@ class PageManager: ObservableObject {
         print("\nClearing all pages----------")
         pages = []
         savePages()
+    }
+    
+    func log() {
+        print("\nLogging all pages and their things----------")
+        for page in pages {
+            print("\n")
+            print("Page: \(page.PageName)")
+            for (rowIndex, row) in page.thingsOrdered.enumerated() {
+                print(" Row \(rowIndex + 1):")
+                for thing in row {
+                    print("  - \(thing.name) (\(thing.type), Size: \(thing.thingSize))")
+                }
+            }
+            print("\n")
+        }
+        print("End of pages log----------\n")
     }
     
     //~Music | /time:Time:Small / battery:Battery:Small | /music:Music:Large
@@ -249,7 +265,7 @@ class PageManager: ObservableObject {
 class Page: Observable {
     var PageName: String
     
-    var thingOrder: [[Thing]] = [[
+    var thingsOrdered: [[Thing]] = [[
         Thing(name: "Empty1", type: "Blank"), Thing(name: "Empty2", type: "Blank"), Thing(name: "Empty3", type: "Blank"), Thing(name: "Empty4", type: "Blank")
     ],[
         Thing(name: "Empty1", type: "Blank"), Thing(name: "Empty2", type: "Blank"), Thing(name: "Empty3", type: "Blank"), Thing(name: "Empty4", type: "Blank")
@@ -264,7 +280,7 @@ class Page: Observable {
         
     }
     func updateAllThingsFromPage() {
-        for row in thingOrder {
+        for row in thingsOrdered {
             for thing in row {
                 print("updating \(thing.name) from page \(PageName)")
                 thing.update()
@@ -273,15 +289,40 @@ class Page: Observable {
         print("Finished updating all things from page \(PageName)")
     }
     func newRow(thingsInOrder: [Thing], row: Int) {
+        var rowThing = thingsInOrder
+        var dummyRowBelow: Bool = false
+        
         print("Adding new row to page \(PageName) at row \(row)")
-        thingOrder[row].removeAll() //Clearing previous row
-        thingOrder[row] = thingsInOrder
+        for i in rowThing.enumerated() {
+            let thing = rowThing[i.offset]
+            print(" - \(thing.name) (\(thing.type), Size: \(thing.thingSize))")
+            
+            if thing.spacerRight {
+                for _ in 0..<thing.spacersRight {
+                    rowThing.insert(Thing(name: "SpacerRight", type: "Sizer"), at: i.offset + 1)
+                }
+            }
+            if thing.spacerBelow {
+                dummyRowBelow = true
+            }
+        }
+        thingsOrdered[row].removeAll() //Clearing previous row
+        thingsOrdered[row] = rowThing
+        if dummyRowBelow {
+            makeDummyRowBelow(row: row)
+        }
     }
+    
+    func makeDummyRowBelow(row: Int) {
+        thingsOrdered[row+1].removeAll()
+        thingsOrdered[row+1] = [Thing(name: "DummyBelow1", type: "Sizer"), Thing(name: "DummyBelow2", type: "Sizer"), Thing(name: "DummyBelow3", type: "Sizer"), Thing(name: "DummyBelow4", type: "Sizer")]
+    }
+    
     
     //MARK: - Getter functions
     func getRow(row: Int) -> [Thing] {
-        if row < thingOrder.count {
-            return thingOrder[row]
+        if row < thingsOrdered.count {
+            return thingsOrdered[row]
         }else {
             print("Invalid row num, exceeded limit of rows")
             return []
@@ -292,7 +333,7 @@ class Page: Observable {
         var output: String = ""
         output += "~\(PageName)"
         
-        for row in thingOrder {
+        for row in thingsOrdered {
             //adding | to seperate out rows
             output += "|"
             for thing in row {
@@ -312,7 +353,7 @@ class Page: Observable {
     func outputPage() -> String {
             print("\nOutputing page \(PageName)\n")
             var output: String = ""
-            for row in thingOrder {
+            for row in thingsOrdered {
                 guard !row.isEmpty else { continue }
                 
                 var rowText = ""
@@ -344,12 +385,12 @@ class Page: Observable {
         }
     func outputPageForMirror() -> String {
         var output: String = ""
-        for row in thingOrder {
+        for row in thingsOrdered {
             guard !row.isEmpty else { continue }
             
             var rowText = ""
             for thing in row {
-                if thing.type == "Blank" {
+                if thing.type == "Blank" || thing.type == "Sizer" {
                     print("Skipping blank thing in output")
                     continue
                 }else {

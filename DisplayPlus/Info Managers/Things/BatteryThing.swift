@@ -15,7 +15,7 @@ class BatteryThing: Thing {
         try super.init(from: decoder)
     }
     
-    init(name: String, size: String = "Medium") {
+    init(name: String, size: String = "Small") {
         super.init(name: name, type: "Battery", thingSize: size)
         
     }

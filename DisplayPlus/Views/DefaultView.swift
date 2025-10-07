@@ -57,6 +57,9 @@ struct DefaultView: View {
                 SettingsView(bleIn: ble, pmIn: pm, liveIn: la)
             }
         }
+        .onAppear() {
+            pm.resetPages()
+        }
         .font(theme.bodyFont)
         .environmentObject(theme)
         .tint(theme.darkMode ? theme.accentLight : theme.accentDark)

@@ -16,7 +16,7 @@ struct PageEditorView: View {
     @StateObject var pm: PageManager
     @StateObject var theme: ThemeColors
 
-    @State private var gridDisplays: [[Thing]]
+    @State private var currentPageObject: Page
     
     
     let rowHeight: CGFloat = 35
@@ -25,7 +25,7 @@ struct PageEditorView: View {
     
     
     init(pmIn: PageManager, themeIn: ThemeColors) {
-        gridDisplays = pmIn.getPageThings()
+        currentPageObject = pmIn.getCurrentPage()
 
         _pm = StateObject(wrappedValue: pmIn)
         _theme = StateObject(wrappedValue: themeIn)
@@ -55,6 +55,7 @@ struct PageEditorView: View {
                         }
                         .homeItem(themeIn: theme, height: 85)
                         
+                        //Unused things display/draggable start
                         if !unusedThings.isEmpty {
                             VStack{
                                 Text("Unused Things")
@@ -71,6 +72,15 @@ struct PageEditorView: View {
                             }
                             .homeItem(themeIn: theme)
                         }
+                        
+                        Button {
+                            pm.log()
+                        } label: {
+                            Text("print Page info")
+                        }
+                        .padding(10)
+                        .mainButtonStyle(themeIn: theme)
+                        //Grid of drop targets
                         ZStack{
                             Rectangle()
                                 .frame(width: geometry.size.width*0.95, height: rowHeight*4 + 20)
@@ -87,26 +97,23 @@ struct PageEditorView: View {
                                                      .foregroundColor(theme.darkMode ? (t ? theme.backgroundDark.opacity(0.75) : theme.backgroundDark) : (t ? theme.backgroundLight.opacity(0.75) : theme.backgroundLight))
                                                  
                                                  // Show the current display text so it updates after a drop
-                                                 Text(gridDisplays[i][j].type == "Blank" ? "(\(i),\(j))" : gridDisplays[i][j].name)
+                                                 Text(currentPageObject.thingsOrdered[i][j].name.contains("Empty") ? "(\(i),\(j))" : currentPageObject.thingsOrdered[i][j].name)
                                                      .font(.system(size: 12))
                                                      .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
                                                      .lineLimit(1)
                                                      .minimumScaleFactor(0.6)
                                                      .onAppear() {
-                                                         print("\(gridDisplays[i][j].name) at \(i),\(j)")
+                                                         print("\(currentPageObject.thingsOrdered[i][j].name) at \(i),\(j)")
                                                      }
-                                                 
                                              }
-                                             .onAppear() {
-                                                 pm.resetPages()
-                                             }
+                                             
                                              .dropDestination(for: Thing.self) { items, location in
                                                  guard let firstItem = items.first else {
                                                      return false
                                                  }
                                                  print("Dropped '", firstItem, "' at cell (\(i),\(j))")
                                                  withAnimation {
-                                                     gridDisplays[i][j].name = firstItem.name
+                                                     currentPageObject.thingsOrdered[i][j].name = firstItem.name
                                                      unusedThings.removeAll { $0.name == firstItem.name }
                                                  }
                                                  return true
@@ -122,6 +129,7 @@ struct PageEditorView: View {
                                 }
                             }
                         }
+                        
                         Spacer()
                     }
                 }
@@ -193,8 +201,8 @@ struct PageEditorView: View {
                             }
                             
                             Menu{
-                                Button("Small") {
-                                    addItemToUnused(item: CalendarThing(name: "CalendarSmall"))
+                                Button("Medium") {
+                                    addItemToUnused(item: CalendarThing(name: "CalendarSmall", size: "Medium"))
                                 }
                                 Button("Large") {
                                     addItemToUnused(item: CalendarThing(name: "CalendarLarge", size: "Large"))
@@ -252,7 +260,7 @@ struct PageEditorView: View {
             }
         }
         .onChange(of: currentPage) { _, newValue in
-            gridDisplays = pm.getPageThings()
+            currentPageObject = pm.getCurrentPage()
         }
             
     }

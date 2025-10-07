@@ -22,11 +22,23 @@ class Thing: Transferable, Codable{
         }
     
     var name: String
+    
     var type: String
+    // Time - S/L
+    // Date - S/L
+    // Battery - S/L
+    // Calendar - S/L
+    // Weather - S/M
+    // Music - M/L/XL
+    
     var data: String
     
     var thingSize: String //Small, Medium, Large, XL
     //Small: 1x1, Medium: 2x1, Large: 4x1, XL: 4x2
+    var spacerRight: Bool = false
+    var spacerBelow: Bool = false
+    var spacersRight: Int = 0
+    var spacersBelow: Int = 0
     
     var updated: Bool = false
     
@@ -35,6 +47,24 @@ class Thing: Transferable, Codable{
         self.type = type
         self.data = data
         self.thingSize = thingSize
+        switch thingSize {
+        case "Small":
+            spacersRight = 0
+            spacerRight = false
+        case "Medium":
+            spacersRight = 1
+            spacerRight = true
+        case "Large":
+            spacersRight = 3
+            spacerRight = true
+        case "XL":
+            spacersRight = 3
+            spacerRight = true
+            spacersBelow = 1
+            spacerBelow = true
+        default:
+            print("Invalid size for thing: \(thingSize), defaulting to Small")
+        }
     }
     
     func update() {
