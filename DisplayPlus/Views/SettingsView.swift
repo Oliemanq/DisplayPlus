@@ -15,9 +15,10 @@ extension CLLocationCoordinate2D: @retroactive Equatable {
 
 struct SettingsView: View {
     @StateObject private var ble: G1BLEManager
-    @StateObject private var info: InfoManager
-    @EnvironmentObject var theme: ThemeColors
+    @StateObject private var pm: PageManager
     @StateObject private var la: LiveActivityManager
+    
+    @EnvironmentObject var theme: ThemeColors
     @Environment(\.openURL) private var openURL
     
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
@@ -37,12 +38,12 @@ struct SettingsView: View {
     // Display helper for fixed location city (uses published weather.currentCity)
     private var fixedCityDisplay: String {
         if fixedLatitude == 0 && fixedLongitude == 0 { return "Not set" }
-        return info.getCity()
+        return pm.getCity()
     }
     
-    init(bleIn: G1BLEManager, infoIn: InfoManager, liveIn: LiveActivityManager){
+    init(bleIn: G1BLEManager, pmIn: PageManager, liveIn: LiveActivityManager){
         _ble = StateObject(wrappedValue: bleIn)
-        _info = StateObject(wrappedValue: infoIn)
+        _pm = StateObject(wrappedValue: pmIn)
         _la = StateObject(wrappedValue: liveIn)
     }
 
@@ -185,26 +186,18 @@ struct SettingsView: View {
             if let newLocation = fixedLocation {
                 fixedLatitude = newLocation.latitude
                 fixedLongitude = newLocation.longitude
-                info.updateWeather() // This will trigger reverse geocode via WeatherManager
+                pm.updateCurrentPage()
             }
         }
         .task(id: location) {
-            info.toggleLocation()
-            info.updateWeather()
+            pm.toggleLocation()
         }
         .animation(.default, value: location)
     }
 }
 
 #Preview {
-    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), infoIn: InfoManager(things: [
-        TimeThing(name: "timeHeader"),
-        DateThing(name: "dateHeader"),
-        BatteryThing(name: "batteryHeader"),
-        WeatherThing(name: "weatherHeader"),
-        CalendarThing(name: "calendarHeader"),
-        MusicThing(name: "musicHeader")
-    ]), liveIn: LiveActivityManager()) //, health: HealthInfoGetter()
+    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), pmIn: PageManager(), liveIn: LiveActivityManager())
         .environmentObject(ThemeColors())
 
 }

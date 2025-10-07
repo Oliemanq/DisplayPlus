@@ -8,6 +8,10 @@ import Foundation
 //
 
 class TimeThing: Thing {
+    required init(from decoder: Decoder) throws {
+        try super.init(from: decoder)
+    }
+    
     init(name: String, size: String = "Small") {
         super.init(name: name, type: "Time", data: Date().formatted(date: .omitted, time: .shortened), thingSize: size)
     }
@@ -20,3 +24,4 @@ class TimeThing: Thing {
         }
     }
 }
+

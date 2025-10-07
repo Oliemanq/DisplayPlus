@@ -20,6 +20,7 @@ class PageManager: ObservableObject {
     @AppStorage("PageStorageRAW", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var pageStorageRAW: String = ""
     
     @Published var pages: [Page] = []
+    private var weatherThing: WeatherThing = WeatherThing(name: "WeatherPageManager")
     
     init(loadPagesOnStart: Bool = true) {
         if loadPagesOnStart {
@@ -28,12 +29,26 @@ class PageManager: ObservableObject {
         if pages.isEmpty {
             DefaultPageCreator() //Creating default page if no pages found
         }
+        weatherThing = findWeatherThing()
+    }
+    
+    private func findWeatherThing() -> WeatherThing {
+        for page in pages {
+            for row in page.thingOrder {
+                for thing in row {
+                    if thing.type == "Weather" {
+                        return thing as! WeatherThing
+                    }
+                }
+            }
+        }
+        print("No WeatherThing found in pages, returning new instance")
+        return WeatherThing(name: "WeatherPageManager")
     }
     
     func addPage(p: Page) {
         pages.append(p)
     }
-    
     func getPage(num: Int) -> Page {
         if num < pages.count {
             return pages[num]
@@ -42,7 +57,6 @@ class PageManager: ObservableObject {
             return Page(name: "Error")
         }
     }
-    
     func getCurrentPage() -> Page {
         for page in pages {
             if page.PageName == currentPage {
@@ -52,6 +66,13 @@ class PageManager: ObservableObject {
         print("No page found, returning default page")
         return DefaultPageCreatorWOutput()
     }
+    func getPages() -> [Page] {
+        return pages
+    }
+    func getPageThings() -> [[Thing]] {
+        return getCurrentPage().thingOrder
+    }
+
     
     func updateCurrentPage() {
         print("Updating current page from pm")
@@ -59,9 +80,13 @@ class PageManager: ObservableObject {
         p.updateAllThingsFromPage()
     }
     
-    func getPages() -> [Page] {
-        return pages
+    func toggleLocation(){
+        weatherThing.toggleLocation()
     }
+    func getCity() -> String {
+        return weatherThing.weather.currentCity ?? "Unknown city"
+    }
+    
     
     func DefaultPageCreator() {
         print("Creating default page and adding it to pm pages")
@@ -75,7 +100,7 @@ class PageManager: ObservableObject {
         pages.append(p)
     }
     func DefaultPageCreatorWOutput() -> Page {
-        print("Creating default page and adding it to pm pages")
+        print("Creating Default page and returning it")
         let t = TimeThing(name: "TimeDefaultPage")
         let d = DateThing(name: "DateDefaultPage")
         let b = BatteryThing(name: "BatteryDefaultPage")
@@ -92,7 +117,7 @@ class PageManager: ObservableObject {
         let d = DateThing(name: "DateMusicPage")
         let b = BatteryThing(name: "BatteryMusicPage")
         let w = WeatherThing(name: "WeatherMusicPage")
-        let m = MusicThing(name: "MusicMusicPage", size: "Big")
+        let m = MusicThing(name: "MusicMusicPage", size: "Large")
         
         let p = Page(name: "Music")
         
@@ -100,6 +125,21 @@ class PageManager: ObservableObject {
         p.newRow(thingsInOrder: [m], row: 1)
         pages.append(p)
     }
+    func MusicPageCreatorWOutput() -> Page {
+        print("Creating Music page and returning it")
+        let t = TimeThing(name: "TimeMusicPage")
+        let d = DateThing(name: "DateMusicPage")
+        let b = BatteryThing(name: "BatteryMusicPage")
+        let w = WeatherThing(name: "WeatherMusicPage")
+        let m = MusicThing(name: "MusicMusicPage", size: "Large")
+        
+        let p = Page(name: "Music")
+        
+        p.newRow(thingsInOrder: [t,d,b,w], row: 0)
+        p.newRow(thingsInOrder: [m], row: 1)
+        return p
+    }
+    
     func resetPages() {
         print("\nResetting pages to default----------")
         pages = []
@@ -108,6 +148,11 @@ class PageManager: ObservableObject {
         for page in pages {
             page.updateAllThingsFromPage()
         }
+        savePages()
+    }
+    func clearPages() {
+        print("\nClearing all pages----------")
+        pages = []
         savePages()
     }
     
@@ -187,11 +232,9 @@ class PageManager: ObservableObject {
         
         pages = loadedPages
     }
-    
     func savePages(testing: Bool = false) {
-        if testing {
-            pageStorageRAW = "" //Clearing previous saved pages
-        }
+        pageStorageRAW = "" //Clearing previous saved pages
+        
         var output: String = ""
         for page in pages {
             output += page.printPageForSaving()
@@ -206,10 +249,19 @@ class PageManager: ObservableObject {
 class Page: Observable {
     var PageName: String
     
-    var thingOrder: [[Thing]] = [[],[],[],[]]
+    var thingOrder: [[Thing]] = [[
+        Thing(name: "Empty1", type: "Blank"), Thing(name: "Empty2", type: "Blank"), Thing(name: "Empty3", type: "Blank"), Thing(name: "Empty4", type: "Blank")
+    ],[
+        Thing(name: "Empty1", type: "Blank"), Thing(name: "Empty2", type: "Blank"), Thing(name: "Empty3", type: "Blank"), Thing(name: "Empty4", type: "Blank")
+    ],[
+        Thing(name: "Empty1", type: "Blank"), Thing(name: "Empty2", type: "Blank"), Thing(name: "Empty3", type: "Blank"), Thing(name: "Empty4", type: "Blank")
+    ],[
+        Thing(name: "Empty1", type: "Blank"), Thing(name: "Empty2", type: "Blank"), Thing(name: "Empty3", type: "Blank"), Thing(name: "Empty4", type: "Blank")
+    ]]
     
     init(name: String) {
         self.PageName = name
+        
     }
     func updateAllThingsFromPage() {
         for row in thingOrder {
@@ -265,19 +317,31 @@ class Page: Observable {
                 
                 var rowText = ""
                 for thing in row {
-                    rowText += "\(thing.toString()) | "
+                    if thing.type == "Blank" {
+                        print("Skipping blank thing in output")
+                        continue
+                    } else {
+                        rowText += "\(thing.toString()) | "
+                    }
                 }
                 if !rowText.isEmpty {
                     rowText.removeLast(3) // remove trailing " | "
                 }
                 
                 // Center only this row, not the entire accumulated output
-                rowText = tm.centerText(rowText)
-                output += rowText + "\n"
+                if !rowText.contains("\n") {
+                    rowText = tm.centerText(rowText)
+                    output += rowText + "\n"
+                } else {
+                    let splitRows = rowText.components(separatedBy: "\n")
+                    for splitRow in splitRows {
+                        let centeredSplitRow = tm.centerText(splitRow)
+                        output += centeredSplitRow + "\n"
+                    }
+                }
             }
             return output
         }
-    
     func outputPageForMirror() -> String {
         var output: String = ""
         for row in thingOrder {
@@ -285,7 +349,12 @@ class Page: Observable {
             
             var rowText = ""
             for thing in row {
-                rowText += "\(thing.toString()) | "
+                if thing.type == "Blank" {
+                    print("Skipping blank thing in output")
+                    continue
+                }else {
+                    rowText += "\(thing.toString()) | "
+                }
             }
             if !rowText.isEmpty {
                 rowText.removeLast(3) // remove trailing " | "

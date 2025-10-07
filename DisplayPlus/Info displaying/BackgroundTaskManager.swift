@@ -9,7 +9,6 @@ import SwiftUI
 class BackgroundTaskManager: ObservableObject {
     private var ble: G1BLEManager
     private var pm: PageManager
-    private var info: InfoManager
     
     var timer: Timer?
     
@@ -31,10 +30,9 @@ class BackgroundTaskManager: ObservableObject {
     @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
     @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
 
-    init(ble: G1BLEManager, info: InfoManager, page: PageManager) {
+    init(ble: G1BLEManager, pmIn: PageManager) {
         self.ble = ble
-        self.pm = page
-        self.info = info
+        self.pm = pmIn
     }
     
     func startTimer() {

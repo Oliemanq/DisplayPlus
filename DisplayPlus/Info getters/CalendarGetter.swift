@@ -94,25 +94,25 @@ class CalendarManager {
         
         // Filter out all-day events
         let filteredEvents = events.filter { event in
-                // Keep events that are NOT all-day AND don't start at midnight
-                if event.isAllDay {
-                    return false
-                }
-                
-                // Filter out events that start at midnight (12:00 AM)
-                let startDateComponents = calendar.dateComponents([.hour, .minute], from: event.startDate)
-                if startDateComponents.hour == 0 && startDateComponents.minute == 0 {
-                    return false
-                }
-                
-                // Filter out Canvas events
-                if event.calendar.title == "Canvas" {
-                    return false
-                }
-                
-                return true
+            // Keep events that are NOT all-day AND don't start at midnight
+            if event.isAllDay {
+                return false
             }
-         
+            
+            // Filter out events that start at midnight (12:00 AM)
+            let startDateComponents = calendar.dateComponents([.hour, .minute], from: event.startDate)
+            if startDateComponents.hour == 0 && startDateComponents.minute == 0 {
+                return false
+            }
+            
+            // Filter out Canvas events
+            if event.calendar.title == "Canvas" {
+                return false
+            }
+            
+            return true
+        }
+        
         completion(.success(filteredEvents))
     }
     
@@ -120,4 +120,10 @@ class CalendarManager {
         let status = EKEventStore.authorizationStatus(for: .event)
         return (status == .fullAccess)
     }
+}
+
+struct event: Identifiable, Hashable{
+    var id = UUID()
+    var titleLine: String
+    var subtitleLine: String
 }

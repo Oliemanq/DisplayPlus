@@ -8,6 +8,10 @@ import Foundation
 //
 
 class DateThing: Thing {
+    required init(from decoder: Decoder) throws {
+        try super.init(from: decoder)
+    }
+    
     init(name: String, size: String = "Small") {
         super.init(name: name, type: "Date", thingSize: size)
         
@@ -41,3 +45,4 @@ class DateThing: Thing {
         return "\(weekDay), \(month) \(day)"
     }
 }
+

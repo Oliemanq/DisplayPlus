@@ -11,6 +11,10 @@ import UIKit
 class BatteryThing: Thing {
     var battery: Int = 0
     
+    required init(from decoder: Decoder) throws {
+        try super.init(from: decoder)
+    }
+    
     init(name: String, size: String = "Medium") {
         super.init(name: name, type: "Battery", thingSize: size)
         
@@ -51,3 +55,4 @@ class BatteryThing: Thing {
         return battery
     }
 }
+

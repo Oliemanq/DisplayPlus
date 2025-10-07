@@ -13,7 +13,6 @@ struct DefaultView: View {
     
     @ObservedObject var theme = ThemeColors()
     
-    @StateObject private var info: InfoManager
     @StateObject private var ble: G1BLEManager
     @StateObject private var pm: PageManager
     @StateObject private var bg: BackgroundTaskManager
@@ -32,24 +31,14 @@ struct DefaultView: View {
     @Namespace private var namespace
     
     init(){
-        let thingsTemp = [
-            TimeThing(name: "timeHeader"),
-            DateThing(name: "dateHeader"),
-            BatteryThing(name: "batteryHeader"),
-            WeatherThing(name: "weatherHeader"),
-            CalendarThing(name: "calendarHeader"),
-            MusicThing(name: "musicHeader")
-        ]
         
         let laInstance = LiveActivityManager()
-        let infoInstance = InfoManager(things: thingsTemp) //, health: HealthInfoGetter()
         let bleInstance = G1BLEManager(liveIn: laInstance)
         let pageInstance = PageManager()
-        let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
+        let bgInstance = BackgroundTaskManager(ble: bleInstance, pmIn: pageInstance)
         
         
         
-        _info = StateObject(wrappedValue: infoInstance)
         _ble = StateObject(wrappedValue: bleInstance)
         _pm = StateObject(wrappedValue: pageInstance)
         _bg = StateObject(wrappedValue: bgInstance)
@@ -59,16 +48,13 @@ struct DefaultView: View {
     var body: some View {
         TabView {
             Tab("Home", systemImage: "eyeglasses") {
-                ContentView(infoInstance: info, bleInstance: ble, bgInstance: bg)
-            }
-            Tab("Info", systemImage: "info.square") {
-                InfoView(infoIn: info, bleIn: ble)
+                ContentView(pmIn: pm, bleIn: ble, bgIn: bg)
             }
             Tab("Page Editor", systemImage: "pencil.tip") {
-                PageEditorView(PageManager: pm, themeIn: theme)
+                PageEditorView(pmIn: pm, themeIn: theme)
             }
             Tab("Settings", systemImage: "gear") {
-                SettingsView(bleIn: ble, infoIn: info, liveIn: la)
+                SettingsView(bleIn: ble, pmIn: pm, liveIn: la)
             }
         }
         .font(theme.bodyFont)
@@ -302,48 +288,44 @@ struct DefaultView: View {
         }
         
         //onAppear actions for entire app
-        .onAppear(){
-            ble.connectionStatus = "Disconnected"
-            ble.connectionState = .disconnected
-            theme.darkMode = colorScheme == .dark
-            
-            info.updateThingsSafe()
-            
-            ble.handlePairedDevices()
-            
-            bg.startTimer() // Start the background task timer
-        }
-        //Managing dark mode updates
-        .onChange(of: colorScheme) { _, newScheme in
-            // Update the theme whenever the color scheme changes (use newScheme, second param)
-            theme.darkMode = (newScheme == .dark)
-        }
-        //Preventing delays from waiting for bg timer when changing pages
-        .onChange(of: displayOn) {
-            updateWidgets()
-            
-            if !displayOn {
-                ble.sendBlank()
-            } else {
-                info.updated = true
-            }
-        }
-        
-        .onChange(of: ble.connectionState) { _, newValue in
-            updateWidgets()
-            
-            if newValue == .connectedBoth {
-                ble.fetchBrightness()
-                ble.fetchSilentMode()
-                ble.fetchGlassesBattery()
-            }
-        }
-        .onChange(of: glassesBattery) { _, _ in
-            updateWidgets()
-        }
-        .onChange(of: glassesCharging) { _, _ in
-            updateWidgets()
-        }
+//        .onAppear(){
+//            ble.connectionStatus = "Disconnected"
+//            ble.connectionState = .disconnected
+//            theme.darkMode = colorScheme == .dark
+//                        
+//            ble.handlePairedDevices()
+//            
+//            bg.startTimer() // Start the background task timer
+//        }
+//        //Managing dark mode updates
+//        .onChange(of: colorScheme) { _, newScheme in
+//            // Update the theme whenever the color scheme changes (use newScheme, second param)
+//            theme.darkMode = (newScheme == .dark)
+//        }
+//        //Preventing delays from waiting for bg timer when changing pages
+//        .onChange(of: displayOn) {
+//            updateWidgets()
+//            
+//            if !displayOn {
+//                ble.sendBlank()
+//            }
+//        }
+//        
+//        .onChange(of: ble.connectionState) { _, newValue in
+//            updateWidgets()
+//            
+//            if newValue == .connectedBoth {
+//                ble.fetchBrightness()
+//                ble.fetchSilentMode()
+//                ble.fetchGlassesBattery()
+//            }
+//        }
+//        .onChange(of: glassesBattery) { _, _ in
+//            updateWidgets()
+//        }
+//        .onChange(of: glassesCharging) { _, _ in
+//            updateWidgets()
+//        }
     }
     
     func updateWidgets(){

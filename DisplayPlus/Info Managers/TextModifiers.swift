@@ -292,8 +292,10 @@ public class RenderingManager {
         }
     }
     
-    func doesFitOnScreen(text: String) -> Bool {
+    func doesFitOnScreen(text: String, maxWidth: CGFloat = 100) -> Bool {
         let charWidth: CGFloat = getWidth(text: text)
-        return charWidth <= 100
+        print("charWidth: \(charWidth), maxWidth: \(maxWidth)")
+        print("Does fit on screen: \(charWidth <= maxWidth)")
+        return charWidth <= maxWidth
     }
 }

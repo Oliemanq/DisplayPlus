@@ -11,7 +11,7 @@ extension Comparable {
 struct ContentView: View {
     @State var showingDeviceSelectionPopup: Bool = false
     
-    @StateObject private var info: InfoManager
+    @StateObject private var pm: PageManager
     @StateObject private var ble: G1BLEManager
     @StateObject private var bg: BackgroundTaskManager
     @EnvironmentObject var theme: ThemeColors
@@ -36,10 +36,10 @@ struct ContentView: View {
     @State private var isSliderDragging = false
     @State private var brightnessUpdateTimer: Timer?
     
-    init(infoInstance: InfoManager, bleInstance: G1BLEManager, bgInstance: BackgroundTaskManager) {
-        _info = StateObject(wrappedValue: infoInstance)
-        _ble = StateObject(wrappedValue: bleInstance)
-        _bg = StateObject(wrappedValue: bgInstance)
+    init(pmIn: PageManager, bleIn: G1BLEManager, bgIn: BackgroundTaskManager) {
+        _pm = StateObject(wrappedValue: pmIn)
+        _ble = StateObject(wrappedValue: bleIn)
+        _bg = StateObject(wrappedValue: bgIn)
     }
     
     var body: some View {
@@ -61,7 +61,7 @@ struct ContentView: View {
                             ZStack{
                                 if displayOn{
                                     VStack(alignment: .center){
-                                        Text("broken rn")
+                                        Text(pm.getCurrentPage().outputPageForMirror())
                                             .multilineTextAlignment(.center)
                                             .font(.system(size: 11))
                                             .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
@@ -264,7 +264,6 @@ struct ContentView: View {
             
             //MARK: - onChange
             .onChange(of: currentPage) {
-                info.updated = true
                 displayOn = true
             }
             .onChange(of: silentMode) {
@@ -304,22 +303,12 @@ struct ContentView: View {
 
 
 #Preview {
-    let things = [
-        TimeThing(name: "timeHeader"),
-        DateThing(name: "dateHeader"),
-        BatteryThing(name: "batteryHeader"),
-        WeatherThing(name: "weatherHeader"),
-        CalendarThing(name: "calendarHeader"),
-        MusicThing(name: "musicHeader")
-    ]
-    
     let laInstance = LiveActivityManager()
-    let infoInstance = InfoManager(things: things) //, health: HealthInfoGetter()
     let bleInstance = G1BLEManager(liveIn: laInstance)
     let pageInstance = PageManager()
-    let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
+    let bgInstance = BackgroundTaskManager(ble: bleInstance, pmIn: pageInstance)
     
-    ContentView(infoInstance: infoInstance, bleInstance: bleInstance, bgInstance: bgInstance)
+    ContentView(pmIn: pageInstance, bleIn: bleInstance, bgIn: bgInstance)
         .environmentObject(ThemeColors())
 }
 

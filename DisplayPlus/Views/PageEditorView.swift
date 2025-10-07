@@ -12,28 +12,36 @@ struct PageEditorView: View {
     @AppStorage("pages", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var pagesString: String = "Default,Music,Calendar"
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     
-    @State var things: [Thing] = []
+    @State var unusedThings: [Thing] = []
     @StateObject var pm: PageManager
     @StateObject var theme: ThemeColors
+
+    @State private var gridDisplays: [[Thing]]
+    
+    
+    let rowHeight: CGFloat = 35
     
     let currentDayOfTheMonth = Calendar.current.component(.day, from: Date())
     
     
-    init(PageManager: PageManager, themeIn: ThemeColors) {
-        _pm = StateObject(wrappedValue: PageManager)
+    init(pmIn: PageManager, themeIn: ThemeColors) {
+        gridDisplays = pmIn.getPageThings()
+
+        _pm = StateObject(wrappedValue: pmIn)
         _theme = StateObject(wrappedValue: themeIn)
+        
     }
-    
-    
     
     var body: some View {
         NavigationStack {
+            
             GeometryReader { geometry in
                 ZStack{
                     (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
                         .ignoresSafeArea()
                     
                     VStack{
+                        //Mirror at the top of the page
                         HStack(alignment: .top) {
                             ForEach(pm.pages, id: \.PageName) { page in
                                 if page.PageName == currentPage {
@@ -44,8 +52,75 @@ struct PageEditorView: View {
                                 }
                             }
                             .frame(maxWidth: geometry.size.width*0.9, maxHeight: 55)
-                            .ContextualBG(themeIn: theme)
-                            
+                        }
+                        .homeItem(themeIn: theme, height: 85)
+                        
+                        if !unusedThings.isEmpty {
+                            VStack{
+                                Text("Unused Things")
+                                    .font(theme.headerFont)
+                                    .padding(.top, 8)
+                                Spacer()
+                                HStack{
+                                    ForEach(unusedThings.indices, id: \.self) { index in
+                                        Text("\(unusedThings[index].name)")
+                                            .draggable(unusedThings[index])
+                                    }
+                                }
+                                Spacer()
+                            }
+                            .homeItem(themeIn: theme)
+                        }
+                        ZStack{
+                            Rectangle()
+                                .frame(width: geometry.size.width*0.95, height: rowHeight*4 + 20)
+                                .foregroundColor(theme.darkMode ? theme.pri : theme.sec)
+                            VStack(spacing: 2){
+                                ForEach(0..<4, id: \.self) { i in
+                                    HStack(spacing: 2){
+                                        ForEach(0..<4, id: \.self) { j in
+                                            var t: Bool = false
+                                             
+                                             ZStack{
+                                                 Rectangle()
+                                                     .frame(width: geometry.size.width*0.9 / 4, height: rowHeight)
+                                                     .foregroundColor(theme.darkMode ? (t ? theme.backgroundDark.opacity(0.75) : theme.backgroundDark) : (t ? theme.backgroundLight.opacity(0.75) : theme.backgroundLight))
+                                                 
+                                                 // Show the current display text so it updates after a drop
+                                                 Text(gridDisplays[i][j].type == "Blank" ? "(\(i),\(j))" : gridDisplays[i][j].name)
+                                                     .font(.system(size: 12))
+                                                     .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
+                                                     .lineLimit(1)
+                                                     .minimumScaleFactor(0.6)
+                                                     .onAppear() {
+                                                         print("\(gridDisplays[i][j].name) at \(i),\(j)")
+                                                     }
+                                                 
+                                             }
+                                             .onAppear() {
+                                                 pm.resetPages()
+                                             }
+                                             .dropDestination(for: Thing.self) { items, location in
+                                                 guard let firstItem = items.first else {
+                                                     return false
+                                                 }
+                                                 print("Dropped '", firstItem, "' at cell (\(i),\(j))")
+                                                 withAnimation {
+                                                     gridDisplays[i][j].name = firstItem.name
+                                                     unusedThings.removeAll { $0.name == firstItem.name }
+                                                 }
+                                                 return true
+                                             } isTargeted: { isTargeted in
+                                                 print("targeting \(i),\(j):", isTargeted)
+                                                 withAnimation {
+                                                     t = isTargeted
+                                                 }
+                                             }
+                                        }
+                                    }
+                                    
+                                }
+                            }
                         }
                         Spacer()
                     }
@@ -54,13 +129,17 @@ struct PageEditorView: View {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Menu{
                             Text("Add Thing")
+                            Text("Small items fit 1x1 space")
+                            Text("Medium items fit 1x2 space")
+                            Text("Large items fit 1x4 space")
+                            Text("XL items fit 2x4 space.")
                             Divider()
                             Menu{
                                 Button("Small") {
-                                    things.append(TimeThing(name: "TimeSmall"))
+                                    addItemToUnused(item: TimeThing(name: "TimeSmall"))
                                 }
-                                Button("Big") {
-                                    things.append(TimeThing(name: "TimeBig", size: "Big"))
+                                Button("Large") {
+                                    addItemToUnused(item: TimeThing(name: "TimeLarge", size: "Large"))
                                 }
                             } label: {
                                 Label("Time", systemImage: "clock")
@@ -68,10 +147,10 @@ struct PageEditorView: View {
                             
                             Menu{
                                 Button("Small") {
-                                    things.append(DateThing(name: "DateSmall"))
+                                    addItemToUnused(item: DateThing(name: "DateSmall"))
                                 }
-                                Button("Big") {
-                                    things.append(DateThing(name: "DateBig", size: "Big"))
+                                Button("Large") {
+                                    addItemToUnused(item: DateThing(name: "DateLarge", size: "Large"))
                                 }
                             } label: {
                                 Label("Date", systemImage: "\(currentDayOfTheMonth).calendar" )
@@ -79,10 +158,10 @@ struct PageEditorView: View {
                             
                             Menu{
                                 Button("Small") {
-                                    things.append(BatteryThing(name: "BatterySmall"))
+                                    addItemToUnused(item: BatteryThing(name: "BatterySmall"))
                                 }
-                                Button("Big") {
-                                    things.append(BatteryThing(name: "BatteryBig", size: "Big"))
+                                Button("Large") {
+                                    addItemToUnused(item: BatteryThing(name: "BatteryLarge", size: "Large"))
                                 }
                             } label: {
                                 Label("Battery", systemImage: "battery.75percent")
@@ -90,24 +169,24 @@ struct PageEditorView: View {
                             
                             Menu{
                                 Button("Small") {
-                                    things.append(WeatherThing(name: "WeatherSmall"))
+                                    addItemToUnused(item: WeatherThing(name: "WeatherSmall"))
                                 }
-                                Button("Big") {
-                                    things.append(WeatherThing(name: "WeatherBig", size: "Big"))
+                                Button("Large") {
+                                    addItemToUnused(item: WeatherThing(name: "WeatherLarge", size: "Large"))
                                 }
                             } label: {
                                 Label("Weather", systemImage: "sun.max")
                             }
                             
                             Menu{
-                                Button("Small") {
-                                    things.append(MusicThing(name: "MusicSmall"))
-                                }
                                 Button("Medium") {
-                                    things.append(MusicThing(name: "MusicMedium", size: "Medium"))
+                                    addItemToUnused(item: MusicThing(name: "MusicMedium", size: "Medium"))
                                 }
-                                Button("Big") {
-                                    things.append(MusicThing(name: "MusicBig", size: "Big"))
+                                Button("Large") {
+                                    addItemToUnused(item: MusicThing(name: "MusicLarge", size: "Large"))
+                                }
+                                Button("XL") {
+                                    addItemToUnused(item: MusicThing(name: "MusicXL", size: "XL"))
                                 }
                             } label: {
                                 Label("Music", systemImage: "music.note")
@@ -115,10 +194,10 @@ struct PageEditorView: View {
                             
                             Menu{
                                 Button("Small") {
-                                    things.append(CalendarThing(name: "CalendarSmall"))
+                                    addItemToUnused(item: CalendarThing(name: "CalendarSmall"))
                                 }
-                                Button("Big") {
-                                    things.append(CalendarThing(name: "CalendarBig", size: "Big"))
+                                Button("Large") {
+                                    addItemToUnused(item: CalendarThing(name: "CalendarLarge", size: "Large"))
                                 }
                             } label: {
                                 Label("Calendar", systemImage: "calendar")
@@ -172,11 +251,35 @@ struct PageEditorView: View {
                 }
             }
         }
+        .onChange(of: currentPage) { _, newValue in
+            gridDisplays = pm.getPageThings()
+        }
+            
+    }
+    func addItemToUnused(item: Thing) {
+//        var itemNum = 1
+//        var cont = true
+//        
+//        while cont {
+//            if unusedThings.contains(where: { $0.name == item.name }) {
+//                
+//                item.name = item.name.prefix(item.name.count - String(itemNum).count) + String(itemNum)
+//                itemNum += 1
+//            } else {
+//                cont = false
+//            }
+//        }
+//        
+//        print("Adding item to unused:", item.name)
+        withAnimation{
+            unusedThings.append(item)
+        }
+        
     }
 }
 
 #Preview {
     let pm = PageManager()
     
-    PageEditorView(PageManager: pm, themeIn: ThemeColors())
+    PageEditorView(pmIn: pm, themeIn: ThemeColors())
 }

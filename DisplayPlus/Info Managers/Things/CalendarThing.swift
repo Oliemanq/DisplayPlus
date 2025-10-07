@@ -5,7 +5,6 @@
 //  Created by Oliver Heisel on 9/30/25.
 //
 
-
 import Foundation
 import UIKit
 import EventKit
@@ -19,6 +18,10 @@ import Combine
 //
 
 class CalendarThing: Thing {
+    
+    required init(from decoder: Decoder) throws {
+        try super.init(from: decoder)
+    }
     
     var calendar: CalendarManager = CalendarManager()
     
