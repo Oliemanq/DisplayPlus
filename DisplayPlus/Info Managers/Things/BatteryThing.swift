@@ -48,7 +48,7 @@ class BatteryThing: Thing {
         } else if thingSize == "Medium" {
             return "Phone - \(data)"
         } else {
-            return "INPUT PROPER SIZE (Small/Medium)"
+            return "Incorrect size input for Battery thing: \(thingSize), must be Small or Medium"
         }
     }
     func toInt() -> Int {

@@ -135,12 +135,36 @@ class CalendarThing: Thing {
     }
     
     override func toString(mirror: Bool = false) -> String {
-        var output = ""
-        for event in eventsFormatted {
-            output += "\n\(tm.centerText("\(event.titleLine) - \(event.subtitleLine)", mirror: mirror))"
+        if thingSize == "Medium" {
+            let nextEvent = getEvents().first
+            if nextEvent != nil {
+                return "No events"
+            } else {
+                if nextEvent!.titleLine.count <= 10 {
+                    return "\(nextEvent!.titleLine) at \(nextEvent!.subtitleLine)"
+                } else {
+                    return "\(nextEvent!.titleLine.prefix(8))... at \(nextEvent!.subtitleLine)"
+                }
+            }
+        } else if thingSize == "Large" {
+            let nextEvent = getEvents().first
+            if nextEvent != nil {
+                return "No events left for today"
+            } else {
+                return "\(nextEvent!.titleLine) at \(nextEvent!.subtitleLine)"
+            }
+        } else if thingSize == "XL" {
+            var output: String = ""
+            for event in getEvents() {
+                if output != "" {
+                    output += "\n"
+                }
+                output += "\(event.titleLine) at \(event.subtitleLine)"
+            }
+            return output
+        } else {
+            return "Incorrect size input for Calendar thing: \(thingSize), must be Medium, Large, or XL"
         }
-        
-        return output
     }
 }
 

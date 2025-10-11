@@ -291,44 +291,44 @@ struct DefaultView: View {
         }
         
         //onAppear actions for entire app
-//        .onAppear(){
-//            ble.connectionStatus = "Disconnected"
-//            ble.connectionState = .disconnected
-//            theme.darkMode = colorScheme == .dark
-//                        
-//            ble.handlePairedDevices()
-//            
-//            bg.startTimer() // Start the background task timer
-//        }
-//        //Managing dark mode updates
-//        .onChange(of: colorScheme) { _, newScheme in
-//            // Update the theme whenever the color scheme changes (use newScheme, second param)
-//            theme.darkMode = (newScheme == .dark)
-//        }
-//        //Preventing delays from waiting for bg timer when changing pages
-//        .onChange(of: displayOn) {
-//            updateWidgets()
-//            
-//            if !displayOn {
-//                ble.sendBlank()
-//            }
-//        }
-//        
-//        .onChange(of: ble.connectionState) { _, newValue in
-//            updateWidgets()
-//            
-//            if newValue == .connectedBoth {
-//                ble.fetchBrightness()
-//                ble.fetchSilentMode()
-//                ble.fetchGlassesBattery()
-//            }
-//        }
-//        .onChange(of: glassesBattery) { _, _ in
-//            updateWidgets()
-//        }
-//        .onChange(of: glassesCharging) { _, _ in
-//            updateWidgets()
-//        }
+        .onAppear(){
+            ble.connectionStatus = "Disconnected"
+            ble.connectionState = .disconnected
+            theme.darkMode = colorScheme == .dark
+                        
+            ble.handlePairedDevices()
+            
+            bg.startTimer() // Start the background task timer
+        }
+        //Managing dark mode updates
+        .onChange(of: colorScheme) { _, newScheme in
+            // Update the theme whenever the color scheme changes (use newScheme, second param)
+            theme.darkMode = (newScheme == .dark)
+        }
+        //Preventing delays from waiting for bg timer when changing pages
+        .onChange(of: displayOn) {
+            updateWidgets()
+            
+            if !displayOn {
+                ble.sendBlank()
+            }
+        }
+        
+        .onChange(of: ble.connectionState) { _, newValue in
+            updateWidgets()
+            
+            if newValue == .connectedBoth {
+                ble.fetchBrightness()
+                ble.fetchSilentMode()
+                ble.fetchGlassesBattery()
+            }
+        }
+        .onChange(of: glassesBattery) { _, _ in
+            updateWidgets()
+        }
+        .onChange(of: glassesCharging) { _, _ in
+            updateWidgets()
+        }
     }
     
     func updateWidgets(){

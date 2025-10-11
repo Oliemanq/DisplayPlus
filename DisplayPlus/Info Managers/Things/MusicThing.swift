@@ -117,14 +117,7 @@ class MusicThing: Thing {
     
     
     override func toString(mirror: Bool = false) -> String {
-        if thingSize == "Small" {
-            if music.curSong.isPaused {
-                return "♪\\0-0/♪ (Paused)"
-            } else {
-                return  "\(buildArtistLine(widthIn: 25.0))"
-            }
-        }
-        else if thingSize == "Medium" {
+        if thingSize == "Medium" {
             var output: String = ""
             
             if music.curSong.isPaused {
@@ -167,7 +160,7 @@ class MusicThing: Thing {
             return output
         }
         else {
-            return "INPUT CORRECT SIZE (Small/Medium/Large/XL)"
+            return "Incorrect size input for Music thing: \(thingSize), must be Medium, Large, or XL"
         }
     }
 }

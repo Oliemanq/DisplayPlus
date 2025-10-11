@@ -75,7 +75,6 @@ class PageManager: ObservableObject {
 
     
     func updateCurrentPage() {
-        print("Updating current page from pm")
         let p = getCurrentPage()
         p.updateAllThingsFromPage()
     }
@@ -148,6 +147,7 @@ class PageManager: ObservableObject {
         for page in pages {
             page.updateAllThingsFromPage()
         }
+        currentPage = "Default"
         savePages()
     }
     func clearPages() {
@@ -282,24 +282,23 @@ class Page: Observable {
     func updateAllThingsFromPage() {
         for row in thingsOrdered {
             for thing in row {
-                print("updating \(thing.name) from page \(PageName)")
                 thing.update()
             }
         }
-        print("Finished updating all things from page \(PageName)")
     }
+    
     func newRow(thingsInOrder: [Thing], row: Int) {
         var rowThing = thingsInOrder
         var dummyRowBelow: Bool = false
         
-        print("Adding new row to page \(PageName) at row \(row)")
         for i in rowThing.enumerated() {
             let thing = rowThing[i.offset]
             print(" - \(thing.name) (\(thing.type), Size: \(thing.thingSize))")
             
             if thing.spacerRight {
                 for _ in 0..<thing.spacersRight {
-                    rowThing.insert(Thing(name: "SpacerRight", type: "Sizer"), at: i.offset + 1)
+                    print("Creating spacer to the right of \(thing.name)")
+                    rowThing.insert(Thing(name: "SpacerRight", type: "Spacer"), at: i.offset + 1)
                 }
             }
             if thing.spacerBelow {
@@ -314,8 +313,9 @@ class Page: Observable {
     }
     
     func makeDummyRowBelow(row: Int) {
+        print("Making dummy row below for an XL Thing")
         thingsOrdered[row+1].removeAll()
-        thingsOrdered[row+1] = [Thing(name: "DummyBelow1", type: "Sizer"), Thing(name: "DummyBelow2", type: "Sizer"), Thing(name: "DummyBelow3", type: "Sizer"), Thing(name: "DummyBelow4", type: "Sizer")]
+        thingsOrdered[row+1] = [Thing(name: "SpacerBelow1", type: "Spacer"), Thing(name: "SpacerBelow2", type: "Spacer"), Thing(name: "SpacerBelow3", type: "Spacer"), Thing(name: "SpacerBelow4", type: "Spacer")]
     }
     
     
@@ -390,8 +390,7 @@ class Page: Observable {
             
             var rowText = ""
             for thing in row {
-                if thing.type == "Blank" || thing.type == "Sizer" {
-                    print("Skipping blank thing in output")
+                if thing.type == "Blank" || thing.type == "Spacer" {
                     continue
                 }else {
                     rowText += "\(thing.toString()) | "

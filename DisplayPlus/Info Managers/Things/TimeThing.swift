@@ -23,5 +23,13 @@ class TimeThing: Thing {
             updated = true
         }
     }
+    
+    override func toString(mirror: Bool = false) -> String {
+        if thingSize == "Small" {
+            return data
+        } else {
+            return "Incorrect size input for Time thing: \(thingSize), must be Small"
+        }
+    }
 }
 

@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 struct PageEditorView: View {
-    @AppStorage("pages", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var pagesString: String = "Default,Music,Calendar"
+    @AppStorage("pages", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var pagesString: String = "Default,Music"
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     
     @State var unusedThings: [Thing] = []
@@ -17,7 +17,11 @@ struct PageEditorView: View {
     @StateObject var theme: ThemeColors
 
     @State private var currentPageObject: Page
+    @State private var draggedThing: Thing? = nil // Track the currently dragged thing
+    @State private var refreshID = UUID() // Add refresh trigger
     
+    @State private var showAddPageAlert = false
+    @State private var newPageName = ""
     
     let rowHeight: CGFloat = 35
     
@@ -43,15 +47,11 @@ struct PageEditorView: View {
                     VStack{
                         //Mirror at the top of the page
                         HStack(alignment: .top) {
-                            ForEach(pm.pages, id: \.PageName) { page in
-                                if page.PageName == currentPage {
-                                    Text(page.outputPageForMirror())
-                                        .multilineTextAlignment(.center)
-                                        .font(.system(size: 11))
-                                        .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
-                                }
-                            }
-                            .frame(maxWidth: geometry.size.width*0.9, maxHeight: 55)
+                            Text(pm.getCurrentPage().outputPageForMirror())
+                                .multilineTextAlignment(.center)
+                                .font(.system(size: 11))
+                                .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
+                                .frame(maxWidth: geometry.size.width*0.9, maxHeight: 55)
                         }
                         .homeItem(themeIn: theme, height: 85)
                         
@@ -65,7 +65,13 @@ struct PageEditorView: View {
                                 HStack{
                                     ForEach(unusedThings.indices, id: \.self) { index in
                                         Text("\(unusedThings[index].name)")
-                                            .draggable(unusedThings[index])
+                                            .draggable(unusedThings[index]) {
+                                                DispatchQueue.main.async {
+                                                    draggedThing = unusedThings[index]
+                                                }
+                                                return Text(unusedThings[index].name)
+                                                    .opacity(0.8)
+                                            }
                                     }
                                 }
                                 Spacer()
@@ -80,41 +86,53 @@ struct PageEditorView: View {
                         }
                         .padding(10)
                         .mainButtonStyle(themeIn: theme)
+                        
                         //Grid of drop targets
                         ZStack{
                             Rectangle()
                                 .frame(width: geometry.size.width*0.95, height: rowHeight*4 + 20)
                                 .foregroundColor(theme.darkMode ? theme.pri : theme.sec)
+                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                             VStack(spacing: 2){
                                 ForEach(0..<4, id: \.self) { i in
-                                    HStack(spacing: 2){
+                                    HStack(spacing: 0){
                                         ForEach(0..<4, id: \.self) { j in
                                             var t: Bool = false
-                                             
+                                            var thingSizeInCell: String = ""
+                                            
                                              ZStack{
-                                                 Rectangle()
-                                                     .frame(width: geometry.size.width*0.9 / 4, height: rowHeight)
-                                                     .foregroundColor(theme.darkMode ? (t ? theme.backgroundDark.opacity(0.75) : theme.backgroundDark) : (t ? theme.backgroundLight.opacity(0.75) : theme.backgroundLight))
-                                                 
                                                  // Show the current display text so it updates after a drop
                                                  Text(currentPageObject.thingsOrdered[i][j].name.contains("Empty") ? "(\(i),\(j))" : currentPageObject.thingsOrdered[i][j].name)
                                                      .font(.system(size: 12))
-                                                     .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
                                                      .lineLimit(1)
-                                                     .minimumScaleFactor(0.6)
-                                                     .onAppear() {
-                                                         print("\(currentPageObject.thingsOrdered[i][j].name) at \(i),\(j)")
-                                                     }
+//                                                     .onAppear() {
+//                                                         print("\(currentPageObject.thingsOrdered[i][j].name) at \(i),\(j)")
+//                                                     }
                                              }
+                                             .frame(width: geometry.size.width*0.9 / 4, height: rowHeight)
+                                             .editorBlock(themeIn: theme, i: i, j: j, draggedThingSize: (thingSizeInCell != "" ? thingSizeInCell : draggedThing?.thingSize ?? "Small"))
+                                             .opacity(t ? 0.5 : 1.0)
                                              
                                              .dropDestination(for: Thing.self) { items, location in
                                                  guard let firstItem = items.first else {
+                                                     print("drop failed--------")
                                                      return false
                                                  }
                                                  print("Dropped '", firstItem, "' at cell (\(i),\(j))")
                                                  withAnimation {
-                                                     currentPageObject.thingsOrdered[i][j].name = firstItem.name
+                                                     let page = pm.getCurrentPage() // Refresh the current page object
+                                                     let currentRow = page.getRow(row: i)
+                                                     var newRow: [Thing] = currentRow
+                                                     newRow[j] = firstItem
+                                                     page.newRow(thingsInOrder: newRow, row: i)
+                                                     
                                                      unusedThings.removeAll { $0.name == firstItem.name }
+                                                     
+                                                     // Force SwiftUI to detect the change
+                                                     refreshID = UUID()
+                                                     
+                                                     draggedThing = nil
+                                                     thingSizeInCell = firstItem.thingSize
                                                  }
                                                  return true
                                              } isTargeted: { isTargeted in
@@ -129,6 +147,7 @@ struct PageEditorView: View {
                                 }
                             }
                         }
+                        .id(refreshID)
                         
                         Spacer()
                     }
@@ -142,50 +161,57 @@ struct PageEditorView: View {
                             Text("Large items fit 1x4 space")
                             Text("XL items fit 2x4 space.")
                             Divider()
+                            
+                            //Time - Small
+                            //Date - Small, Medium
+                            //Battery - Small, Medium
+                            //Weather - Small
+                            //Calendar - Medium, Large, XL
+                            //Music - Medium, Large, XL
+                            
+                            //Time
                             Menu{
                                 Button("Small") {
                                     addItemToUnused(item: TimeThing(name: "TimeSmall"))
-                                }
-                                Button("Large") {
-                                    addItemToUnused(item: TimeThing(name: "TimeLarge", size: "Large"))
                                 }
                             } label: {
                                 Label("Time", systemImage: "clock")
                             }
                             
+                            //Date
                             Menu{
                                 Button("Small") {
                                     addItemToUnused(item: DateThing(name: "DateSmall"))
                                 }
-                                Button("Large") {
-                                    addItemToUnused(item: DateThing(name: "DateLarge", size: "Large"))
+                                Button("Medium") {
+                                    addItemToUnused(item: DateThing(name: "DateMedium", size: "Medium"))
                                 }
                             } label: {
                                 Label("Date", systemImage: "\(currentDayOfTheMonth).calendar" )
                             }
                             
+                            //Battery
                             Menu{
                                 Button("Small") {
                                     addItemToUnused(item: BatteryThing(name: "BatterySmall"))
                                 }
-                                Button("Large") {
-                                    addItemToUnused(item: BatteryThing(name: "BatteryLarge", size: "Large"))
+                                Button("Medium") {
+                                    addItemToUnused(item: BatteryThing(name: "BatteryMedium", size: "Medium"))
                                 }
                             } label: {
                                 Label("Battery", systemImage: "battery.75percent")
                             }
                             
+                            //Weather
                             Menu{
                                 Button("Small") {
                                     addItemToUnused(item: WeatherThing(name: "WeatherSmall"))
-                                }
-                                Button("Large") {
-                                    addItemToUnused(item: WeatherThing(name: "WeatherLarge", size: "Large"))
                                 }
                             } label: {
                                 Label("Weather", systemImage: "sun.max")
                             }
                             
+                            //Music
                             Menu{
                                 Button("Medium") {
                                     addItemToUnused(item: MusicThing(name: "MusicMedium", size: "Medium"))
@@ -200,12 +226,16 @@ struct PageEditorView: View {
                                 Label("Music", systemImage: "music.note")
                             }
                             
+                            //Calendar
                             Menu{
                                 Button("Medium") {
                                     addItemToUnused(item: CalendarThing(name: "CalendarSmall", size: "Medium"))
                                 }
                                 Button("Large") {
                                     addItemToUnused(item: CalendarThing(name: "CalendarLarge", size: "Large"))
+                                }
+                                Button("XL") {
+                                    addItemToUnused(item: CalendarThing(name: "CalendarXL", size: "XL"))
                                 }
                             } label: {
                                 Label("Calendar", systemImage: "calendar")
@@ -238,9 +268,18 @@ struct PageEditorView: View {
                             ForEach(pm.pages, id: \.PageName) { page in
                                 Button {
                                     currentPage = page.PageName
+                                    print("Switched to page \(page.PageName) from menu")
                                 } label: {
                                     Text(page.PageName)
                                 }
+                            }
+                            
+                            Divider()
+                            Button {
+                                showAddPageAlert = true
+                                newPageName = ""
+                            } label: {
+                                Label("Add New Page", systemImage: "plus")
                             }
                             
                         }label: {
@@ -258,7 +297,27 @@ struct PageEditorView: View {
                     }
                 }
             }
+            
         }
+        .alert("Add new page", isPresented: $showAddPageAlert, actions: {
+            TextField("Page Name", text: $newPageName)
+            Button("Add", action: {
+                if newPageName.trimmingCharacters(in: .whitespacesAndNewlines) != "" && !pm.pages.contains(where: { $0.PageName == newPageName }) {
+                    let newPage = Page(name: newPageName)
+                    pm.addPage(p: newPage)
+                    currentPage = newPageName
+                } else {
+                    // Show some error message or feedback to the user
+                    print("Invalid page name or page already exists.")
+                }
+                showAddPageAlert = false
+            })
+            Button("Cancel", role: .cancel, action: {
+                showAddPageAlert = false
+            })
+        }, message: {
+            Text("Enter a name for the new page.")
+        })
         .onChange(of: currentPage) { _, newValue in
             currentPageObject = pm.getCurrentPage()
         }
@@ -267,17 +326,17 @@ struct PageEditorView: View {
     func addItemToUnused(item: Thing) {
 //        var itemNum = 1
 //        var cont = true
-//        
+//
 //        while cont {
 //            if unusedThings.contains(where: { $0.name == item.name }) {
-//                
+//
 //                item.name = item.name.prefix(item.name.count - String(itemNum).count) + String(itemNum)
 //                itemNum += 1
 //            } else {
 //                cont = false
 //            }
 //        }
-//        
+//
 //        print("Adding item to unused:", item.name)
         withAnimation{
             unusedThings.append(item)

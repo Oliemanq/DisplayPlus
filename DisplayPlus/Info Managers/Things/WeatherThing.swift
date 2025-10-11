@@ -35,7 +35,11 @@ class WeatherThing: Thing {
     }
 
     override func toString(mirror: Bool = false) -> String {
-        return "\(weather.currentTemp)°F"
+        if thingSize == "Small" {
+            return "\(weather.currentTemp)°F"
+        } else {
+            return "Incorrect size input for Weather thing: \(thingSize), must be Small"
+        }
     }
 }
 
