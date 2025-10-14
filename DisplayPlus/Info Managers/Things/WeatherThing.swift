@@ -4,12 +4,12 @@ class WeatherThing: Thing {
     var weather: WeatherManager = WeatherManager()
     var updateCounter = 0
     
-    required init(from decoder: Decoder) throws {
-        try super.init(from: decoder)
-    }
-    
     init(name: String, size: String = "Small") {
         super.init(name: name, type: "Weather", thingSize: size)
+    }
+    
+    required init(from decoder: Decoder) throws {
+        try super.init(from: decoder)
     }
     
     override func update() {

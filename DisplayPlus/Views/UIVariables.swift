@@ -392,54 +392,10 @@ extension View {
     }
         
     @ViewBuilder
-    func editorBlock(themeIn: ThemeColors, i: Int, j: Int, draggedThingSize: String) -> some View {
-        let thingSize = draggedThingSize
-        
+    func editorBlock(themeIn: ThemeColors, i: Int, j: Int) -> some View {        
         let shape: RoundedCorner = {
             let cornerRounding: CGFloat = 10
-            switch thingSize {
-            case "Small":
-                return RoundedCorner(radius: cornerRounding, corners: .allCorners)
-            case "Medium":
-                // Medium spans 2 columns x 1 row. Use column (j) to decide left/right cell of the pair.
-                if j % 2 == 0 {
-                    return RoundedCorner(radius: cornerRounding, corners: [.topLeft, .bottomLeft])
-                } else {
-                    return RoundedCorner(radius: cornerRounding, corners: [.topRight, .bottomRight])
-                }
-            case "Large":
-                // Large spans 4 columns x 1 row. Only outermost cells have rounded corners.
-                if j == 0 {
-                    return RoundedCorner(radius: cornerRounding, corners: [.topLeft, .bottomLeft])
-                } else if j == 3 {
-                    return RoundedCorner(radius: cornerRounding, corners: [.topRight, .bottomRight])
-                } else {
-                    return RoundedCorner(radius: 0, corners: [])
-                }
-            case "XL":
-                // XL spans 4 columns x 2 rows. Round top corners on top row, bottom corners on bottom row.
-                // Assumes XL blocks start on an even row index so that (i) and (i+1) form the 2-row block.
-                let onTopRowOfBlock = i % 2 == 0
-                if onTopRowOfBlock {
-                    if j == 0 {
-                        return RoundedCorner(radius: 12, corners: [.topLeft])
-                    } else if j == 3 {
-                        return RoundedCorner(radius: 12, corners: [.topRight])
-                    } else {
-                        return RoundedCorner(radius: 0, corners: [])
-                    }
-                } else {
-                    if j == 0 {
-                        return RoundedCorner(radius: 12, corners: [.bottomLeft])
-                    } else if j == 3 {
-                        return RoundedCorner(radius: 12, corners: [.bottomRight])
-                    } else {
-                        return RoundedCorner(radius: 0, corners: [])
-                    }
-                }
-            default:
-                return RoundedCorner(radius: 12, corners: .allCorners)
-            }
+            return RoundedCorner(radius: cornerRounding, corners: [.allCorners])
         }()
         
         self

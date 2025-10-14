@@ -311,23 +311,19 @@ class Page: Observable {
             makeDummyRowBelow(row: row)
         }
     }
-    
+    func getRow(row: Int) -> [Thing] {
+    if row < thingsOrdered.count {
+        return thingsOrdered[row]
+    }else {
+        print("Invalid row num, exceeded limit of rows")
+        return []
+    }
+}
     func makeDummyRowBelow(row: Int) {
         print("Making dummy row below for an XL Thing")
-        thingsOrdered[row+1].removeAll()
-        thingsOrdered[row+1] = [Thing(name: "SpacerBelow1", type: "Spacer"), Thing(name: "SpacerBelow2", type: "Spacer"), Thing(name: "SpacerBelow3", type: "Spacer"), Thing(name: "SpacerBelow4", type: "Spacer")]
+        newRow(thingsInOrder: [Thing(name: "Spacer1", type: "Spacer"), Thing(name: "Spacer2", type: "Spacer"), Thing(name: "Spacer3", type: "Spacer"), Thing(name: "Spacer4", type: "Spacer")], row: row + 1)
     }
-    
-    
-    //MARK: - Getter functions
-    func getRow(row: Int) -> [Thing] {
-        if row < thingsOrdered.count {
-            return thingsOrdered[row]
-        }else {
-            print("Invalid row num, exceeded limit of rows")
-            return []
-        }
-    }
+
     
     func printPageForSaving() -> String {
         var output: String = ""

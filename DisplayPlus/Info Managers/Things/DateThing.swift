@@ -8,14 +8,15 @@ import Foundation
 //
 
 class DateThing: Thing {
-    required init(from decoder: Decoder) throws {
-        try super.init(from: decoder)
-    }
-    
+
     var currentDate: Date = Date()
     
     init(name: String, size: String = "Small") {
         super.init(name: name, type: "Date", thingSize: size)
+    }
+    
+    required init(from decoder: Decoder) throws {
+        try super.init(from: decoder)
     }
     
     override func update() {

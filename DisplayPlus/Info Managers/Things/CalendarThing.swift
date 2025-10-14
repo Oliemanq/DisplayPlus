@@ -19,10 +19,6 @@ import Combine
 
 class CalendarThing: Thing {
     
-    required init(from decoder: Decoder) throws {
-        try super.init(from: decoder)
-    }
-    
     var calendar: CalendarManager = CalendarManager()
     
     var events: [EKEvent] = []
@@ -33,6 +29,10 @@ class CalendarThing: Thing {
     
     init(name: String, size: String = "Small") {
         super.init(name: name, type: "Calendar", thingSize: size)
+    }
+    
+    required init(from decoder: Decoder) throws {
+        try super.init(from: decoder)
     }
     
     private func loadEvents(completion: (() -> Void)? = nil) {

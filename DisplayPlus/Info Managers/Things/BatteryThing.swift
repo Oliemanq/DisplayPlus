@@ -11,13 +11,13 @@ import UIKit
 class BatteryThing: Thing {
     var battery: Int = 0
     
-    required init(from decoder: Decoder) throws {
-        try super.init(from: decoder)
-    }
-    
     init(name: String, size: String = "Small") {
         super.init(name: name, type: "Battery", thingSize: size)
         
+    }
+    
+    required init(from decoder: Decoder) throws {
+        try super.init(from: decoder)
     }
     
     override func update() {

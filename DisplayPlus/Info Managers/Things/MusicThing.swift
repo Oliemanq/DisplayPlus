@@ -6,12 +6,12 @@ class MusicThing: Thing {
     
     var artistLine: String = ""
     
-    required init(from decoder: Decoder) throws {
-        try super.init(from: decoder)
-    }
-    
     init(name: String, size: String = "Small") {
         super.init(name: name, type: "Music", thingSize: size)
+    }
+    
+    required init(from decoder: Decoder) throws {
+        try super.init(from: decoder)
     }
     
     override func update() {

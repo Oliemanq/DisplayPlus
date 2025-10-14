@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct PageEditorView: View {
     @AppStorage("pages", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var pagesString: String = "Default,Music"
@@ -38,9 +39,9 @@ struct PageEditorView: View {
     
     var body: some View {
         NavigationStack {
-            
             GeometryReader { geometry in
                 ZStack{
+                    //Background color
                     (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
                         .ignoresSafeArea()
                     
@@ -55,7 +56,7 @@ struct PageEditorView: View {
                         }
                         .homeItem(themeIn: theme, height: 85)
                         
-                        //Unused things display/draggable start
+                        //MARK: - Unused things display/draggable start
                         if !unusedThings.isEmpty {
                             VStack{
                                 Text("Unused Things")
@@ -65,12 +66,24 @@ struct PageEditorView: View {
                                 HStack{
                                     ForEach(unusedThings.indices, id: \.self) { index in
                                         Text("\(unusedThings[index].name)")
-                                            .draggable(unusedThings[index]) {
-                                                DispatchQueue.main.async {
-                                                    draggedThing = unusedThings[index]
+                                            .onDrag {
+                                                if !unusedThings.isEmpty {
+                                                    let thing = unusedThings[index]
+                                                    withAnimation{
+                                                        draggedThing = thing
+                                                    }
+                                                    
+                                                    if let data = try? JSONEncoder().encode(thing) {
+                                                        return NSItemProvider(item: data as NSData, typeIdentifier: UTType.data.identifier)
+                                                    } else {
+                                                        print("Error: Could not encode Thing for dragging.")
+                                                        return NSItemProvider()
+                                                    }
+                                                } else {
+                                                    print("Error: unusedThings is empty, cannot drag.")
+                                                    return NSItemProvider()
                                                 }
-                                                return Text(unusedThings[index].name)
-                                                    .opacity(0.8)
+                                                    
                                             }
                                     }
                                 }
@@ -97,49 +110,75 @@ struct PageEditorView: View {
                                 ForEach(0..<4, id: \.self) { i in
                                     HStack(spacing: 0){
                                         ForEach(0..<4, id: \.self) { j in
-                                            var t: Bool = false
-                                            var thingSizeInCell: String = ""
+                                            let isTargeted = Binding.constant(false)
+                                            let draggedSize = draggedThing?.thingSize
+                                            let cellSize = currentPageObject.thingsOrdered[i][j].thingSize
+                                            let cellType = currentPageObject.thingsOrdered[i][j].type
+                                            let cellWidthUnit = geometry.size.width*0.9 / 4
+                                            
+                                            let frameWidth: CGFloat = {
+                                                if let size = draggedSize {
+                                                    if size == "Medium" {
+                                                        return cellWidthUnit * 2
+                                                    }else if size == "Large" || size == "XL" {
+                                                        return cellWidthUnit * 4
+                                                    } else {
+                                                        return cellWidthUnit
+                                                    }
+                                                } else {
+                                                    if cellSize == "Medium" {
+                                                        return cellWidthUnit * 2
+                                                    }else if cellSize == "Large" || cellSize == "XL" {
+                                                        return cellWidthUnit * 4
+                                                    } else {
+                                                        return cellWidthUnit
+                                                    }
+                                                }
+                                            }()
+
+                                            let frameHeight: CGFloat = {
+                                                if let size = draggedSize {
+                                                    return size == "XL" ? rowHeight * 2 : rowHeight
+                                                } else {
+                                                    return cellSize == "XL" ? rowHeight * 2 : rowHeight
+                                                }
+                                            }()
+
+                                            let showing: Bool = {
+                                                if let size = draggedSize {
+                                                    if size == "Medium" { return j % 2 == 0 }
+                                                    else if size == "Large" { return j == 0 }
+                                                    else if size == "XL" { return i % 2 == 0 && j == 0 }
+                                                    else { return true }
+                                                } else {
+                                                    if cellSize == "Medium" { return j % 2 == 0 }
+                                                    else if cellSize == "Large" { return j == 0 }
+                                                    else if cellSize == "XL" { return i % 2 == 0 && j == 0 }
+                                                    else if cellType == "Spacer" {
+                                                        return false
+                                                    } else {
+                                                        return true
+                                                    }
+                                                }
+                                            }()
                                             
                                              ZStack{
-                                                 // Show the current display text so it updates after a drop
-                                                 Text(currentPageObject.thingsOrdered[i][j].name.contains("Empty") ? "(\(i),\(j))" : currentPageObject.thingsOrdered[i][j].name)
-                                                     .font(.system(size: 12))
-                                                     .lineLimit(1)
-//                                                     .onAppear() {
-//                                                         print("\(currentPageObject.thingsOrdered[i][j].name) at \(i),\(j)")
-//                                                     }
+                                                 if showing {
+                                                     // Show the current display text so it updates after a drop
+                                                     Text(cellType == "Spacer" ? "(Spacer @\(i),\(j))" : currentPageObject.thingsOrdered[i][j].name)
+                                                         .font(.system(size: 12))
+                                                         .lineLimit(1)
+                                                     //                                                     .onAppear() {
+                                                     //                                                         print("\(currentPageObject.thingsOrdered[i][j].name) at \(i),\(j)")
+                                                     //                                                     }
+                                                 }
                                              }
-                                             .frame(width: geometry.size.width*0.9 / 4, height: rowHeight)
-                                             .editorBlock(themeIn: theme, i: i, j: j, draggedThingSize: (thingSizeInCell != "" ? thingSizeInCell : draggedThing?.thingSize ?? "Small"))
-                                             .opacity(t ? 0.5 : 1.0)
+                                             .frame(width: showing ? frameWidth : 0, height: showing ? frameHeight : 0)
+                                             .editorBlock(themeIn: theme, i: i, j: j)
+                                             .opacity(isTargeted.wrappedValue ? 0.5 : 1.0)
                                              
-                                             .dropDestination(for: Thing.self) { items, location in
-                                                 guard let firstItem = items.first else {
-                                                     print("drop failed--------")
-                                                     return false
-                                                 }
-                                                 print("Dropped '", firstItem, "' at cell (\(i),\(j))")
-                                                 withAnimation {
-                                                     let page = pm.getCurrentPage() // Refresh the current page object
-                                                     let currentRow = page.getRow(row: i)
-                                                     var newRow: [Thing] = currentRow
-                                                     newRow[j] = firstItem
-                                                     page.newRow(thingsInOrder: newRow, row: i)
-                                                     
-                                                     unusedThings.removeAll { $0.name == firstItem.name }
-                                                     
-                                                     // Force SwiftUI to detect the change
-                                                     refreshID = UUID()
-                                                     
-                                                     draggedThing = nil
-                                                     thingSizeInCell = firstItem.thingSize
-                                                 }
-                                                 return true
-                                             } isTargeted: { isTargeted in
-                                                 print("targeting \(i),\(j):", isTargeted)
-                                                 withAnimation {
-                                                     t = isTargeted
-                                                 }
+                                             .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
+                                                 return handleDrop(providers: providers, row: i, col: j)
                                              }
                                         }
                                     }
@@ -343,10 +382,45 @@ struct PageEditorView: View {
         }
         
     }
-}
+    
+    private func handleDrop(providers: [NSItemProvider], row i: Int, col j: Int) -> Bool {
+        guard let provider = providers.first else {
+            print("drop failed--------")
+            return false
+        }
 
+        provider.loadDataRepresentation(forTypeIdentifier: UTType.data.identifier) { data, error in
+            guard let data = data,
+                  let thing = try? JSONDecoder().decode(Thing.self, from: data) else {
+                print("Failed to decode thing")
+                return
+            }
+
+            DispatchQueue.main.async {
+                print("Dropped '\(thing.name)' at cell (\(i),\(j))")
+
+                withAnimation {
+                    unusedThings.removeAll { $0.name == thing.name }
+                    
+                    let page = pm.getCurrentPage()
+                    let currentRow = page.getRow(row: i)
+                    var newRow: [Thing] = currentRow
+                    newRow[j] = thing
+                    page.newRow(thingsInOrder: newRow, row: i)
+
+
+                    refreshID = UUID()
+                    draggedThing = nil
+                }
+            }
+        }
+
+        return true
+    }
+}
 #Preview {
     let pm = PageManager()
     
     PageEditorView(pmIn: pm, themeIn: ThemeColors())
 }
+
