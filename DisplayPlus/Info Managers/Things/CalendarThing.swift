@@ -135,7 +135,7 @@ class CalendarThing: Thing {
     }
     
     override func toString(mirror: Bool = false) -> String {
-        if thingSize == "Medium" {
+        if size == "Medium" {
             let nextEvent = getEvents().first
             if nextEvent != nil {
                 return "No events"
@@ -146,14 +146,14 @@ class CalendarThing: Thing {
                     return "\(nextEvent!.titleLine.prefix(8))... at \(nextEvent!.subtitleLine)"
                 }
             }
-        } else if thingSize == "Large" {
+        } else if size == "Large" {
             let nextEvent = getEvents().first
             if nextEvent != nil {
                 return "No events left for today"
             } else {
                 return "\(nextEvent!.titleLine) at \(nextEvent!.subtitleLine)"
             }
-        } else if thingSize == "XL" {
+        } else if size == "XL" {
             var output: String = ""
             for event in getEvents() {
                 if output != "" {
@@ -163,7 +163,7 @@ class CalendarThing: Thing {
             }
             return output
         } else {
-            return "Incorrect size input for Calendar thing: \(thingSize), must be Medium, Large, or XL"
+            return "Incorrect size input for Calendar thing: \(size), must be Medium, Large, or XL"
         }
     }
 }

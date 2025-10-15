@@ -29,16 +29,12 @@ class WeatherThing: Thing {
     func getAuth() -> Bool {
         return weather.getAuthStatus()
     }
-    
-    func toggleLocation(){
-        weather.toggleLocationUsage(on: !weather.useLocation)
-    }
 
     override func toString(mirror: Bool = false) -> String {
-        if thingSize == "Small" {
+        if size == "Small" {
             return "\(weather.currentTemp)°F"
         } else {
-            return "Incorrect size input for Weather thing: \(thingSize), must be Small"
+            return "Incorrect size input for Weather thing: \(size), must be Small"
         }
     }
 }

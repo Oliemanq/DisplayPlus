@@ -10,12 +10,9 @@ import UniformTypeIdentifiers
 
 class Thing: NSObject, Encodable, Decodable, ObservableObject {
     var name: String
-    
     var type: String
-    
     var data: String
-    
-    var thingSize: String //Small, Medium, Large, XL
+    var size: String //Small, Medium, Large, XL
     //Small: 1x1, Medium: 2x1, Large: 4x1, XL: 4x2
     var spacerRight: Bool = false
     var spacerBelow: Bool = false
@@ -28,7 +25,7 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
         case name
         case type
         case data
-        case thingSize
+        case size
         case spacerRight
         case spacerBelow
         case spacersRight
@@ -40,7 +37,7 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
         self.name = name
         self.type = type
         self.data = data
-        self.thingSize = thingSize
+        self.size = thingSize
         switch thingSize {
         case "Small":
             spacersRight = 0
@@ -66,7 +63,7 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
         self.name = try container.decode(String.self, forKey: .name)
         self.type = try container.decode(String.self, forKey: .type)
         self.data = try container.decodeIfPresent(String.self, forKey: .data) ?? ""
-        self.thingSize = try container.decodeIfPresent(String.self, forKey: .thingSize) ?? "Small"
+        self.size = try container.decodeIfPresent(String.self, forKey: .size) ?? "Small"
         self.spacerRight = try container.decodeIfPresent(Bool.self, forKey: .spacerRight) ?? false
         self.spacerBelow = try container.decodeIfPresent(Bool.self, forKey: .spacerBelow) ?? false
         self.spacersRight = try container.decodeIfPresent(Int.self, forKey: .spacersRight) ?? 0
@@ -80,7 +77,7 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
         try container.encode(name, forKey: .name)
         try container.encode(type, forKey: .type)
         try container.encode(data, forKey: .data)
-        try container.encode(thingSize, forKey: .thingSize)
+        try container.encode(size, forKey: .size)
         try container.encode(spacerRight, forKey: .spacerRight)
         try container.encode(spacerBelow, forKey: .spacerBelow)
         try container.encode(spacersRight, forKey: .spacersRight)

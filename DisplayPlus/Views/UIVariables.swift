@@ -388,11 +388,10 @@ extension View {
             .tint(darkMode ? accentDark : accentLight)
             .frame(width: screenWidth * 0.9, height: subItem ?  smallBGHeight : bigBGHeight)
             .ContextualBG(themeIn: themeIn, bg: true, items: items, itemNum: itemNum)
-        
     }
         
     @ViewBuilder
-    func editorBlock(themeIn: ThemeColors, i: Int, j: Int) -> some View {        
+    func editorBlock(themeIn: ThemeColors, i: Int, j: Int) -> some View {
         let shape: RoundedCorner = {
             let cornerRounding: CGFloat = 10
             return RoundedCorner(radius: cornerRounding, corners: [.allCorners])

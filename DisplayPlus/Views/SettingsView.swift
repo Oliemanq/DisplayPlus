@@ -26,6 +26,7 @@ struct SettingsView: View {
     @AppStorage("useLocation", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var location: Bool = false
     @AppStorage("fixedLatitude", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var fixedLatitude: Double = 0.0
     @AppStorage("fixedLongitude", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var fixedLongitude: Double = 0.0
+    @AppStorage("currentCity", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var currentCity: String = ""
     @State private var showingLocationPicker = false
     @State private var fixedLocation: CLLocationCoordinate2D?
     
@@ -38,7 +39,7 @@ struct SettingsView: View {
     // Display helper for fixed location city (uses published weather.currentCity)
     private var fixedCityDisplay: String {
         if fixedLatitude == 0 && fixedLongitude == 0 { return "Not set" }
-        return pm.getCity()
+        return currentCity
     }
     
     init(bleIn: G1BLEManager, pmIn: PageManager, liveIn: LiveActivityManager){
@@ -189,15 +190,12 @@ struct SettingsView: View {
                 pm.updateCurrentPage()
             }
         }
-        .task(id: location) {
-            pm.toggleLocation()
-        }
         .animation(.default, value: location)
     }
 }
 
 #Preview {
-    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), pmIn: PageManager(), liveIn: LiveActivityManager())
+    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), pmIn: PageManager(currentPageIn: "Default"), liveIn: LiveActivityManager())
         .environmentObject(ThemeColors())
 
 }

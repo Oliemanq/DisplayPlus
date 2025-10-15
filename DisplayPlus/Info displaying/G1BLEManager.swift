@@ -712,6 +712,8 @@ extension G1BLEManager: CBPeripheralDelegate {
                         connectionStatus = "Connected"
                     }
                 }
+                WidgetCenter.shared.reloadAllTimelines()
+                la.updateActivity()
             case 202: //CA
                 print("Init response failed")
             case 203: //CB
@@ -857,6 +859,8 @@ extension G1BLEManager: CBPeripheralDelegate {
                 glassesBattery = Int((glassesBatteryLeft + glassesBatteryRight)/2)
             }
         }
+        WidgetCenter.shared.reloadAllTimelines()
+        la.updateActivity()
 
     }
     private func disconnectFromMessage(){

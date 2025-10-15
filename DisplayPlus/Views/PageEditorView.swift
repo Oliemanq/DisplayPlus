@@ -11,13 +11,12 @@ import UniformTypeIdentifiers
 
 struct PageEditorView: View {
     @AppStorage("pages", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var pagesString: String = "Default,Music"
-    @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
+    @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage: String = "Default"
     
     @State var unusedThings: [Thing] = []
     @StateObject var pm: PageManager
     @StateObject var theme: ThemeColors
 
-    @State private var currentPageObject: Page
     @State private var draggedThing: Thing? = nil // Track the currently dragged thing
     @State private var refreshID = UUID() // Add refresh trigger
     
@@ -30,8 +29,6 @@ struct PageEditorView: View {
     
     
     init(pmIn: PageManager, themeIn: ThemeColors) {
-        currentPageObject = pmIn.getCurrentPage()
-
         _pm = StateObject(wrappedValue: pmIn)
         _theme = StateObject(wrappedValue: themeIn)
         
@@ -48,7 +45,7 @@ struct PageEditorView: View {
                     VStack{
                         //Mirror at the top of the page
                         HStack(alignment: .top) {
-                            Text(pm.getCurrentPage().outputPageForMirror())
+                            Text(pm.getCurrentPage().outputPage(mirror: true))
                                 .multilineTextAlignment(.center)
                                 .font(.system(size: 11))
                                 .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
@@ -94,14 +91,28 @@ struct PageEditorView: View {
                         
                         Button {
                             pm.log()
+                            print("Logging pm ", currentPage)
+                            print("Pages in storage: \(pagesString)")
                         } label: {
                             Text("print Page info")
+                        }
+                        .padding(10)
+                        .mainButtonStyle(themeIn: theme)
+                        Button {
+                            UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.removeObject(forKey: "pages")
+                            UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.removeObject(forKey: "currentPage")
+                            pm.resetPages()
+                            print("Reset pages")
+                            exit(0)
+                        } label: {
+                            Text("Reset all pages in storage")
                         }
                         .padding(10)
                         .mainButtonStyle(themeIn: theme)
                         
                         //Grid of drop targets
                         ZStack{
+                            //background for grid
                             Rectangle()
                                 .frame(width: geometry.size.width*0.95, height: rowHeight*4 + 20)
                                 .foregroundColor(theme.darkMode ? theme.pri : theme.sec)
@@ -110,10 +121,11 @@ struct PageEditorView: View {
                                 ForEach(0..<4, id: \.self) { i in
                                     HStack(spacing: 0){
                                         ForEach(0..<4, id: \.self) { j in
+                                            let page = pm.getCurrentPage()
                                             let isTargeted = Binding.constant(false)
-                                            let draggedSize = draggedThing?.thingSize
-                                            let cellSize = currentPageObject.thingsOrdered[i][j].thingSize
-                                            let cellType = currentPageObject.thingsOrdered[i][j].type
+                                            let draggedSize = draggedThing?.size
+                                            let cellSize = page.thingsOrdered[i][j].size
+                                            let cellType = page.thingsOrdered[i][j].type
                                             let cellWidthUnit = geometry.size.width*0.9 / 4
                                             
                                             let frameWidth: CGFloat = {
@@ -121,6 +133,7 @@ struct PageEditorView: View {
                                                     if size == "Medium" {
                                                         return cellWidthUnit * 2
                                                     }else if size == "Large" || size == "XL" {
+                                                        print("Dragged Large or XL at \(i),\(j)")
                                                         return cellWidthUnit * 4
                                                     } else {
                                                         return cellWidthUnit
@@ -129,13 +142,13 @@ struct PageEditorView: View {
                                                     if cellSize == "Medium" {
                                                         return cellWidthUnit * 2
                                                     }else if cellSize == "Large" || cellSize == "XL" {
+                                                        print("Large or XL at \(i),\(j)")
                                                         return cellWidthUnit * 4
                                                     } else {
                                                         return cellWidthUnit
                                                     }
                                                 }
                                             }()
-
                                             let frameHeight: CGFloat = {
                                                 if let size = draggedSize {
                                                     return size == "XL" ? rowHeight * 2 : rowHeight
@@ -143,7 +156,6 @@ struct PageEditorView: View {
                                                     return cellSize == "XL" ? rowHeight * 2 : rowHeight
                                                 }
                                             }()
-
                                             let showing: Bool = {
                                                 if let size = draggedSize {
                                                     if size == "Medium" { return j % 2 == 0 }
@@ -153,7 +165,9 @@ struct PageEditorView: View {
                                                 } else {
                                                     if cellSize == "Medium" { return j % 2 == 0 }
                                                     else if cellSize == "Large" { return j == 0 }
-                                                    else if cellSize == "XL" { return i % 2 == 0 && j == 0 }
+                                                    else if cellSize == "XL" {
+                                                        return i % 2 == 0 && j == 0
+                                                    }
                                                     else if cellType == "Spacer" {
                                                         return false
                                                     } else {
@@ -162,17 +176,24 @@ struct PageEditorView: View {
                                                 }
                                             }()
                                             
-                                             ZStack{
-                                                 if showing {
-                                                     // Show the current display text so it updates after a drop
-                                                     Text(cellType == "Spacer" ? "(Spacer @\(i),\(j))" : currentPageObject.thingsOrdered[i][j].name)
-                                                         .font(.system(size: 12))
-                                                         .lineLimit(1)
-                                                     //                                                     .onAppear() {
-                                                     //                                                         print("\(currentPageObject.thingsOrdered[i][j].name) at \(i),\(j)")
-                                                     //                                                     }
-                                                 }
-                                             }
+                                            ZStack{
+                                                if showing {
+                                                    // Show the current display text so it updates after a drop
+                                                    Text(cellType == "Blank" ? "(Empty @\(i),\(j))" : page.thingsOrdered[i][j].name)
+                                                        .font(.system(size: 12))
+                                                        .lineLimit(1)
+                                                    Image(systemName: "x.circle")
+                                                        .frame(width: 15, height: 15)
+                                                        .opacity(0.5)
+                                                        .background(theme.darkMode ? theme.pri : theme.sec)
+                                                        .offset(x: frameWidth/2 - 10, y: -frameHeight/2 + 10)
+                                                        .onTapGesture {
+                                                            print("Removing thing at \(i),\(j)")
+                                                            page.removeThingAt(row: i, index: j)
+                                                            refreshID = UUID()
+                                                        }
+                                                }
+                                            }
                                              .frame(width: showing ? frameWidth : 0, height: showing ? frameHeight : 0)
                                              .editorBlock(themeIn: theme, i: i, j: j)
                                              .opacity(isTargeted.wrappedValue ? 0.5 : 1.0)
@@ -345,6 +366,7 @@ struct PageEditorView: View {
                     let newPage = Page(name: newPageName)
                     pm.addPage(p: newPage)
                     currentPage = newPageName
+                    pagesString.append(",\(newPageName)")
                 } else {
                     // Show some error message or feedback to the user
                     print("Invalid page name or page already exists.")
@@ -357,26 +379,8 @@ struct PageEditorView: View {
         }, message: {
             Text("Enter a name for the new page.")
         })
-        .onChange(of: currentPage) { _, newValue in
-            currentPageObject = pm.getCurrentPage()
-        }
-            
     }
     func addItemToUnused(item: Thing) {
-//        var itemNum = 1
-//        var cont = true
-//
-//        while cont {
-//            if unusedThings.contains(where: { $0.name == item.name }) {
-//
-//                item.name = item.name.prefix(item.name.count - String(itemNum).count) + String(itemNum)
-//                itemNum += 1
-//            } else {
-//                cont = false
-//            }
-//        }
-//
-//        print("Adding item to unused:", item.name)
         withAnimation{
             unusedThings.append(item)
         }
@@ -401,14 +405,13 @@ struct PageEditorView: View {
 
                 withAnimation {
                     unusedThings.removeAll { $0.name == thing.name }
-                    
+
                     let page = pm.getCurrentPage()
                     let currentRow = page.getRow(row: i)
                     var newRow: [Thing] = currentRow
                     newRow[j] = thing
-                    page.newRow(thingsInOrder: newRow, row: i)
-
-
+                    page.newRow(newRow, row: i)
+                    
                     refreshID = UUID()
                     draggedThing = nil
                 }
@@ -419,7 +422,7 @@ struct PageEditorView: View {
     }
 }
 #Preview {
-    let pm = PageManager()
+    let pm = PageManager(currentPageIn: "Default")
     
     PageEditorView(pmIn: pm, themeIn: ThemeColors())
 }

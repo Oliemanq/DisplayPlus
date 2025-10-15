@@ -7,43 +7,23 @@
 
 import Foundation
 import SwiftUI
-import Combine
-import EventKit
-import CoreLocation
-import MapKit
-import OpenMeteoSdk
-
 
 class PageManager: ObservableObject {
-    @AppStorage("pages", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var pagesString: String = "Default,Music,Calendar"
-    @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
+    @AppStorage("pages", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var pagesString: String = "Default,Music"
+    public var currentPage: String = "Default"
     @AppStorage("PageStorageRAW", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var pageStorageRAW: String = ""
     
     @Published var pages: [Page] = []
-    private var weatherThing: WeatherThing = WeatherThing(name: "WeatherPageManager")
+    @Published var lastModified = UUID()
     
-    init(loadPagesOnStart: Bool = true) {
+    init(loadPagesOnStart: Bool = true, currentPageIn: String) {
         if loadPagesOnStart {
             loadPages()
         }
         if pages.isEmpty {
             DefaultPageCreator() //Creating default page if no pages found
         }
-        weatherThing = findWeatherThing()
-    }
-    
-    private func findWeatherThing() -> WeatherThing {
-        for page in pages {
-            for row in page.thingsOrdered {
-                for thing in row {
-                    if thing.type == "Weather" {
-                        return thing as! WeatherThing
-                    }
-                }
-            }
-        }
-        print("No WeatherThing found in pages, returning new instance")
-        return WeatherThing(name: "WeatherPageManager")
+        updateCurrentPageValue(currentPageIn)
     }
     
     func addPage(p: Page) {
@@ -73,19 +53,16 @@ class PageManager: ObservableObject {
         return getCurrentPage().thingsOrdered
     }
 
+    func updateCurrentPageValue(_ in: String) {
+        withAnimation{
+            currentPage = `in`
+        }
+    }
     
     func updateCurrentPage() {
         let p = getCurrentPage()
         p.updateAllThingsFromPage()
     }
-    
-    func toggleLocation(){
-        weatherThing.toggleLocation()
-    }
-    func getCity() -> String {
-        return weatherThing.weather.currentCity ?? "Unknown city"
-    }
-    
     
     func DefaultPageCreator() {
         print("Creating default page and adding it to pm pages")
@@ -95,7 +72,7 @@ class PageManager: ObservableObject {
         let w = WeatherThing(name: "WeatherDefaultPage")
         
         let p = Page(name: "Default")
-        p.newRow(thingsInOrder: [t,d,b,w], row: 0)
+        p.newRow( [t,d,b,w], row: 0)
         pages.append(p)
     }
     func DefaultPageCreatorWOutput() -> Page {
@@ -106,7 +83,7 @@ class PageManager: ObservableObject {
         let w = WeatherThing(name: "WeatherDefaultPage")
         
         let p = Page(name: "Default")
-        p.newRow(thingsInOrder: [t,d,b,w], row: 0)
+        p.newRow( [t,d,b,w], row: 0)
         return p
     }
     
@@ -120,8 +97,8 @@ class PageManager: ObservableObject {
         
         let p = Page(name: "Music")
         
-        p.newRow(thingsInOrder: [t,d,b,w], row: 0)
-        p.newRow(thingsInOrder: [m], row: 1)
+        p.newRow( [t,d,b,w], row: 0)
+        p.newRow( [m], row: 2)
         pages.append(p)
     }
     func MusicPageCreatorWOutput() -> Page {
@@ -134,8 +111,8 @@ class PageManager: ObservableObject {
         
         let p = Page(name: "Music")
         
-        p.newRow(thingsInOrder: [t,d,b,w], row: 0)
-        p.newRow(thingsInOrder: [m], row: 1)
+        p.newRow( [t,d,b,w], row: 0)
+        p.newRow( [m], row: 2)
         return p
     }
     
@@ -158,13 +135,17 @@ class PageManager: ObservableObject {
     
     func log() {
         print("\nLogging all pages and their things----------")
+        print("Pages: ", pagesString)
         for page in pages {
             print("\n")
             print("Page: \(page.PageName)")
+            if page.PageName == currentPage {
+                print("  Current Page -------")
+            }
             for (rowIndex, row) in page.thingsOrdered.enumerated() {
                 print(" Row \(rowIndex + 1):")
                 for thing in row {
-                    print("  - \(thing.name) (\(thing.type), Size: \(thing.thingSize))")
+                    print("  - \(thing.name) (\(thing.type), Size: \(thing.size))")
                 }
             }
             print("\n")
@@ -211,34 +192,34 @@ class PageManager: ObservableObject {
                                 switch attributes[1] {
                                 case "Time":
                                     let t = TimeThing(name: attributes[0])
-                                    t.thingSize = attributes[2]
+                                    t.size = attributes[2]
                                     rowThings.append(t)
                                 case "Date":
                                     let d = DateThing(name: attributes[0])
-                                    d.thingSize = attributes[2]
+                                    d.size = attributes[2]
                                     rowThings.append(d)
                                 case "Battery":
                                     let b = BatteryThing(name: attributes[0])
-                                    b.thingSize = attributes[2]
+                                    b.size = attributes[2]
                                     rowThings.append(b)
                                 case "Music":
                                     let m = MusicThing(name: attributes[0])
-                                    m.thingSize = attributes[2]
+                                    m.size = attributes[2]
                                     rowThings.append(m)
                                 case "Calendar":
                                     let c = CalendarThing(name: attributes[0])
-                                    c.thingSize = attributes[2]
+                                    c.size = attributes[2]
                                     rowThings.append(c)
                                 case "Weather":
                                     let w = WeatherThing(name: attributes[0])
-                                    w.thingSize = attributes[2]
+                                    w.size = attributes[2]
                                     rowThings.append(w)
                                 default:
                                     print("Invalid thing type found when loading pages")
                                 }
                             }
                         }
-                        p.newRow(thingsInOrder: rowThings, row: i)
+                        p.newRow( rowThings, row: i)
                     }
                 }
                 
@@ -287,13 +268,13 @@ class Page: Observable {
         }
     }
     
-    func newRow(thingsInOrder: [Thing], row: Int) {
+    func newRow(_ thingsInOrder: [Thing], row: Int) {
         var rowThing = thingsInOrder
         var dummyRowBelow: Bool = false
         
         for i in rowThing.enumerated() {
             let thing = rowThing[i.offset]
-            print(" - \(thing.name) (\(thing.type), Size: \(thing.thingSize))")
+            print(" - \(thing.name) (\(thing.type), Size: \(thing.size))")
             
             if thing.spacerRight {
                 for _ in 0..<thing.spacersRight {
@@ -312,18 +293,38 @@ class Page: Observable {
         }
     }
     func getRow(row: Int) -> [Thing] {
-    if row < thingsOrdered.count {
-        return thingsOrdered[row]
-    }else {
-        print("Invalid row num, exceeded limit of rows")
-        return []
+        if row < thingsOrdered.count {
+            return thingsOrdered[row]
+        }else {
+            print("Invalid row num, exceeded limit of rows")
+            return []
+        }
     }
-}
     func makeDummyRowBelow(row: Int) {
         print("Making dummy row below for an XL Thing")
-        newRow(thingsInOrder: [Thing(name: "Spacer1", type: "Spacer"), Thing(name: "Spacer2", type: "Spacer"), Thing(name: "Spacer3", type: "Spacer"), Thing(name: "Spacer4", type: "Spacer")], row: row + 1)
+        newRow([Thing(name: "Spacer1", type: "Spacer"), Thing(name: "Spacer2", type: "Spacer"), Thing(name: "Spacer3", type: "Spacer"), Thing(name: "Spacer4", type: "Spacer")], row: row + 1)
     }
-
+    
+    func removeThingAt(row: Int, index: Int) {
+        if row < thingsOrdered.count {
+            if index < thingsOrdered[row].count {
+                if thingsOrdered[row][index].size == "Small" {
+                    thingsOrdered[row].remove(at: index)
+                    thingsOrdered[row].insert(Thing(name: "Empty", type: "Blank"), at: index)
+                } else if thingsOrdered[row][index].size == "Medium" {
+                    thingsOrdered[row].remove(at: index)
+                    thingsOrdered[row].remove(at: index)
+                    thingsOrdered[row].insert(Thing(name: "Empty", type: "Blank"), at: index)
+                    thingsOrdered[row].insert(Thing(name: "Empty", type: "Blank"), at: index)
+                } else if thingsOrdered[row][index].size == "Large" {
+                    newRow([Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank")], row: row)
+                } else if thingsOrdered[row][index].size == "XL" {
+                    newRow([Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank")], row: row)
+                    newRow([Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank")], row: row + 1)
+                }
+            }
+        }
+    }
     
     func printPageForSaving() -> String {
         var output: String = ""
@@ -334,7 +335,7 @@ class Page: Observable {
             output += "|"
             for thing in row {
                 //Adding / to seperate things in row
-                output += "/\(thing.name):\(thing.type):\(thing.thingSize)" //. inbetween to seperate attributes
+                output += "/\(thing.name):\(thing.type):\(thing.size)" //. inbetween to seperate attributes
             }
         }
         //~PageName | /name:type:size /name:type:size | /name:type:size /name:type:size
@@ -346,40 +347,8 @@ class Page: Observable {
     }
     
     //MARK: - display output function
-    func outputPage() -> String {
-            print("\nOutputing page \(PageName)\n")
-            var output: String = ""
-            for row in thingsOrdered {
-                guard !row.isEmpty else { continue }
-                
-                var rowText = ""
-                for thing in row {
-                    if thing.type == "Blank" {
-                        print("Skipping blank thing in output")
-                        continue
-                    } else {
-                        rowText += "\(thing.toString()) | "
-                    }
-                }
-                if !rowText.isEmpty {
-                    rowText.removeLast(3) // remove trailing " | "
-                }
-                
-                // Center only this row, not the entire accumulated output
-                if !rowText.contains("\n") {
-                    rowText = tm.centerText(rowText)
-                    output += rowText + "\n"
-                } else {
-                    let splitRows = rowText.components(separatedBy: "\n")
-                    for splitRow in splitRows {
-                        let centeredSplitRow = tm.centerText(splitRow)
-                        output += centeredSplitRow + "\n"
-                    }
-                }
-            }
-            return output
-        }
-    func outputPageForMirror() -> String {
+    func outputPage(mirror: Bool = false) -> String {
+        print("\nOutputing page \(PageName)\n")
         var output: String = ""
         for row in thingsOrdered {
             guard !row.isEmpty else { continue }
@@ -387,8 +356,10 @@ class Page: Observable {
             var rowText = ""
             for thing in row {
                 if thing.type == "Blank" || thing.type == "Spacer" {
+                    print("Skipping blank thing in output")
                     continue
-                }else {
+                } else {
+                    print("Adding \(thing.name) of type \(thing.type)to output")
                     rowText += "\(thing.toString()) | "
                 }
             }
@@ -397,11 +368,20 @@ class Page: Observable {
             }
             
             // Center only this row, not the entire accumulated output
-            rowText = tm.centerText(rowText, mirror: true)
-            output += rowText + "\n"
+            if !rowText.contains("\n") {
+                if !rowText.isEmpty {
+                    rowText = tm.centerText(rowText, mirror: mirror)
+                    output += rowText + "\n"
+                }
+            } else {
+                let splitRows = rowText.components(separatedBy: "\n")
+                for splitRow in splitRows {
+                    let centeredSplitRow = tm.centerText(splitRow, mirror: mirror)
+                    output += centeredSplitRow + "\n"
+                }
+            }
         }
         return output
-
     }
 }
 

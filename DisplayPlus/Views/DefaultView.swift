@@ -19,6 +19,7 @@ struct DefaultView: View {
     @StateObject private var la: LiveActivityManager
         
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
+    @AppStorage("pages", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var pagesString: String = "Default,Music"
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var connectionStatus: String = "Disconnected"
     @AppStorage("isPresentingScanView", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var isPresentingScanView: Bool = false
     @AppStorage("FTUEFinished", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var FTUEFinished: Bool = false //First Time User Experience checker
@@ -31,18 +32,17 @@ struct DefaultView: View {
     @Namespace private var namespace
     
     init(){
-        
         let laInstance = LiveActivityManager()
-        let bleInstance = G1BLEManager(liveIn: laInstance)
-        let pageInstance = PageManager()
-        let bgInstance = BackgroundTaskManager(ble: bleInstance, pmIn: pageInstance)
-        
-        
-        
-        _ble = StateObject(wrappedValue: bleInstance)
-        _pm = StateObject(wrappedValue: pageInstance)
-        _bg = StateObject(wrappedValue: bgInstance)
         _la = StateObject(wrappedValue: laInstance)
+
+        let bleInstance = G1BLEManager(liveIn: laInstance)
+        _ble = StateObject(wrappedValue: bleInstance)
+        
+        let pageInstance = PageManager(currentPageIn: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.string(forKey: "currentPage") ?? "Default")
+        _pm = StateObject(wrappedValue: pageInstance)
+
+        let bgInstance = BackgroundTaskManager(ble: bleInstance, pmIn: pageInstance)
+        _bg = StateObject(wrappedValue: bgInstance)
     }
     
     var body: some View {
@@ -90,29 +90,16 @@ struct DefaultView: View {
                         .glassEffectID("toolbar", in: namespace)
                         
                         Menu("Pages \(Image(systemName: "folder.badge.gear"))") {
-                            Button("\(Image(systemName: "calendar")) Calendar") {
-                                withAnimation {
-                                    FTUEFinished = true
+                            ForEach(pagesString.split(separator: ",").map(String.init), id: \.self) { page in
+                                Button(page) {
+                                    withAnimation {
+                                        FTUEFinished = true
+                                    }
+                                    currentPage = page
                                 }
-                                currentPage = "Calendar"
+                                .disabled(currentPage == page)
                             }
-                            .disabled(currentPage == "Calendar")
                             
-                            Button("\(Image(systemName: "music.note.list")) Music") {
-                                withAnimation {
-                                    FTUEFinished = true
-                                }
-                                currentPage = "Music"
-                            }
-                            .disabled(currentPage == "Music")
-
-                            Button("\(Image(systemName: "house.fill")) Default") {
-                                withAnimation {
-                                    FTUEFinished = true
-                                }
-                                currentPage = "Default"
-                            }
-                            .disabled(currentPage == "Default")
                         }
                         .frame(width: 80)
                         .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
@@ -313,6 +300,9 @@ struct DefaultView: View {
                 ble.sendBlank()
             }
         }
+        .onChange(of: currentPage) {
+            pm.updateCurrentPageValue(currentPage)
+        }
         
         .onChange(of: ble.connectionState) { _, newValue in
             updateWidgets()
@@ -322,12 +312,6 @@ struct DefaultView: View {
                 ble.fetchSilentMode()
                 ble.fetchGlassesBattery()
             }
-        }
-        .onChange(of: glassesBattery) { _, _ in
-            updateWidgets()
-        }
-        .onChange(of: glassesCharging) { _, _ in
-            updateWidgets()
         }
     }
     
@@ -375,3 +359,4 @@ func isPreview() -> Bool {
 func isNotPhone() -> Bool {
     return isSimulator() || isPreview()
 }
+

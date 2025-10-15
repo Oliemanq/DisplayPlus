@@ -61,7 +61,7 @@ struct ContentView: View {
                             ZStack{
                                 if displayOn{
                                     VStack(alignment: .center){
-                                        Text(pm.getCurrentPage().outputPageForMirror())
+                                        Text(pm.getCurrentPage().outputPage(mirror: true))
                                             .multilineTextAlignment(.center)
                                             .font(.system(size: 11))
                                             .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
@@ -305,7 +305,7 @@ struct ContentView: View {
 #Preview {
     let laInstance = LiveActivityManager()
     let bleInstance = G1BLEManager(liveIn: laInstance)
-    let pageInstance = PageManager()
+    let pageInstance = PageManager(currentPageIn: "Default")
     let bgInstance = BackgroundTaskManager(ble: bleInstance, pmIn: pageInstance)
     
     ContentView(pmIn: pageInstance, bleIn: bleInstance, bgIn: bgInstance)

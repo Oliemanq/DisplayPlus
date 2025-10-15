@@ -61,12 +61,12 @@ class DateThing: Thing {
     }
     
     override func toString(mirror: Bool = false) -> String {
-        if thingSize == "Small" {
+        if size == "Small" {
             return getTodayDateSmall()
-        } else if thingSize == "Medium" {
+        } else if size == "Medium" {
             return getTodayDateMedium()
         } else {
-            return "Incorrect size input for Date thing: \(thingSize), must be Small or Medium"
+            return "Incorrect size input for Date thing: \(size), must be Small or Medium"
         }
     }
 }

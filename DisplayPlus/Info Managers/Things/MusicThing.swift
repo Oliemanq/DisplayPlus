@@ -117,7 +117,7 @@ class MusicThing: Thing {
     
     
     override func toString(mirror: Bool = false) -> String {
-        if thingSize == "Medium" {
+        if size == "Medium" {
             var output: String = ""
             
             if music.curSong.isPaused {
@@ -129,7 +129,7 @@ class MusicThing: Thing {
                 return output
             }
         }
-        else if thingSize == "Large" {
+        else if size == "Large" {
             var output: String = ""
             
             if music.curSong.isPaused {
@@ -145,7 +145,7 @@ class MusicThing: Thing {
                 return output
             }
         }
-        else if thingSize == "XL" {
+        else if size == "XL" {
             var output: String = ""
             output += buildArtistLine()
             
@@ -160,7 +160,7 @@ class MusicThing: Thing {
             return output
         }
         else {
-            return "Incorrect size input for Music thing: \(thingSize), must be Medium, Large, or XL"
+            return "Incorrect size input for Music thing: \(size), must be Medium, Large, or XL"
         }
     }
 }
