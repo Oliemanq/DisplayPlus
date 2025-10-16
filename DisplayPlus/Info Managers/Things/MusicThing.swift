@@ -54,12 +54,31 @@ class MusicThing: Thing {
     }
     
     func buildArtistLine(widthIn: CGFloat = 100.0) -> String {
-        var title = music.curSong.title
-        var artist = music.curSong.artist
+        var doesFitOnScreen = rm.doesFitOnScreen(text: "\(self.music.curSong.title) - \(self.music.curSong.artist)", maxWidth: widthIn)
+        var title: String = {
+            if tm.getWidth(self.music.curSong.title) > 75 || (tm.getWidth(self.music.curSong.title) > (widthIn * 0.5) && !doesFitOnScreen) {
+                let fullArtist = self.music.curSong.title
+                let output: String = fullArtist.components(separatedBy: " (")[0]
+                
+                return output
+            } else {
+                return self.music.curSong.title
+            }
+        }()
+        var artist: String = {
+            if tm.getWidth(self.music.curSong.artist) > 80 {
+                let fullArtist = self.music.curSong.artist
+                let output: String = fullArtist.components(separatedBy: ", ")[0]
+                
+                return output
+            } else {
+                return self.music.curSong.artist
+            }
+        }()
         
         
         if widthIn >= 30 {
-            if !rm.doesFitOnScreen(text: "\(title) - \(artist)", maxWidth: widthIn) {
+            if !doesFitOnScreen {
                 let separator = " - "
                 let ellipsis = "..."
                 
@@ -99,6 +118,7 @@ class MusicThing: Thing {
                 }
             }
             artistLine = "\(title)\(artist.isEmpty ? "" : " - ")\(artist)"
+            doesFitOnScreen = rm.doesFitOnScreen(text: "\(title) - \(artist)", maxWidth: widthIn)
             music.curSong.songChanged = false // Reset change flag after rebuilding
         } else {
             var titleShortened = false
@@ -121,10 +141,10 @@ class MusicThing: Thing {
             var output: String = ""
             
             if music.curSong.isPaused {
-                return tm.centerText("♪\\0-0/♪ (Paused)")
+                return tm.centerText("~ l> Paused ~")
             } else {
                 let temp = buildArtistLine(widthIn: 40)
-                output = "♪\\0-0/♪ \(temp)"
+                output = "\(temp)"
                 
                 return output
             }
@@ -132,18 +152,27 @@ class MusicThing: Thing {
         else if size == "Large" {
             var output: String = ""
             
+            
+            let temp = buildArtistLine(widthIn: 50)
+            output = "\(temp)  ll  "
+            
+            output += (String(describing: Duration.seconds(music.curSong.currentTime).formatted(.time(pattern: .minuteSecond))) + " ")
+            
+            let outputWidth = tm.getWidth(output)
+            
+            let totalTime = (" " + String(describing: Duration.seconds(music.curSong.duration).formatted(.time(pattern: .minuteSecond))))
+            let totalTimeWidth = tm.getWidth(" \(totalTime)")
+            
             if music.curSong.isPaused {
-                return tm.centerText("♪\\0-0/♪ (Paused)")
+                return "~ l> Paused ~"
             } else {
-                let temp = buildArtistLine(widthIn: 50)
-                output = "\(temp)"
-                
-                
-                let progBar = tm.progressBar(percentDone: music.curSong.percentagePlayed, value: music.curSong.currentTime, max: music.curSong.duration, displayWidth: 50, mirror: mirror)
+                let progBar = tm.progressBar(percentDone: music.curSong.percentagePlayed, value: music.curSong.currentTime, max: music.curSong.duration, displayWidth: 100-outputWidth-totalTimeWidth, mirror: mirror)
                 output += progBar
-                
-                return output
+                output += totalTime
             }
+            
+            return output
+            
         }
         else if size == "XL" {
             var output: String = ""

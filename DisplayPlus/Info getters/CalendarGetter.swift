@@ -126,4 +126,6 @@ struct event: Identifiable, Hashable{
     var id = UUID()
     var titleLine: String
     var subtitleLine: String
+    var startTime: Date
+    var endTime: Date
 }

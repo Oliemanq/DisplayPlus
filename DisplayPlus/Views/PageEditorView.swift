@@ -275,7 +275,7 @@ struct PageEditorView: View {
                             //Calendar
                             Menu{
                                 Button("Medium") {
-                                    addItemToUnused(item: CalendarThing(name: "CalendarSmall", size: "Medium"))
+                                    addItemToUnused(item: CalendarThing(name: "CalendarMedium", size: "Medium"))
                                 }
                                 Button("Large") {
                                     addItemToUnused(item: CalendarThing(name: "CalendarLarge", size: "Large"))

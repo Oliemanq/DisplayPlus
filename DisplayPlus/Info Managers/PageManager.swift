@@ -124,6 +124,7 @@ class PageManager: ObservableObject {
         for page in pages {
             page.updateAllThingsFromPage()
         }
+        UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set("Default", forKey: "currentPage")
         currentPage = "Default"
         savePages()
     }
@@ -177,7 +178,6 @@ class PageManager: ObservableObject {
                 
                 for i in rows.indices {
                     let row = rows[i]
-                    
                     if row.isEmpty {
                         p.newEmptyRow(row: i)
                     }else {
@@ -224,6 +224,10 @@ class PageManager: ObservableObject {
                                     print("Invalid thing type found when loading pages")
                                 }
                             }
+                        }
+                        
+                        while rowThings.count < 4 {
+                            rowThings.append(Page.returnEmptyRow()[0])
                         }
                         p.newRow( rowThings, row: i)
                     }
@@ -274,22 +278,21 @@ class Page: Observable {
     }
     
     func newRow(_ thingsInOrder: [Thing], row: Int) {
-        print("Old row \(row) contents:")
         for thing in thingsOrdered[row] {
             print(" - \(thing.name) (\(thing.type), Size: \(thing.size))")
         }
-        var rowThing = thingsInOrder
+        var rowThings = thingsInOrder
         var dummyRowBelow: Bool = false
         
         print("\nNew row \(row) contents:")
-        for i in rowThing.enumerated() {
-            let thing = rowThing[i.offset]
+        for i in rowThings.enumerated() {
+            let thing = rowThings[i.offset]
             print(" - \(thing.name) (\(thing.type), Size: \(thing.size))")
             
             if thing.spacerRight {
                 for _ in 0..<thing.spacersRight {
                     print("Creating spacer to the right of \(thing.name)")
-                    rowThing.insert(Thing(name: "SpacerRight", type: "Spacer"), at: i.offset + 1)
+                    rowThings.insert(Thing(name: "SpacerRight", type: "Spacer"), at: i.offset + 1)
                 }
             }
             if thing.spacerBelow {
@@ -297,7 +300,10 @@ class Page: Observable {
             }
         }
         thingsOrdered[row].removeAll() //Clearing previous row
-        thingsOrdered[row] = rowThing
+        thingsOrdered[row] = rowThings
+        while thingsOrdered[row].count > 4 {
+            thingsOrdered[row].removeLast()
+        }
         if dummyRowBelow {
             makeDummyRowBelow(row: row)
         }

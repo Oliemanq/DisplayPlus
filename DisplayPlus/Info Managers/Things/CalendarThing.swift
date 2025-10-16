@@ -52,7 +52,9 @@ class CalendarThing: Thing {
                         
                         var eventTemp: event = .init(
                             titleLine: "",
-                            subtitleLine: ""
+                            subtitleLine: "",
+                            startTime: event.startDate,
+                            endTime: event.endDate
                         )
                         
                         if event.title != nil {
@@ -135,23 +137,34 @@ class CalendarThing: Thing {
     }
     
     override func toString(mirror: Bool = false) -> String {
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "h:mm a"
+        
         if size == "Medium" {
             let nextEvent = getEvents().first
-            if nextEvent != nil {
+            if nextEvent == nil {
                 return "No events"
             } else {
-                if nextEvent!.titleLine.count <= 10 {
-                    return "\(nextEvent!.titleLine) at \(nextEvent!.subtitleLine)"
+                if tm.getWidth("\(nextEvent!.titleLine) > \(nextEvent!.subtitleLine)") < 40 {
+                    if nextEvent!.startTime < Date() {
+                        return "\(nextEvent!.titleLine) > \(timeFormatter.string(from: nextEvent!.endTime))"
+                    } else {
+                        return "\(nextEvent!.titleLine) > \(timeFormatter.string(from: nextEvent!.startTime))"
+                    }
                 } else {
-                    return "\(nextEvent!.titleLine.prefix(8))... at \(nextEvent!.subtitleLine)"
+                    if nextEvent!.startTime < Date() {
+                        return "\(nextEvent!.titleLine) > \(timeFormatter.string(from: nextEvent!.endTime))"
+                    } else {
+                        return "\(nextEvent!.titleLine) > \(timeFormatter.string(from: nextEvent!.startTime))"
+                    }
                 }
             }
         } else if size == "Large" {
             let nextEvent = getEvents().first
-            if nextEvent != nil {
+            if nextEvent == nil {
                 return "No events left for today"
             } else {
-                return "\(nextEvent!.titleLine) at \(nextEvent!.subtitleLine)"
+                return "\(nextEvent!.titleLine) >  \(nextEvent!.subtitleLine)"
             }
         } else if size == "XL" {
             var output: String = ""
@@ -159,7 +172,7 @@ class CalendarThing: Thing {
                 if output != "" {
                     output += "\n"
                 }
-                output += "\(event.titleLine) at \(event.subtitleLine)"
+                output += "\(event.titleLine) >  \(event.subtitleLine)"
             }
             return output
         } else {
