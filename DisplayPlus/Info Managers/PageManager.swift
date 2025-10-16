@@ -153,9 +153,9 @@ class PageManager: ObservableObject {
         print("End of pages log----------\n")
     }
     
-    //~Music | /time:Time:Small / battery:Battery:Small | /music:Music:Large
+    //~Music|/time:Time:Small/battery:Battery:Small|/music:Music:Large
     //     A page named "Music" with 2 rows, the first with a Time and Battery thing, the second with a Music thing:
-    //~Calendar | /calendar:Calendar:Large | /weather:Weather:Small / battery:Battery:Small
+    //~Calendar|/calendar:Calendar:Large|/weather:Weather:Small/battery:Battery:Small
     //     A page named "Calendar" with 2 rows, the first with one Calendar thing, the second with a Weather and Battery thing.
     //
     //Template for loading pages from string
@@ -179,7 +179,7 @@ class PageManager: ObservableObject {
                     let row = rows[i]
                     
                     if row.isEmpty {
-                        continue
+                        p.newEmptyRow(row: i)
                     }else {
                         var rowThings: [Thing] = []
                         var things = row.components(separatedBy: "/") //Splitting up things with / character
@@ -191,7 +191,7 @@ class PageManager: ObservableObject {
                                 let attributes = thing.components(separatedBy: ":") //Splitting up attributes with : character
                                 switch attributes[1] {
                                 case "Time":
-                                    let t = TimeThing(name: attributes[0])
+                                    let t = TimeThing(name: attributes[0], size: attributes[2])
                                     t.size = attributes[2]
                                     rowThings.append(t)
                                 case "Date":
@@ -214,12 +214,24 @@ class PageManager: ObservableObject {
                                     let w = WeatherThing(name: attributes[0])
                                     w.size = attributes[2]
                                     rowThings.append(w)
+                                case "Empty":
+                                    let e = Thing(name: attributes[0], type: "Blank", thingSize: attributes[2])
+                                    rowThings.append(e)
+                                case "Spacer":
+                                    let s = Thing(name: attributes[0], type: "Spacer", thingSize: attributes[2])
+                                    rowThings.append(s)
                                 default:
                                     print("Invalid thing type found when loading pages")
                                 }
                             }
                         }
                         p.newRow( rowThings, row: i)
+                    }
+                }
+                
+                for row in p.thingsOrdered {
+                    if row.isEmpty {
+                        p.newEmptyRow(row: p.thingsOrdered.firstIndex(of: row) ?? 0)
                     }
                 }
                 
@@ -246,19 +258,12 @@ class PageManager: ObservableObject {
 class Page: Observable {
     var PageName: String
     
-    var thingsOrdered: [[Thing]] = [[
-        Thing(name: "Empty1", type: "Blank"), Thing(name: "Empty2", type: "Blank"), Thing(name: "Empty3", type: "Blank"), Thing(name: "Empty4", type: "Blank")
-    ],[
-        Thing(name: "Empty1", type: "Blank"), Thing(name: "Empty2", type: "Blank"), Thing(name: "Empty3", type: "Blank"), Thing(name: "Empty4", type: "Blank")
-    ],[
-        Thing(name: "Empty1", type: "Blank"), Thing(name: "Empty2", type: "Blank"), Thing(name: "Empty3", type: "Blank"), Thing(name: "Empty4", type: "Blank")
-    ],[
-        Thing(name: "Empty1", type: "Blank"), Thing(name: "Empty2", type: "Blank"), Thing(name: "Empty3", type: "Blank"), Thing(name: "Empty4", type: "Blank")
-    ]]
+    var thingsOrdered: [[Thing]]
     
     init(name: String) {
         self.PageName = name
         
+        thingsOrdered = [Self.returnEmptyRow(), Self.returnEmptyRow(), Self.returnEmptyRow(), Self.returnEmptyRow()]
     }
     func updateAllThingsFromPage() {
         for row in thingsOrdered {
@@ -269,9 +274,14 @@ class Page: Observable {
     }
     
     func newRow(_ thingsInOrder: [Thing], row: Int) {
+        print("Old row \(row) contents:")
+        for thing in thingsOrdered[row] {
+            print(" - \(thing.name) (\(thing.type), Size: \(thing.size))")
+        }
         var rowThing = thingsInOrder
         var dummyRowBelow: Bool = false
         
+        print("\nNew row \(row) contents:")
         for i in rowThing.enumerated() {
             let thing = rowThing[i.offset]
             print(" - \(thing.name) (\(thing.type), Size: \(thing.size))")
@@ -301,8 +311,14 @@ class Page: Observable {
         }
     }
     func makeDummyRowBelow(row: Int) {
-        print("Making dummy row below for an XL Thing")
         newRow([Thing(name: "Spacer1", type: "Spacer"), Thing(name: "Spacer2", type: "Spacer"), Thing(name: "Spacer3", type: "Spacer"), Thing(name: "Spacer4", type: "Spacer")], row: row + 1)
+    }
+    
+    static func returnEmptyRow() -> [Thing] {
+        return [Thing(name: "Empty1", type: "Blank"), Thing(name: "Empty2", type: "Blank"), Thing(name: "Empty3", type: "Blank"), Thing(name: "Empty4", type: "Blank")]
+    }
+    func newEmptyRow(row: Int) {
+        newRow(Page.returnEmptyRow(), row: row)
     }
     
     func removeThingAt(row: Int, index: Int) {
@@ -317,10 +333,10 @@ class Page: Observable {
                     thingsOrdered[row].insert(Thing(name: "Empty", type: "Blank"), at: index)
                     thingsOrdered[row].insert(Thing(name: "Empty", type: "Blank"), at: index)
                 } else if thingsOrdered[row][index].size == "Large" {
-                    newRow([Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank")], row: row)
+                    newRow(Page.returnEmptyRow(), row: row)
                 } else if thingsOrdered[row][index].size == "XL" {
-                    newRow([Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank")], row: row)
-                    newRow([Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank"), Thing(name: "Empty", type: "Blank")], row: row + 1)
+                    newRow(Page.returnEmptyRow(), row: row)
+                    newRow(Page.returnEmptyRow(), row: row + 1)
                 }
             }
         }
@@ -342,13 +358,11 @@ class Page: Observable {
         //~Music | /time:Time:Small / battery:Battery:Small | /music:Music:Large
         
         //A row called "name" with 2 rows, each with 2 things.
-        print(output)
         return output
     }
     
     //MARK: - display output function
     func outputPage(mirror: Bool = false) -> String {
-        print("\nOutputing page \(PageName)\n")
         var output: String = ""
         for row in thingsOrdered {
             guard !row.isEmpty else { continue }
@@ -356,10 +370,8 @@ class Page: Observable {
             var rowText = ""
             for thing in row {
                 if thing.type == "Blank" || thing.type == "Spacer" {
-                    print("Skipping blank thing in output")
                     continue
                 } else {
-                    print("Adding \(thing.name) of type \(thing.type)to output")
                     rowText += "\(thing.toString()) | "
                 }
             }

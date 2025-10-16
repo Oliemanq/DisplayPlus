@@ -58,7 +58,7 @@ struct DefaultView: View {
             }
         }
         .onAppear() {
-            pm.resetPages()
+            //pm.resetPages()
         }
         .font(theme.bodyFont)
         .environmentObject(theme)

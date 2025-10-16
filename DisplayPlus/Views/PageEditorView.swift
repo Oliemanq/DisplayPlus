@@ -22,7 +22,8 @@ struct PageEditorView: View {
     
     @State private var showAddPageAlert = false
     @State private var newPageName = ""
-    
+    private let isTargeted = Binding.constant(false)
+
     let rowHeight: CGFloat = 35
     
     let currentDayOfTheMonth = Calendar.current.component(.day, from: Date())
@@ -66,11 +67,12 @@ struct PageEditorView: View {
                                             .onDrag {
                                                 if !unusedThings.isEmpty {
                                                     let thing = unusedThings[index]
-                                                    withAnimation{
+                                                    withAnimation {
                                                         draggedThing = thing
                                                     }
-                                                    
-                                                    if let data = try? JSONEncoder().encode(thing) {
+                                                    // Encode a simple payload instead of attempting to encode the subclass object
+                                                    let payload = "\(thing.name):\(thing.type):\(thing.size)"
+                                                    if let data = payload.data(using: .utf8) {
                                                         return NSItemProvider(item: data as NSData, typeIdentifier: UTType.data.identifier)
                                                     } else {
                                                         print("Error: Could not encode Thing for dragging.")
@@ -80,7 +82,6 @@ struct PageEditorView: View {
                                                     print("Error: unusedThings is empty, cannot drag.")
                                                     return NSItemProvider()
                                                 }
-                                                    
                                             }
                                     }
                                 }
@@ -122,57 +123,41 @@ struct PageEditorView: View {
                                     HStack(spacing: 0){
                                         ForEach(0..<4, id: \.self) { j in
                                             let page = pm.getCurrentPage()
-                                            let isTargeted = Binding.constant(false)
-                                            let draggedSize = draggedThing?.size
-                                            let cellSize = page.thingsOrdered[i][j].size
+                                            let cellSize: String = {
+                                                print("\(i),\(j)")
+                                                print("\(page.thingsOrdered[i][j].name) \(page.thingsOrdered.count) \(page.thingsOrdered[i].count)")
+                                                return page.thingsOrdered[i][j].size
+                                            }()
+                                            
                                             let cellType = page.thingsOrdered[i][j].type
                                             let cellWidthUnit = geometry.size.width*0.9 / 4
                                             
                                             let frameWidth: CGFloat = {
-                                                if let size = draggedSize {
-                                                    if size == "Medium" {
-                                                        return cellWidthUnit * 2
-                                                    }else if size == "Large" || size == "XL" {
-                                                        print("Dragged Large or XL at \(i),\(j)")
-                                                        return cellWidthUnit * 4
-                                                    } else {
-                                                        return cellWidthUnit
-                                                    }
-                                                } else {
-                                                    if cellSize == "Medium" {
-                                                        return cellWidthUnit * 2
-                                                    }else if cellSize == "Large" || cellSize == "XL" {
-                                                        print("Large or XL at \(i),\(j)")
-                                                        return cellWidthUnit * 4
-                                                    } else {
-                                                        return cellWidthUnit
-                                                    }
+                                                let size = draggedThing?.size ?? cellSize
+                                                switch size {
+                                                case "Medium":
+                                                    return cellWidthUnit * 2
+                                                case "Large", "XL":
+                                                    return cellWidthUnit * 4
+                                                default:
+                                                    return cellWidthUnit
                                                 }
                                             }()
                                             let frameHeight: CGFloat = {
-                                                if let size = draggedSize {
-                                                    return size == "XL" ? rowHeight * 2 : rowHeight
-                                                } else {
-                                                    return cellSize == "XL" ? rowHeight * 2 : rowHeight
-                                                }
+                                                let size = draggedThing?.size ?? cellSize
+                                                return (size == "XL" ? rowHeight * 2 : rowHeight)
                                             }()
                                             let showing: Bool = {
-                                                if let size = draggedSize {
-                                                    if size == "Medium" { return j % 2 == 0 }
-                                                    else if size == "Large" { return j == 0 }
-                                                    else if size == "XL" { return i % 2 == 0 && j == 0 }
-                                                    else { return true }
-                                                } else {
-                                                    if cellSize == "Medium" { return j % 2 == 0 }
-                                                    else if cellSize == "Large" { return j == 0 }
-                                                    else if cellSize == "XL" {
-                                                        return i % 2 == 0 && j == 0
-                                                    }
-                                                    else if cellType == "Spacer" {
-                                                        return false
-                                                    } else {
-                                                        return true
-                                                    }
+                                                // prefer the dragged thing size while dragging, otherwise use the cell's own size/type
+                                                let size = draggedThing?.size ?? cellSize
+                                                if cellType == "Spacer" && draggedThing == nil {
+                                                    return false
+                                                }
+                                                switch size {
+                                                case "Medium": return j % 2 == 0
+                                                case "Large": return j == 0
+                                                case "XL": return i % 2 == 0 && j == 0
+                                                default: return true
                                                 }
                                             }()
                                             
@@ -190,6 +175,7 @@ struct PageEditorView: View {
                                                         .onTapGesture {
                                                             print("Removing thing at \(i),\(j)")
                                                             page.removeThingAt(row: i, index: j)
+                                                            pm.savePages()
                                                             refreshID = UUID()
                                                         }
                                                 }
@@ -394,9 +380,38 @@ struct PageEditorView: View {
         }
 
         provider.loadDataRepresentation(forTypeIdentifier: UTType.data.identifier) { data, error in
-            guard let data = data,
-                  let thing = try? JSONDecoder().decode(Thing.self, from: data) else {
-                print("Failed to decode thing")
+            guard let data = data, let payload = String(data: data, encoding: .utf8) else {
+                print("Failed to decode drop payload")
+                return
+            }
+
+            let parts = payload.components(separatedBy: ":")
+            guard parts.count >= 3 else {
+                print("Invalid payload: \(payload)")
+                return
+            }
+
+            let name = parts[0]
+            let type = parts[1]
+            let size = parts[2]
+
+            // Reconstruct the correct Thing subclass
+            var thing: Thing
+            switch type {
+            case "Time":
+                let t = TimeThing(name: name, size: size); thing = t
+            case "Date":
+                let d = DateThing(name: name, size: size); thing = d
+            case "Battery":
+                let b = BatteryThing(name: name, size: size); thing = b
+            case "Music":
+                let m = MusicThing(name: name, size: size); thing = m
+            case "Calendar":
+                let c = CalendarThing(name: name, size: size); thing = c
+            case "Weather":
+                let w = WeatherThing(name: name, size: size); thing = w
+            default:
+                print("Unknown thing type: \(type)")
                 return
             }
 
@@ -411,7 +426,12 @@ struct PageEditorView: View {
                     var newRow: [Thing] = currentRow
                     newRow[j] = thing
                     page.newRow(newRow, row: i)
+
+                    // Ensure all things update so the mirror text reflects the change
+                    page.updateAllThingsFromPage()
                     
+                    pm.savePages()
+
                     refreshID = UUID()
                     draggedThing = nil
                 }
