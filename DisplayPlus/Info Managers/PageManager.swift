@@ -277,37 +277,6 @@ class Page: Observable {
         }
     }
     
-    func newRow(_ thingsInOrder: [Thing], row: Int) {
-        for thing in thingsOrdered[row] {
-            print(" - \(thing.name) (\(thing.type), Size: \(thing.size))")
-        }
-        var rowThings = thingsInOrder
-        var dummyRowBelow: Bool = false
-        
-        print("\nNew row \(row) contents:")
-        for i in rowThings.enumerated() {
-            let thing = rowThings[i.offset]
-            print(" - \(thing.name) (\(thing.type), Size: \(thing.size))")
-            
-            if thing.spacerRight {
-                for _ in 0..<thing.spacersRight {
-                    print("Creating spacer to the right of \(thing.name)")
-                    rowThings.insert(Thing(name: "SpacerRight", type: "Spacer"), at: i.offset + 1)
-                }
-            }
-            if thing.spacerBelow {
-                dummyRowBelow = true
-            }
-        }
-        thingsOrdered[row].removeAll() //Clearing previous row
-        thingsOrdered[row] = rowThings
-        while thingsOrdered[row].count > 4 {
-            thingsOrdered[row].removeLast()
-        }
-        if dummyRowBelow {
-            makeDummyRowBelow(row: row)
-        }
-    }
     func getRow(row: Int) -> [Thing] {
         if row < thingsOrdered.count {
             return thingsOrdered[row]
@@ -403,3 +372,85 @@ class Page: Observable {
     }
 }
 
+// swift
+extension Page {
+    private func blank(at index: Int) -> Thing {
+        Thing(name: "Empty\(index + 1)", type: "Blank")
+    }
+    private func spacerRight() -> Thing {
+        Thing(name: "SpacerRight", type: "Spacer")
+    }
+    private func setDummyRowBelow(for row: Int) {
+        guard row + 1 < thingsOrdered.count else { return }
+        thingsOrdered[row + 1] = [
+            Thing(name: "Spacer1", type: "Spacer"),
+            Thing(name: "Spacer2", type: "Spacer"),
+            Thing(name: "Spacer3", type: "Spacer"),
+            Thing(name: "Spacer4", type: "Spacer")
+        ]
+    }
+
+    // Replaces existing implementation
+    func newRow(_ raw: [Thing], row: Int) {
+        guard row >= 0 && row < thingsOrdered.count else { return }
+
+        // 1) Normalize to exactly 4 cells and strip any previously expanded spacers.
+        var base = raw
+        if base.count < 4 {
+            for i in base.count..<4 { base.append(blank(at: i)) }
+        } else if base.count > 4 {
+            base = Array(base.prefix(4))
+        }
+        for i in 0..<4 where base[i].type == "Spacer" {
+            base[i] = blank(at: i)
+        }
+
+        // 2) Rebuild by column index so anchors are preserved.
+        var result = (0..<4).map { blank(at: $0) }
+        var occupied = [Bool](repeating: false, count: 4)
+        var placedXL = false
+
+        for col in 0..<4 {
+            let t = base[col]
+            if t.type == "Blank" { continue }
+
+            switch t.size {
+            case "Medium":
+                // Snap to even start (0 or 2). Prefer intended start, then fallbacks.
+                var start = (col % 2 == 0) ? col : col - 1
+                if start < 0 { start = 0 }
+                if start > 2 { start = 2 }
+                for candidate in [start, 0, 2] {
+                    if candidate <= 2 && !occupied[candidate] && !occupied[candidate + 1] {
+                        result[candidate] = t
+                        result[candidate + 1] = spacerRight()
+                        occupied[candidate] = true
+                        occupied[candidate + 1] = true
+                        break
+                    }
+                }
+
+            case "Large":
+                result = [t, spacerRight(), spacerRight(), spacerRight()]
+                occupied = [true, true, true, true]
+
+            case "XL":
+                result = [t, spacerRight(), spacerRight(), spacerRight()]
+                occupied = [true, true, true, true]
+                placedXL = true
+
+            default: // Small (or unknown -> treat as Small)
+                if !occupied[col] {
+                    result[col] = t
+                    occupied[col] = true
+                }
+            }
+        }
+
+        // 3) Commit and enforce dummy row for XL.
+        thingsOrdered[row] = result
+        if placedXL {
+            setDummyRowBelow(for: row)
+        }
+    }
+}

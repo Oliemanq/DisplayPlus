@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import UIKit
 
 //
@@ -9,11 +10,13 @@ import UIKit
 //
 
 class BatteryThing: Thing {
-    var battery: Int = 0
+    @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
+    
+    var phoneBattery: Int = 0
     
     init(name: String, size: String = "Small") {
         super.init(name: name, type: "Battery", thingSize: size)
-        
+        UIDevice.current.isBatteryMonitoringEnabled = true // Enable battery monitoring
     }
     
     required init(from decoder: Decoder) throws {
@@ -22,14 +25,14 @@ class BatteryThing: Thing {
     
     override func update() {
         if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"{
-            battery = 75
+            phoneBattery = 75
         } else {
             if UIDevice.current.isBatteryMonitoringEnabled && UIDevice.current.batteryLevel >= 0.0 {
-                battery = Int(UIDevice.current.batteryLevel * 100)
-                data = "\(battery)%"
+                phoneBattery = Int(UIDevice.current.batteryLevel * 100)
+                data = "\(phoneBattery)%"
                 updated = true
             } else {
-                battery = 0
+                phoneBattery = 0
                 data = "0%"
                 updated = true
             }
@@ -37,22 +40,22 @@ class BatteryThing: Thing {
     }
     
     func setBatteryLevel(level: Int) {
-        battery = level
-        data = "\(battery)%"
+        phoneBattery = level
+        data = "\(phoneBattery)%"
     }
         
     
     override func toString(mirror: Bool = false) -> String {
         if size == "Small" {
-            return "\(battery)%"
+            return "Phone - \(phoneBattery)%"
         } else if size == "Medium" {
-            return "Phone - \(data)"
+            return " [ Phone - \(phoneBattery)% | Glasses - \(glassesBattery)% ] "
         } else {
-            return "Incorrect size input for Battery thing: \(size), must be Small or Medium"
+            return "Incorrect size input for phoneBattery thing: \(size), must be Small or Medium"
         }
     }
     func toInt() -> Int {
-        return battery
+        return phoneBattery
     }
 }
 

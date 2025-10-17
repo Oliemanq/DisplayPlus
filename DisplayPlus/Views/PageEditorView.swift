@@ -90,27 +90,30 @@ struct PageEditorView: View {
                             .homeItem(themeIn: theme)
                         }
                         
-                        Button {
-                            pm.log()
-                            print("Logging pm ", currentPage)
-                            print("Pages in storage: \(pagesString)")
-                        } label: {
-                            Text("print Page info")
+                        VStack{
+                            Button {
+                                pm.log()
+                                print("Logging pm ", currentPage)
+                                print("Pages in storage: \(pagesString)")
+                            } label: {
+                                Text("print Page info")
+                            }
+                            .padding(10)
+                            .mainButtonStyle(themeIn: theme)
+                            Button {
+                                UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.removeObject(forKey: "pages")
+                                UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.removeObject(forKey: "currentPage")
+                                pm.resetPages()
+                                print("Reset pages")
+                                exit(0)
+                            } label: {
+                                Text("Reset all pages in storage")
+                            }
+                            .padding(10)
+                            .mainButtonStyle(themeIn: theme)
                         }
-                        .padding(10)
-                        .mainButtonStyle(themeIn: theme)
-                        Button {
-                            UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.removeObject(forKey: "pages")
-                            UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.removeObject(forKey: "currentPage")
-                            pm.resetPages()
-                            print("Reset pages")
-                            exit(0)
-                        } label: {
-                            Text("Reset all pages in storage")
-                        }
-                        .padding(10)
-                        .mainButtonStyle(themeIn: theme)
-                        
+                        .homeItem(themeIn: theme)
+                        .padding(.bottom, 5)
                         //Grid of drop targets
                         ZStack{
                             //background for grid
@@ -120,15 +123,10 @@ struct PageEditorView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                             VStack(spacing: 2){
                                 ForEach(0..<4, id: \.self) { i in
-                                    HStack(spacing: 0){
+                                    HStack(spacing: 2){
                                         ForEach(0..<4, id: \.self) { j in
                                             let page = pm.getCurrentPage()
-                                            let cellSize: String = {
-                                                print("\(i),\(j)")
-                                                print("\(page.thingsOrdered[i][j].name) \(page.thingsOrdered.count) \(page.thingsOrdered[i].count)")
-                                                return page.thingsOrdered[i][j].size
-                                            }()
-                                            
+                                            let cellSize: String = page.thingsOrdered[i][j].size
                                             let cellType = page.thingsOrdered[i][j].type
                                             let cellWidthUnit = geometry.size.width*0.9 / 4
                                             
@@ -136,9 +134,9 @@ struct PageEditorView: View {
                                                 let size = draggedThing?.size ?? cellSize
                                                 switch size {
                                                 case "Medium":
-                                                    return cellWidthUnit * 2
+                                                    return (cellWidthUnit * 2) + 2
                                                 case "Large", "XL":
-                                                    return cellWidthUnit * 4
+                                                    return (cellWidthUnit * 4) + 6
                                                 default:
                                                     return cellWidthUnit
                                                 }
@@ -167,11 +165,18 @@ struct PageEditorView: View {
                                                     Text(cellType == "Blank" ? "(Empty @\(i),\(j))" : page.thingsOrdered[i][j].name)
                                                         .font(.system(size: 12))
                                                         .lineLimit(1)
+                                                        .frame(width: showing ? frameWidth : 0, height: showing ? frameHeight : 0)
+                                                        .editorBlock(themeIn: theme, i: i, j: j)
                                                     Image(systemName: "x.circle")
-                                                        .frame(width: 15, height: 15)
+                                                        .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
+                                                        .frame(width: 10, height: 10)
                                                         .opacity(0.5)
-                                                        .background(theme.darkMode ? theme.pri : theme.sec)
-                                                        .offset(x: frameWidth/2 - 10, y: -frameHeight/2 + 10)
+                                                        .background(
+                                                            Circle()
+                                                                .frame(width: 15, height: 15)
+                                                                .foregroundStyle(.ultraThickMaterial)
+                                                        )
+                                                        .offset(x: frameWidth/2 - 5, y: -frameHeight/2 + 5)
                                                         .onTapGesture {
                                                             print("Removing thing at \(i),\(j)")
                                                             page.removeThingAt(row: i, index: j)
@@ -180,9 +185,7 @@ struct PageEditorView: View {
                                                         }
                                                 }
                                             }
-                                             .frame(width: showing ? frameWidth : 0, height: showing ? frameHeight : 0)
-                                             .editorBlock(themeIn: theme, i: i, j: j)
-                                             .opacity(isTargeted.wrappedValue ? 0.5 : 1.0)
+                                             
                                              
                                              .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
                                                  return handleDrop(providers: providers, row: i, col: j)

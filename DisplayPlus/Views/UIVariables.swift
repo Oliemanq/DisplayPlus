@@ -404,7 +404,7 @@ extension View {
                     .foregroundStyle(themeIn.darkMode ? themeIn.priLightAlt : themeIn.secDarkAlt)
                     .overlay(
                         shape
-                            .stroke(themeIn.darkMode ? themeIn.secDarkAlt : themeIn.priLightAlt, lineWidth: 1)
+                            .stroke(themeIn.darkMode ? Color.clear : themeIn.priLightAlt, lineWidth: 1)
                     )
             }
             .clipShape(shape)
