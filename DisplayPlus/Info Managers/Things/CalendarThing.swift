@@ -145,18 +145,11 @@ class CalendarThing: Thing {
             if nextEvent == nil {
                 return "No events"
             } else {
-                if tm.getWidth("\(nextEvent!.titleLine) > \(nextEvent!.subtitleLine)") < 40 {
-                    if nextEvent!.startTime < Date() {
-                        return "\(nextEvent!.titleLine) > \(timeFormatter.string(from: nextEvent!.endTime))"
-                    } else {
-                        return "\(nextEvent!.titleLine) > \(timeFormatter.string(from: nextEvent!.startTime))"
-                    }
+                let tempEventTitle = tm.shorten(to: 50-tm.getWidth("10:00 > "), text: nextEvent!.titleLine)
+                if nextEvent!.startTime > Date() {
+                    return "\(timeFormatter.string(from: nextEvent!.startTime)) > \(tempEventTitle)"
                 } else {
-                    if nextEvent!.startTime < Date() {
-                        return "\(nextEvent!.titleLine) > \(timeFormatter.string(from: nextEvent!.endTime))"
-                    } else {
-                        return "\(nextEvent!.titleLine) > \(timeFormatter.string(from: nextEvent!.startTime))"
-                    }
+                    return "\(tempEventTitle) > \(timeFormatter.string(from: nextEvent!.endTime))"
                 }
             }
         } else if size == "Large" {
@@ -164,7 +157,8 @@ class CalendarThing: Thing {
             if nextEvent == nil {
                 return "No events left for today"
             } else {
-                return "\(nextEvent!.titleLine) >  \(nextEvent!.subtitleLine)"
+                let tempEventTitle = tm.shorten(to: 100-tm.getWidth("10:00 >  > 10:00"), text: nextEvent!.titleLine)
+                return "\(timeFormatter.string(from: nextEvent!.startTime)) > \(tempEventTitle) > \(timeFormatter.string(from: nextEvent!.endTime))"
             }
         } else if size == "XL" {
             var output: String = ""
@@ -172,7 +166,8 @@ class CalendarThing: Thing {
                 if output != "" {
                     output += "\n"
                 }
-                output += "\(event.titleLine) >  \(event.subtitleLine)"
+                let tempEventTitle = tm.shorten(to: 100-tm.getWidth("10:00 >  > 10:00"), text: event.titleLine)
+                output += "\(timeFormatter.string(from: event.startTime)) > \(tempEventTitle) > \(timeFormatter.string(from: event.endTime))"
             }
             return output
         } else {

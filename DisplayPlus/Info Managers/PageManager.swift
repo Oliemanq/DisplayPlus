@@ -296,6 +296,36 @@ class Page: Observable {
         newRow(Page.returnEmptyRow(), row: row)
     }
     
+    func getThingTypes() -> [String] {
+        var seen = Set<String>()
+        var result: [String] = []
+        for row in thingsOrdered {
+            for thing in row {
+                let t = thing.type
+                if t == "Blank" || t == "Spacer" { continue }
+                if !seen.contains(t) {
+                    seen.insert(t)
+                    result.append(t)
+                }
+            }
+        }
+        return result
+    }
+    func getThings() -> [Thing] {
+        var result: [Thing] = []
+        for row in thingsOrdered {
+            for thing in row {
+                if thing.type == "Blank" || thing.type == "Spacer" { continue }
+                if result.contains(where: { $0.name == thing.name && $0.type == thing.type }) {
+                    continue
+                }else{
+                    result.append(thing)
+                }
+            }
+        }
+        return result
+    }
+    
     func removeThingAt(row: Int, index: Int) {
         if row < thingsOrdered.count {
             if index < thingsOrdered[row].count {
@@ -451,6 +481,55 @@ extension Page {
         thingsOrdered[row] = result
         if placedXL {
             setDummyRowBelow(for: row)
+        }
+    }
+}
+
+#Preview {
+    PagePreviewView()
+}
+
+private struct PagePreviewView: View {
+    @State private var previewThings: [Thing] = [
+        TimeThing(name: "TimePreviewSmall", size: "Small"),
+        
+        DateThing(name: "DatePreviewSmall", size: "Small"),
+        DateThing(name: "DatePreviewMedium", size: "Medium"),
+        
+        BatteryThing(name: "BatteryPreviewSmall", size: "Small"),
+        BatteryThing(name: "BatteryPreviewMedium", size: "Medium"),
+        
+        WeatherThing(name: "WeatherPreviewSmall", size: "Small"),
+        
+        MusicThing(name: "MusicPreviewMedium", size: "Medium", curSong: Song(title: "Preview Song", artist: "Preview Artist", album: "Preview Album", duration: 240, currentTime: 60, isPaused: false, songChanged: true)),
+        MusicThing(name: "MusicPreviewLarge", size: "Large", curSong: Song(title: "Preview Song", artist: "Preview Artist", album: "Preview Album", duration: 240, currentTime: 60, isPaused: false, songChanged: true)),
+        MusicThing(name: "MusicPreviewXL", size: "XL", curSong: Song(title: "Preview Song", artist: "Preview Artist", album: "Preview Album", duration: 240, currentTime: 60, isPaused: false, songChanged: true)),
+
+        
+        CalendarThing(name: "CalendarPreviewMedium", size: "Medium"),
+        CalendarThing(name: "CalendarPreviewLarge", size: "Large"),
+        CalendarThing(name: "CalendarPreviewXL", size: "XL")
+]
+    
+    var body: some View {
+        return VStack {
+            Text("Page Preview")
+                .font(.headline)
+            ScrollView(.vertical){
+                ForEach($previewThings, id: \.name) { thing in
+                    if thing.type.wrappedValue == "Music" {
+                        let mt = thing.wrappedValue as! MusicThing
+                        Text("\(mt.name) (\(mt.type), Size: \(mt.size)) -> Output: \n\n\(tm.centerText(mt.toString(preview: true) ))")
+                            .font(.system(size: 12))
+                            .homeItem(themeIn: ThemeColors())
+                    } else {
+                        let t = thing.wrappedValue
+                        Text("\(t.name) (\(t.type), Size: \(t.size)) -> Output: \n\n\(tm.centerText(t.toString()))")
+                            .font(.system(size: 12))
+                            .homeItem(themeIn: ThemeColors())
+                    }
+                }
+            }
         }
     }
 }

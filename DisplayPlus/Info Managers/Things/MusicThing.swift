@@ -4,13 +4,18 @@ class MusicThing: Thing {
     var music: AMMonitor = AMMonitor()
     let rm = RenderingManager()
     
+    var curSongForPreview: Song
+    
     var artistLine: String = ""
     
-    init(name: String, size: String = "Small") {
+    init(name: String, size: String = "Small", curSong: Song = Song(title: "No Song", artist: "No Artist", album: "No Album", duration: 0, currentTime: 0, isPaused: true, songChanged: false)) {
+        curSongForPreview = curSong
+        
         super.init(name: name, type: "Music", thingSize: size)
     }
     
     required init(from decoder: Decoder) throws {
+        curSongForPreview = Song(title: "No Song", artist: "No Artist", album: "No Album", duration: 0, currentTime: 0, isPaused: true, songChanged: false)
         try super.init(from: decoder)
     }
     
@@ -53,26 +58,26 @@ class MusicThing: Thing {
         return music.getAuthStatus() // Return the music authorization status
     }
     
-    func buildArtistLine(widthIn: CGFloat = 100.0) -> String {
-        var doesFitOnScreen = rm.doesFitOnScreen(text: "\(self.music.curSong.title) - \(self.music.curSong.artist)", maxWidth: widthIn)
+    func buildArtistLine(widthIn: CGFloat = 100.0, curSongIn: Song) -> String {
+        var doesFitOnScreen = rm.doesFitOnScreen(text: "\(curSongIn.title) - \(curSongIn.artist)", maxWidth: widthIn)
         var title: String = {
-            if tm.getWidth(self.music.curSong.title) > 75 || (tm.getWidth(self.music.curSong.title) > (widthIn * 0.5) && !doesFitOnScreen) {
-                let fullArtist = self.music.curSong.title
+            if tm.getWidth(curSongIn.title) > 75 || (tm.getWidth(curSongIn.title) > (widthIn * 0.5) && !doesFitOnScreen) {
+                let fullArtist = curSongIn.title
                 let output: String = fullArtist.components(separatedBy: " (")[0]
                 
                 return output
             } else {
-                return self.music.curSong.title
+                return curSongIn.title
             }
         }()
         var artist: String = {
-            if tm.getWidth(self.music.curSong.artist) > 80 {
-                let fullArtist = self.music.curSong.artist
+            if tm.getWidth(curSongIn.artist) > 80 {
+                let fullArtist = curSongIn.artist
                 let output: String = fullArtist.components(separatedBy: ", ")[0]
                 
                 return output
             } else {
-                return self.music.curSong.artist
+                return curSongIn.artist
             }
         }()
         
@@ -136,14 +141,22 @@ class MusicThing: Thing {
     }
     
     
-    override func toString(mirror: Bool = false) -> String {
+    func toString(mirror: Bool = false, preview: Bool = false) -> String {
+        let curSongTemp: Song = {
+            if preview || isNotPhone() {
+                return curSongForPreview
+            } else {
+                return music.curSong
+            }
+        }()
+        
         if size == "Medium" {
             var output: String = ""
             
-            if music.curSong.isPaused {
+            if curSongTemp.isPaused {
                 return tm.centerText("~ l> Paused ~")
             } else {
-                let temp = buildArtistLine(widthIn: 40)
+                let temp = buildArtistLine(widthIn: 40, curSongIn: curSongTemp)
                 output = "\(temp)"
                 
                 return output
@@ -153,20 +166,20 @@ class MusicThing: Thing {
             var output: String = ""
             
             
-            let temp = buildArtistLine(widthIn: 50)
+            let temp = buildArtistLine(widthIn: 50, curSongIn: curSongTemp)
             output = "\(temp)  ll  "
             
-            output += (String(describing: Duration.seconds(music.curSong.currentTime).formatted(.time(pattern: .minuteSecond))) + " ")
+            output += (String(describing: Duration.seconds(curSongTemp.currentTime).formatted(.time(pattern: .minuteSecond))) + " ")
             
             let outputWidth = tm.getWidth(output)
             
-            let totalTime = (" " + String(describing: Duration.seconds(music.curSong.duration).formatted(.time(pattern: .minuteSecond))))
+            let totalTime = (" " + String(describing: Duration.seconds(curSongTemp.duration).formatted(.time(pattern: .minuteSecond))))
             let totalTimeWidth = tm.getWidth(" \(totalTime)")
             
-            if music.curSong.isPaused {
+            if curSongTemp.isPaused {
                 return "~ l> Paused ~"
             } else {
-                let progBar = tm.progressBar(percentDone: music.curSong.percentagePlayed, value: music.curSong.currentTime, max: music.curSong.duration, displayWidth: 100-outputWidth-totalTimeWidth, mirror: mirror)
+                let progBar = tm.progressBar(percentDone: curSongTemp.percentagePlayed, value: curSongTemp.currentTime, max: curSongTemp.duration, displayWidth: 100-outputWidth-totalTimeWidth, mirror: mirror)
                 output += progBar
                 output += totalTime
             }
@@ -176,13 +189,13 @@ class MusicThing: Thing {
         }
         else if size == "XL" {
             var output: String = ""
-            output += buildArtistLine()
+            output += buildArtistLine(curSongIn: curSongTemp)
             
             output += "\n"
-            let duration = String(describing: Duration.seconds(music.curSong.duration).formatted(.time(pattern: .minuteSecond)))
-            let currentTime = String(describing: Duration.seconds(music.curSong.currentTime).formatted(.time(pattern: .minuteSecond)))
+            let duration = String(describing: Duration.seconds(curSongTemp.duration).formatted(.time(pattern: .minuteSecond)))
+            let currentTime = String(describing: Duration.seconds(curSongTemp.currentTime).formatted(.time(pattern: .minuteSecond)))
                         
-            let progressBar = tm.progressBar(percentDone: music.curSong.percentagePlayed ,value: music.curSong.currentTime, max: music.curSong.duration)
+            let progressBar = tm.progressBar(percentDone: curSongTemp.percentagePlayed ,value: curSongTemp.currentTime, max: curSongTemp.duration)
 
             output += "\(currentTime) \(progressBar) \(duration)"
             

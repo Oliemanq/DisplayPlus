@@ -19,6 +19,8 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
     var spacersRight: Int = 0
     var spacersBelow: Int = 0
     
+    var theme: ThemeColors = ThemeColors()
+    
     var updated: Bool = false
     
     private enum CodingKeys: String, CodingKey {
@@ -93,6 +95,17 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
         return false
     }
     
+    func getSettingsView() -> AnyView {
+        AnyView(
+            ScrollView(.vertical) {
+                HStack{
+                    Text("Invalid Thing type, no defined settings page")
+                }
+                .settingsItem(themeIn: theme)
+            }
+        )
+    }
+    
     func toString(mirror: Bool = false) -> String {
        return data
     }
@@ -103,3 +116,4 @@ extension UTType {
     // this ensures there is only ever one owner to this kind of data
     static let myCustomObject = UTType(exportedAs: "Oliemanq.DisplayPlus.Thing")
 }
+

@@ -267,9 +267,46 @@ extension View {
                 )
                 .overlay(
                     shape
-                        .stroke(priLightAlt, lineWidth: alone ? 0.5 : 0)
+                        .stroke(priLightAlt, lineWidth: 0.5)
                 )
                 .clipShape(shape)
+                .overlay(
+                    Group {
+                        if items > 1 {
+                            if top {
+                                // cover bottom interior stroke for the top item
+                                VStack {
+                                    Spacer()
+                                    Rectangle()
+                                        .fill(darkMode ? pri : sec)
+                                        .frame(height: 0.6)
+                                }
+                                .clipShape(shape)
+                            } else if bottom {
+                                // cover top interior stroke for the bottom item
+                                VStack {
+                                    Rectangle()
+                                        .fill(darkMode ? pri : sec)
+                                        .frame(height: 0.6)
+                                    Spacer()
+                                }
+                                .clipShape(shape)
+                            } else {
+                                // middle items: cover both top and bottom interior strokes
+                                VStack(spacing: 0) {
+                                    Rectangle()
+                                        .fill(darkMode ? pri : sec)
+                                        .frame(height: 0.6)
+                                    Spacer()
+                                    Rectangle()
+                                        .fill(darkMode ? pri : sec)
+                                        .frame(height: 0.6)
+                                }
+                                .clipShape(shape)
+                            }
+                        }
+                    }
+                )
         } else {
             self
                 .padding(.horizontal, 8)
@@ -279,12 +316,45 @@ extension View {
                         .foregroundStyle(darkMode ? priLightAlt : secDarkAlt)
                         .overlay(
                             shape
-                                .stroke(priLightAlt, lineWidth: alone ? 0.5 : 0)
+                                .stroke(priLightAlt, lineWidth: 0.5)
                         )
                 )
                 .clipShape(shape)
                 .foregroundStyle(!darkMode ? priLightAlt : secDarkAlt)
-            //.offset(x: 0, y: alone ? 0 : (bottom ? -6 : (top ? 6 : 0))) //Offset for multiple items
+                .overlay(
+                    Group {
+                        if items > 1 {
+                            if top {
+                                VStack {
+                                    Spacer()
+                                    Rectangle()
+                                        .fill(darkMode ? priLightAlt : secDarkAlt)
+                                        .frame(height: 0.6)
+                                }
+                                .clipShape(shape)
+                            } else if bottom {
+                                VStack {
+                                    Rectangle()
+                                        .fill(darkMode ? priLightAlt : secDarkAlt)
+                                        .frame(height: 0.6)
+                                    Spacer()
+                                }
+                                .clipShape(shape)
+                            } else {
+                                VStack(spacing: 0) {
+                                    Rectangle()
+                                        .fill(darkMode ? priLightAlt : secDarkAlt)
+                                        .frame(height: 0.6)
+                                    Spacer()
+                                    Rectangle()
+                                        .fill(darkMode ? priLightAlt : secDarkAlt)
+                                        .frame(height: 0.6)
+                                }
+                                .clipShape(shape)
+                            }
+                        }
+                    }
+                )
         }
     }
     

@@ -76,6 +76,22 @@ struct SettingsView: View {
                         }
                         .settingsItem(themeIn: theme)
                         
+                        HStack {
+                            Text("Thing settings")
+                            Spacer()
+                            Text("|")
+                            NavigationLink {
+                                ThingsSettingsMain(pm, theme: theme)
+                            } label: {
+                                Image(systemName: "arrow.right.square.fill")
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 24)
+                            .font(.system(size: 24))
+                            .mainButtonStyle(themeIn: theme)
+                        }
+                        .settingsItem(themeIn: theme)
+                        
                         //use user location for weather updates
                         HStack {
                             Text("Use location for weather updates")
@@ -112,6 +128,7 @@ struct SettingsView: View {
                         HStack {
                             Text("Live Activity \(showingActivity ? "" : "not ")running")
                             Spacer()
+                            Text("|")
                             Button("\(Image(systemName: showingActivity ? "stop.circle" : "play.circle"))") {
                                 if showingActivity {
                                     showingActivity = false
@@ -129,10 +146,10 @@ struct SettingsView: View {
                         }
                         .settingsItem(themeIn: theme)
                         
+                        
                     }
                 }
             }
-            
             .navigationTitle("Settings")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {

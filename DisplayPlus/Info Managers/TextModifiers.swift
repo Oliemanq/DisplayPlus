@@ -118,11 +118,118 @@ public enum tm {
         let rm = RenderingManager()
         return rm.isJapanese(char: char)
     }
+    
+    public static func containsEmoji(_ text: String) -> Bool {
+        return text.unicodeScalars.contains { scalar in
+            switch scalar.value {
+            case 0x1F600...0x1F64F, // Emoticons
+                 0x1F300...0x1F5FF, // Misc Symbols and Pictographs
+                 0x1F680...0x1F6FF, // Transport and Map
+                 0x2600...0x26FF,   // Misc symbols
+                 0x2700...0x27BF,   // Dingbats
+                 0xFE00...0xFE0F,   // Variation Selectors
+                 0x1F900...0x1F9FF, // Supplemental Symbols and Pictographs
+                 0x1F1E6...0x1F1FF: // Flags
+                return true
+            default:
+                return false
+            }
+        }
+    }
+    
+    public static func shorten(to: CGFloat, text: String, log: Bool = false) -> String {
+        let textWidth = tm.getWidth(text)
+        
+        // If text already fits, return as-is
+        if textWidth <= to {
+            if log {
+                print("Text fits, returning original")
+            }
+            return text
+        }
+        
+        // Find best fit using binary search
+        let maxChars = tm.findBestFit(text, availableWidth: to, renderingManager: RenderingManager())
+        
+        if maxChars <= 3 {
+            if log {
+                print("Text too short to shorten meaningfully, returning truncated")
+            }
+            return String(text.prefix(maxChars))
+        }
+        
+        // Try to preserve important words by removing less important ones
+        let words = text.split(separator: " ").map(String.init)
+        
+        // Define low-priority words to remove first
+        let lowPriorityWords = Set(["the", "a", "an", "of", "in", "on", "at", "to", "for", "and", "or", "but", "be", "is", "are", "was", "were", "it", "that", "this", "these", "those"])
+        
+        // Try removing low-priority words first
+        var shortenedWords = words.filter { !lowPriorityWords.contains($0.lowercased()) }
+        for word in shortenedWords {
+            if word.hasSuffix("ed.") {
+                var newWord = String(word.dropLast(3))
+                newWord.append("ing.")
+                if log {
+                    print("Changed working of '\(word)' to '\(newWord)'")
+                }
+                shortenedWords = shortenedWords.map { $0 == word ? newWord : $0 }
+            }
+            
+            if containsEmoji(word) {
+                if log {
+                    print("Removing emoji")
+                }
+                let newWord = word.filter { !tm.containsEmoji(String($0)) }
+                shortenedWords = shortenedWords.map { $0 == word ? newWord : $0 }
+            }
+        }
+            
+        var attempt = shortenedWords.joined(separator: " ")
+        
+        if tm.getWidth(attempt) <= to {
+            if log {
+                print("Shortened by removing low-priority words")
+            }
+            return attempt
+        }
+        
+        // If still too long, progressively remove words from middle
+        while shortenedWords.count > 2 && tm.getWidth(attempt) > to {
+            let middleIndex = shortenedWords.count / 2
+            shortenedWords.remove(at: middleIndex)
+            attempt = shortenedWords.joined(separator: " ")
+        }
+        
+        if tm.getWidth(attempt) <= to {
+            if log {
+                print("Shortened by removing middle words")
+            }
+            return attempt
+        }
+        
+        // Last resort: truncate with ellipsis
+        let ellipsisWidth = tm.getWidth("...")
+        let availableForText = to - ellipsisWidth
+        let fitChars = tm.findBestFit(text, availableWidth: availableForText, renderingManager: RenderingManager())
+        
+        if fitChars > 0 {
+            if log {
+                print("Shortened by truncating with ellipsis")
+            }
+            return String(text.prefix(fitChars)) + "..."
+        }
+        
+        // Absolute fallback: just fit what we can
+        if log {
+            print("Giving up, returning maximum fit")
+        }
+        return String(text.prefix(maxChars))
+    }
 }
 
 public class RenderingManager {
     var DisplayWidth = 576
-    var key = UserDefaults.standard.dictionary(forKey: "calibratedKeys")
     var calibratedChars: [String: Int] = [:]
     
     init(){
@@ -239,13 +346,8 @@ public class RenderingManager {
     
     var charWidth: [String: Float] {
         var tempDict: [String: Float] = [:]
-        
-        if let keyDict = key {
-            for (k, v) in keyDict {
-                if let intValue = v as? Int {
-                    tempDict[k] = 100.0 / Float(intValue)
-                }
-            }
+        for (k, v) in calibratedChars {
+            tempDict[k] = 100.0 / Float(v)
         }
         return tempDict
     }
@@ -296,4 +398,6 @@ public class RenderingManager {
         let charWidth: CGFloat = getWidth(text: text)
         return charWidth <= maxWidth
     }
+    
+    
 }

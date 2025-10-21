@@ -12,9 +12,21 @@ import SwiftUI
 final class DisplayPlusTests: XCTestCase {
     func testCalendarThing() throws {
         let c: CalendarThing = CalendarThing(name: "Test")
+        
+        let calendar = Calendar.current
+        let today = Date()
+        
+        // Create dates for "10:00 AM - 11:00 AM"
+        let startTime1 = calendar.date(bySettingHour: 10, minute: 0, second: 0, of: today)!
+        let endTime1 = calendar.date(bySettingHour: 11, minute: 0, second: 0, of: today)!
+        
+        // Create dates for "10:00 PM - 11:00 PM"
+        let startTime2 = calendar.date(bySettingHour: 22, minute: 0, second: 0, of: today)!
+        let endTime2 = calendar.date(bySettingHour: 23, minute: 0, second: 0, of: today)!
+        
         c.eventsFormatted = [
-            event(titleLine: "Test", subtitleLine: "10:00 AM - 11:00 AM"),
-            event(titleLine: "Test 2", subtitleLine: "10:00 PM - 11:00 PM"),
+            event(titleLine: "Test", subtitleLine: "10:00 AM - 11:00 AM", startTime: startTime1, endTime: endTime1),
+            event(titleLine: "Test 2", subtitleLine: "10:00 PM - 11:00 PM", startTime: startTime2, endTime: endTime2),
         ]
         
         XCTAssertEqual(c.toString() , "\n\(tm.centerText("Test - 10:00 AM - 11:00 AM"))\n\(tm.centerText("Test 2 - 10:00 PM - 11:00 PM"))" )
@@ -40,7 +52,7 @@ final class DisplayPlusTests: XCTestCase {
         let p: Page = Page(name: "Test")
         
             
-        p.newRow(thingsInOrder: [
+        p.newRow([
             time,
             battery,
             music
@@ -52,7 +64,7 @@ final class DisplayPlusTests: XCTestCase {
     
     func testSavingAndLoadingPages() throws {
         
-        let pm = PageManager(loadPagesOnStart: false)
+        let pm = PageManager(loadPagesOnStart: false, currentPageIn: "Default")
         
         var p1: Page = Page(name: "Test Page")
         
@@ -61,9 +73,9 @@ final class DisplayPlusTests: XCTestCase {
         let battery: BatteryThing = BatteryThing(name: "Battery Test")
         let music: MusicThing = MusicThing(name: "Music Test", size: "Big")
         
-        p1.newRow(thingsInOrder: [time, date], row: 0)
-        p1.newRow(thingsInOrder: [battery], row: 1)
-        p1.newRow(thingsInOrder: [music], row: 2)
+        p1.newRow([time, date], row: 0)
+        p1.newRow([battery], row: 1)
+        p1.newRow([music], row: 2)
         
         let p2: Page = p1 //Creating a duplicate page
         
@@ -83,9 +95,33 @@ final class DisplayPlusTests: XCTestCase {
         
         XCTAssertEqual(p1.PageName, p2.PageName) //Checking if page name is the same
         XCTAssertEqual(p1.outputPage(), p2.outputPage()) //Checking if output is the same
+    }
+    
+    func testingShorten() throws {
+        print("\n\n")
+        let originalText = "This is a long text that needs to be shortened."
+        print("Original: \(originalText)")
+        let shortenedText = tm.shorten(to: 50, text: originalText)
+        print("Shortened: \(shortenedText)")
+        print("\n\n")
+    
+        let originalText2 = "This is a very long text that definitely needs to be shortened because it exceeds the maximum width allowed."
+        print("Original: \(originalText2)")
+        let shortenedText2 = tm.shorten(to: 50, text: originalText2)
+        print("Shortened: \(shortenedText2)")
+        print("\n\n")
         
-        
-        
+        let originalText3 = "🏎 FORMULA 1 GRAN PREMIO DE LA CIUDAD DE MÉXICO 2025 - Practice 3"
+        print("Original: \(originalText3)")
+        let shortenedText3 = tm.shorten(to: 40, text: originalText3)
+        print("Shortened: \(shortenedText3)")
+        print("\n\n")
+
+        let originalText4 = "🏁 FORMULA 1 MSC CRUISES UNITED STATES GRAND PRIX 2025 - Race"
+        print("Original: \(originalText4)")
+        let shortenedText4 = tm.shorten(to: 25, text: originalText4)
+        print("Shortened: \(shortenedText4)")
+        print("\n\n")
     }
 }
 
