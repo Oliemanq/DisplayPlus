@@ -101,6 +101,14 @@ struct PageEditorView: View {
                             .padding(10)
                             .mainButtonStyle(themeIn: theme)
                             Button {
+                                pm.savePages()
+                                print("Saving pages")
+                            } label: {
+                                Text("Force save pages")
+                            }
+                            .padding(10)
+                            .mainButtonStyle(themeIn: theme)
+                            Button {
                                 UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.removeObject(forKey: "pages")
                                 UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.removeObject(forKey: "currentPage")
                                 pm.resetPages()
@@ -112,8 +120,10 @@ struct PageEditorView: View {
                             .padding(10)
                             .mainButtonStyle(themeIn: theme)
                         }
+                        .frame(height: 250)
                         .homeItem(themeIn: theme)
                         .padding(.bottom, 5)
+                        
                         //Grid of drop targets
                         ZStack{
                             //background for grid
@@ -167,6 +177,9 @@ struct PageEditorView: View {
                                                         .lineLimit(1)
                                                         .frame(width: showing ? frameWidth : 0, height: showing ? frameHeight : 0)
                                                         .editorBlock(themeIn: theme, i: i, j: j)
+                                                        .onTapGesture {
+                                                            print("Tapped thing at \(i),\(j) - \(page.thingsOrdered[i][j].name)")
+                                                        }
                                                     Image(systemName: "x.circle")
                                                         .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
                                                         .frame(width: 10, height: 10)

@@ -36,6 +36,9 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
     }
     
     init(name: String, type: String, data: String = "", thingSize: String = "Small"){
+        if type == "Empty" {
+            print("Created empty thing")
+        }
         self.name = name
         self.type = type
         self.data = data

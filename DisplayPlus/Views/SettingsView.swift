@@ -92,43 +92,9 @@ struct SettingsView: View {
                         }
                         .settingsItem(themeIn: theme)
                         
-                        //use user location for weather updates
-                        HStack {
-                            Text("Use location for weather updates")
-                                .fixedSize(horizontal: true, vertical: false)
-                            Spacer()
-                            Toggle("", isOn: $location)
-                        }
-                        .settingsItem(themeIn: theme, items: (location ? 1 : 3), itemNum: 1)
-                        
-                        //fixed location for weather updates
-                        if !location {
-                            HStack{
-                                Text("Pick set location")
-                                    .fixedSize(horizontal: true, vertical: false)
-                                Spacer()
-                                Button(action: {
-                                    showingLocationPicker = true
-                                }) {
-                                    Text("Select")
-                                }
-                                .padding(6)
-                                .mainButtonStyle(themeIn: theme)
-                            }
-                            .settingsItem(themeIn: theme, items: 3, itemNum: 2)
-                            .offset(y: -8)
-                            HStack {
-                                Text("Current location: \(fixedCityDisplay)") // Use cached/published city
-                                    .ContextualBG(themeIn: theme)
-                            }
-                            .settingsItem(themeIn: theme, items: 3, itemNum: 3)
-                            .offset(y: -16)
-                        }
-                        
                         HStack {
                             Text("Live Activity \(showingActivity ? "" : "not ")running")
                             Spacer()
-                            Text("|")
                             Button("\(Image(systemName: showingActivity ? "stop.circle" : "play.circle"))") {
                                 if showingActivity {
                                     showingActivity = false
@@ -194,9 +160,6 @@ struct SettingsView: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text("Thank you for considering supporting my work! If you'd like to contribute, please visit my GitHub page or my Discord for more info.")
-            }
-            .sheet(isPresented: $showingLocationPicker) {
-                LocationPickerView(location: $fixedLocation, theme: theme)
             }
         }
         .tint(.primary)

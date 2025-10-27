@@ -29,6 +29,7 @@ class BackgroundTaskManager: ObservableObject {
     @AppStorage("useLocation", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var useLocation: Bool = false
     @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
     @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
+    @AppStorage("glassesInCase", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var glassesInCase = false
 
     init(ble: G1BLEManager, pmIn: PageManager) {
         self.ble = ble
@@ -59,16 +60,21 @@ class BackgroundTaskManager: ObservableObject {
     // Run one timer tick on the main actor to safely call @MainActor methods and touch @AppStorage.
     @MainActor
     private func tick() {
-        
         pm.updateCurrentPage()
                 
         if ble.connectionState == .connectedBoth {
             // Less frequent updates
-            if counter % 20 == 0 { // Every 10 seconds (20 * 0.5s)
-                ble.fetchBrightness()
-                ble.fetchSilentMode()
+            if counter % 10 == 0 { // Every 5 seconds (10 * 0.5s)
+                ble.fetchData()
+                
                 if logging {
-                    print("Brightness and silent mode fetched")
+                    print("glasses info fetched")
+                }
+            }
+            
+            if ((glassesBattery <= 3 && glassesBattery != 0) || ble.glassesBatteryLeft <= 1 || ble.glassesBatteryRight <= 1){
+                Task {
+                    await self.lowBatteryDisconnect()
                 }
             }
             
@@ -76,18 +82,6 @@ class BackgroundTaskManager: ObservableObject {
             if HBTriggerCounter % 48 == 0 || HBTriggerCounter == 1 { //Sending heartbeat command every ~24 seconds to maintain connection
                 ble.sendHeartbeat(counter: HBCounter % 255)
                 HBCounter += 1
-            }
-            
-            if counter % 60 == 0 || forceUpdateInfo{ // every 30 seconds (60 * 0.5s)
-                ble.fetchGlassesBattery()
-                if ((glassesBattery <= 3 && glassesBattery != 0) || ble.glassesBatteryLeft <= 1 || ble.glassesBatteryRight <= 1){
-                    Task {
-                        await self.lowBatteryDisconnect()
-                    }
-                }
-                if logging {
-                    print("Glasses battery fetched")
-                }
             }
             
             if autoOff {
@@ -100,12 +94,8 @@ class BackgroundTaskManager: ObservableObject {
                     displayOn = false
                 }
             }
-            
-            // Re-fetch displayOn as it might have been changed by the autoOff logic above in the same tick
-            let currentDisplayOn = displayOn
-            
-            //info.changed is to reduce unnecessary updates to the glasses
-            if currentDisplayOn { // Only update display if it's on and info has changed
+
+            if displayOn && !glassesInCase {
                 let pageText = pm.getCurrentPage().outputPage()
                 ble.sendText(text: pageText, counter: counter)
             }
@@ -146,7 +136,6 @@ class BackgroundTaskManager: ObservableObject {
         ble.disconnect()
     }
     
-    @MainActor
     func disconnectProper() async {
         //Stopping timer to stop overwritting eachother
         stopTimer()

@@ -51,6 +51,7 @@ class TimeThing: Thing {
             }
             .settingsItem(themeIn: theme)
         }
+        .navigationTitle("Time Settings")
     }
     override func getSettingsView() -> AnyView {
         AnyView(
@@ -77,7 +78,6 @@ class TimeThing: Thing {
                         .settingsItem(themeIn: theme)
                     }
                 }
-                .navigationTitle("Time Settings")
             }
         )
     }

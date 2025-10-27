@@ -175,10 +175,11 @@ class PageManager: ObservableObject {
                 rows.removeFirst() //Removing the page name from the rows array
                 
                 let p = Page(name: pageName)
+                print("Creating page: \(pageName)")
                 
                 for i in rows.indices {
                     let row = rows[i]
-                    if row.isEmpty {
+                    if row.isEmpty && !p.thingsOrdered[i].isEmpty {
                         p.newEmptyRow(row: i)
                     }else {
                         var rowThings: [Thing] = []
@@ -214,20 +215,25 @@ class PageManager: ObservableObject {
                                     let w = WeatherThing(name: attributes[0])
                                     w.size = attributes[2]
                                     rowThings.append(w)
-                                case "Empty":
+                                case "Empty", "Blank":
                                     let e = Thing(name: attributes[0], type: "Blank", thingSize: attributes[2])
                                     rowThings.append(e)
                                 case "Spacer":
                                     let s = Thing(name: attributes[0], type: "Spacer", thingSize: attributes[2])
                                     rowThings.append(s)
                                 default:
-                                    print("Invalid thing type found when loading pages")
+                                    print("Invalid thing type found when loading pages \(attributes[1])")
                                 }
                             }
                         }
                         
                         while rowThings.count < 4 {
                             rowThings.append(Page.returnEmptyRow()[0])
+                        }
+                        
+                        print("Created row \(i)")
+                        for thing in rowThings {
+                            print(" - \(thing.name) (\(thing.type), Size: \(thing.size))")
                         }
                         p.newRow( rowThings, row: i)
                     }
@@ -245,6 +251,7 @@ class PageManager: ObservableObject {
         
         pages = loadedPages
     }
+    
     func savePages(testing: Bool = false) {
         pageStorageRAW = "" //Clearing previous saved pages
         
@@ -253,6 +260,7 @@ class PageManager: ObservableObject {
             output += page.printPageForSaving()
         }
         pageStorageRAW = output
+        
         if testing {
             pages = [] //Clearing pages after saving to test loading
         }
@@ -284,9 +292,6 @@ class Page: Observable {
             print("Invalid row num, exceeded limit of rows")
             return []
         }
-    }
-    func makeDummyRowBelow(row: Int) {
-        newRow([Thing(name: "Spacer1", type: "Spacer"), Thing(name: "Spacer2", type: "Spacer"), Thing(name: "Spacer3", type: "Spacer"), Thing(name: "Spacer4", type: "Spacer")], row: row + 1)
     }
     
     static func returnEmptyRow() -> [Thing] {
@@ -402,7 +407,7 @@ class Page: Observable {
     }
 }
 
-// swift
+// Swift
 extension Page {
     private func blank(at index: Int) -> Thing {
         Thing(name: "Empty\(index + 1)", type: "Blank")
@@ -410,9 +415,23 @@ extension Page {
     private func spacerRight() -> Thing {
         Thing(name: "SpacerRight", type: "Spacer")
     }
+
+    // Ensure there is space for a dummy row below `row`, then set it.
+    func makeDummyRowBelow(row: Int) {
+        let target = row + 1
+        while target >= thingsOrdered.count {
+            thingsOrdered.append(Page.returnEmptyRow())
+        }
+        newRow(Page.returnEmptyRow(), row: target)
+    }
+
+    // Ensure capacity and assign spacer row.
     private func setDummyRowBelow(for row: Int) {
-        guard row + 1 < thingsOrdered.count else { return }
-        thingsOrdered[row + 1] = [
+        let target = row + 1
+        while target >= thingsOrdered.count {
+            thingsOrdered.append(Page.returnEmptyRow())
+        }
+        thingsOrdered[target] = [
             Thing(name: "Spacer1", type: "Spacer"),
             Thing(name: "Spacer2", type: "Spacer"),
             Thing(name: "Spacer3", type: "Spacer"),
@@ -420,33 +439,47 @@ extension Page {
         ]
     }
 
-    // Replaces existing implementation
+    // Merge incoming raw onto the existing row (like handleDrop), normalize to 4 cells,
+    // place items respecting sizes and ensure/clear dummy row for XL.
     func newRow(_ raw: [Thing], row: Int) {
-        guard row >= 0 && row < thingsOrdered.count else { return }
-
-        // 1) Normalize to exactly 4 cells and strip any previously expanded spacers.
-        var base = raw
-        if base.count < 4 {
-            for i in base.count..<4 { base.append(blank(at: i)) }
-        } else if base.count > 4 {
-            base = Array(base.prefix(4))
-        }
-        for i in 0..<4 where base[i].type == "Spacer" {
-            base[i] = blank(at: i)
+        // ensure we have the target row
+        while row >= thingsOrdered.count {
+            thingsOrdered.append(Page.returnEmptyRow())
         }
 
-        // 2) Rebuild by column index so anchors are preserved.
+        // start from the existing row so single-cell updates behave like handleDrop
+        var current = thingsOrdered[row]
+        if current.count < 4 {
+            current = Page.returnEmptyRow()
+        }
+
+        // merge raw onto current (replace corresponding indices)
+        var merged = current
+        for i in 0..<min(4, raw.count) {
+            merged[i] = raw[i]
+        }
+
+        // normalize merged: ensure 4 cells and convert any Spacer placeholders to Blanks
+        if merged.count < 4 {
+            for i in merged.count..<4 { merged.append(blank(at: i)) }
+        } else if merged.count > 4 {
+            merged = Array(merged.prefix(4))
+        }
+        for i in 0..<4 where merged[i].type == "Spacer" {
+            merged[i] = blank(at: i)
+        }
+
+        // Rebuild by column index so anchors are preserved.
         var result = (0..<4).map { blank(at: $0) }
         var occupied = [Bool](repeating: false, count: 4)
         var placedXL = false
 
         for col in 0..<4 {
-            let t = base[col]
+            let t = merged[col]
             if t.type == "Blank" { continue }
 
             switch t.size {
             case "Medium":
-                // Snap to even start (0 or 2). Prefer intended start, then fallbacks.
                 var start = (col % 2 == 0) ? col : col - 1
                 if start < 0 { start = 0 }
                 if start > 2 { start = 2 }
@@ -469,7 +502,7 @@ extension Page {
                 occupied = [true, true, true, true]
                 placedXL = true
 
-            default: // Small (or unknown -> treat as Small)
+            default: // Small or unknown -> treat as Small
                 if !occupied[col] {
                     result[col] = t
                     occupied[col] = true
@@ -477,14 +510,23 @@ extension Page {
             }
         }
 
-        // 3) Commit and enforce dummy row for XL.
+        // Commit row
         thingsOrdered[row] = result
+
+        // Ensure dummy row for XL, or clear stale spacer-only dummy below when not needed
         if placedXL {
             setDummyRowBelow(for: row)
+        } else {
+            let target = row + 1
+            if target < thingsOrdered.count {
+                let below = thingsOrdered[target]
+                if below.allSatisfy({ $0.type == "Spacer" }) {
+                    thingsOrdered[target] = Page.returnEmptyRow()
+                }
+            }
         }
     }
 }
-
 #Preview {
     PagePreviewView()
 }
@@ -503,7 +545,7 @@ private struct PagePreviewView: View {
         
         MusicThing(name: "MusicPreviewMedium", size: "Medium", curSong: Song(title: "Preview Song", artist: "Preview Artist", album: "Preview Album", duration: 240, currentTime: 60, isPaused: false, songChanged: true)),
         MusicThing(name: "MusicPreviewLarge", size: "Large", curSong: Song(title: "Preview Song", artist: "Preview Artist", album: "Preview Album", duration: 240, currentTime: 60, isPaused: false, songChanged: true)),
-        MusicThing(name: "MusicPreviewXL", size: "XL", curSong: Song(title: "Preview Song", artist: "Preview Artist", album: "Preview Album", duration: 240, currentTime: 60, isPaused: false, songChanged: true)),
+        MusicThing(name: "MusicPreviewXL", size: "XL", curSong: Song(title: "Preview Song", artist: "Preview Artist", album: "Preview Album", duration: 240, currentTime: 60, isPaused: true, songChanged: true)),
 
         
         CalendarThing(name: "CalendarPreviewMedium", size: "Medium"),
@@ -519,7 +561,7 @@ private struct PagePreviewView: View {
                 ForEach($previewThings, id: \.name) { thing in
                     if thing.type.wrappedValue == "Music" {
                         let mt = thing.wrappedValue as! MusicThing
-                        Text("\(mt.name) (\(mt.type), Size: \(mt.size)) -> Output: \n\n\(tm.centerText(mt.toString(preview: true) ))")
+                        Text("\(mt.name) (\(mt.type), Size: \(mt.size)) -> Output: \n\n\(tm.centerText(mt.toString() ))")
                             .font(.system(size: 12))
                             .homeItem(themeIn: ThemeColors())
                     } else {

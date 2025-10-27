@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 class MusicThing: Thing {
     var music: AMMonitor = AMMonitor()
@@ -141,9 +142,9 @@ class MusicThing: Thing {
     }
     
     
-    func toString(mirror: Bool = false, preview: Bool = false) -> String {
+    override func toString(mirror: Bool = false) -> String {
         let curSongTemp: Song = {
-            if preview || isNotPhone() {
+            if isNotPhone() {
                 return curSongForPreview
             } else {
                 return music.curSong
@@ -154,7 +155,7 @@ class MusicThing: Thing {
             var output: String = ""
             
             if curSongTemp.isPaused {
-                return tm.centerText("~ l> Paused ~")
+                return ("~ l> Paused ~")
             } else {
                 let temp = buildArtistLine(widthIn: 40, curSongIn: curSongTemp)
                 output = "\(temp)"
@@ -164,7 +165,6 @@ class MusicThing: Thing {
         }
         else if size == "Large" {
             var output: String = ""
-            
             
             let temp = buildArtistLine(widthIn: 50, curSongIn: curSongTemp)
             output = "\(temp)  ll  "
@@ -177,9 +177,9 @@ class MusicThing: Thing {
             let totalTimeWidth = tm.getWidth(" \(totalTime)")
             
             if curSongTemp.isPaused {
-                return "~ l> Paused ~"
+                return ("~ l> Paused ~")
             } else {
-                let progBar = tm.progressBar(percentDone: curSongTemp.percentagePlayed, value: curSongTemp.currentTime, max: curSongTemp.duration, displayWidth: 100-outputWidth-totalTimeWidth, mirror: mirror)
+                let progBar = tm.progressBar(percentDone: curSongTemp.percentagePlayed, value: curSongTemp.currentTime, max: curSongTemp.duration, displayWidth: 100-outputWidth-totalTimeWidth)
                 output += progBar
                 output += totalTime
             }
@@ -194,16 +194,57 @@ class MusicThing: Thing {
             output += "\n"
             let duration = String(describing: Duration.seconds(curSongTemp.duration).formatted(.time(pattern: .minuteSecond)))
             let currentTime = String(describing: Duration.seconds(curSongTemp.currentTime).formatted(.time(pattern: .minuteSecond)))
-                        
-            let progressBar = tm.progressBar(percentDone: curSongTemp.percentagePlayed ,value: curSongTemp.currentTime, max: curSongTemp.duration)
+                      
+            if curSongTemp.isPaused {
+                output += ("~ l> Paused ~")
+            }else{
+                let progressBar = tm.progressBar(percentDone: curSongTemp.percentagePlayed ,value: curSongTemp.currentTime, max: curSongTemp.duration)
+                output += "\(currentTime) \(progressBar) \(duration)"
+            }
 
-            output += "\(currentTime) \(progressBar) \(duration)"
-            
             return output
         }
         else {
             return "Incorrect size input for Music thing: \(size), must be Medium, Large, or XL"
         }
+    }
+    
+    private func settingsPage() -> some View {
+        ScrollView(.vertical) {
+            HStack {
+                Text("No settings available for Music Thing")
+            }
+            .settingsItem(themeIn: theme)
+        }
+        .navigationTitle("Music Settings")
+    }
+    override func getSettingsView() -> AnyView {
+        AnyView(
+            NavigationStack {
+                ZStack {
+                    //backgroundGrid(themeIn: theme)
+                    (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
+                        .ignoresSafeArea()
+                    VStack{
+                        HStack {
+                            Text("Music Thing Settings")
+                            Spacer()
+                            Text("|")
+                            NavigationLink {
+                                settingsPage()
+                            } label: {
+                                Image(systemName: "arrow.right.square.fill")
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 24)
+                            .font(.system(size: 24))
+                            .mainButtonStyle(themeIn: theme)
+                        }
+                        .settingsItem(themeIn: theme)
+                    }
+                }
+            }
+        )
     }
 }
 
