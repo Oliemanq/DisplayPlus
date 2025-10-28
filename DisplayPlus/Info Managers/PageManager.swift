@@ -16,7 +16,11 @@ class PageManager: ObservableObject {
     @Published var pages: [Page] = []
     @Published var lastModified = UUID()
     
-    init(loadPagesOnStart: Bool = true, currentPageIn: String) {
+    @StateObject var theme: ThemeColors
+    
+    init(loadPagesOnStart: Bool = true, currentPageIn: String, themeIn: ThemeColors) {
+        _theme = StateObject(wrappedValue: themeIn)
+
         if loadPagesOnStart {
             loadPages()
         }
@@ -24,6 +28,7 @@ class PageManager: ObservableObject {
             DefaultPageCreator() //Creating default page if no pages found
         }
         updateCurrentPageValue(currentPageIn)
+        
     }
     
     func addPage(p: Page) {
@@ -281,6 +286,14 @@ class Page: Observable {
         for row in thingsOrdered {
             for thing in row {
                 thing.update()
+            }
+        }
+    }
+    
+    func addTheme(theme: ThemeColors) {
+        for row in thingsOrdered {
+            for thing in row {
+                thing.addTheme(themeIn: theme)
             }
         }
     }

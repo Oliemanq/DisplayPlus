@@ -29,10 +29,9 @@ struct PageEditorView: View {
     let currentDayOfTheMonth = Calendar.current.component(.day, from: Date())
     
     
-    init(pmIn: PageManager, themeIn: ThemeColors) {
+    init(pmIn: PageManager) {
         _pm = StateObject(wrappedValue: pmIn)
-        _theme = StateObject(wrappedValue: themeIn)
-        
+        _theme = StateObject(wrappedValue: pmIn.theme)
     }
     
     var body: some View {
@@ -458,8 +457,7 @@ struct PageEditorView: View {
     }
 }
 #Preview {
-    let pm = PageManager(currentPageIn: "Default")
-    
-    PageEditorView(pmIn: pm, themeIn: ThemeColors())
+    let theme = ThemeColors()
+    PageEditorView(pmIn: PageManager(currentPageIn: "Default", themeIn: theme))
 }
 

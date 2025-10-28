@@ -9,11 +9,11 @@ import SwiftUI
 //
 
 class DateThing: Thing {
-    @AppStorage("dateFormat", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var format: String = "US"
-    
+    @Published var format: String = "US"
     var currentDate: Date = Date()
     
     init(name: String, size: String = "Small") {
+        format = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.string(forKey: "dateFormat") ?? "US"
         super.init(name: name, type: "Date", thingSize: size)
     }
     
@@ -45,7 +45,11 @@ class DateThing: Thing {
         dateFormatter.dateFormat = "d"
         let day = dateFormatter.string(from: date)
         
-        return "\(weekDay), \(month) \(day)"
+        if format == "EU" {
+            return "\(weekDay), \(day) \(month)"
+        } else {
+            return "\(weekDay), \(month) \(day)"
+        }
     }
     private func getTodayDateSmall()-> String{
         let dateFormatter = DateFormatter()
@@ -59,7 +63,11 @@ class DateThing: Thing {
         dateFormatter.dateFormat = "d"
         let day = dateFormatter.string(from: date)
         
-        return "\(weekDay) \(month)/\(day)"
+        if format == "EU" {
+            return "\(weekDay) \(day)/\(month)"
+        } else {
+            return "\(weekDay) \(month)/\(day)"
+        }
     }
     
     override func toString(mirror: Bool = false) -> String {
@@ -72,36 +80,6 @@ class DateThing: Thing {
         }
     }
     
-    private func settingsPage() -> some View {
-        ScrollView(.vertical) {
-            HStack {
-                Text("Date format")
-                Spacer()
-                VStack{
-                    Button("Month/Day") {
-                        print("Changed date format to EU")
-                        self.format = "EU"
-                    }
-                    .frame(width: 100, height: 35)
-                    .font(.system(size: 12))
-                    .mainButtonStyle(themeIn: theme)
-                    Text(format == "EU" ? "Selected" : "")
-                }
-                VStack{
-                    Button("Day/Month") {
-                        print("Changed date format to US")
-                        self.format = "US"
-                    }
-                    .frame(width: 100, height: 35)
-                    .font(.system(size: 12))
-                    .mainButtonStyle(themeIn: theme)
-                    Text(format == "US" ? "Selected" : "")
-
-                }
-            }
-            .settingsItem(themeIn: theme)
-        }
-    }
     override func getSettingsView() -> AnyView {
         AnyView(
             NavigationStack {
@@ -115,7 +93,7 @@ class DateThing: Thing {
                             Spacer()
                             Text("|")
                             NavigationLink {
-                                settingsPage()
+                                dateSettingsPage(thing: self, themeIn: theme)
                             } label: {
                                 Image(systemName: "arrow.right.square.fill")
                             }
@@ -130,5 +108,41 @@ class DateThing: Thing {
                 .navigationTitle("Date Settings")
             }
         )
+    }
+}
+
+struct dateSettingsPage: View {
+    @ObservedObject var thing: DateThing
+    @StateObject var theme: ThemeColors
+    
+    init(thing: DateThing, themeIn: ThemeColors) {
+        self.thing = thing
+        _theme = StateObject(wrappedValue: themeIn)
+    }
+        
+    
+    var body: some View {
+        ScrollView(.vertical) {
+            //Has not been implemented
+            HStack {
+                Text("Date format")
+                Spacer()
+                Text(thing.format == "US" ? "MM/DD (US)" : "DD/MM (EU)")
+                    .settingsButtonText(themeIn: theme)
+                Button {
+                    withAnimation {
+                        thing.format = (thing.format == "US") ? "EU" : "US"
+                    }
+
+                    UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set(thing.format, forKey: "dateFormat")
+                    
+                    print("Date format set to \(thing.format)")
+                } label: {
+                    Image(systemName: "arrow.right.square.fill")
+                        .settingsButton(themeIn: theme)
+                }
+            }
+            .settingsItem(themeIn: theme)
+        }
     }
 }

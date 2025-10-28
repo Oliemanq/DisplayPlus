@@ -14,7 +14,7 @@ struct ContentView: View {
     @StateObject private var pm: PageManager
     @StateObject private var ble: G1BLEManager
     @StateObject private var bg: BackgroundTaskManager
-    @EnvironmentObject var theme: ThemeColors
+    @StateObject private var theme: ThemeColors
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var displayOn = false
@@ -40,6 +40,7 @@ struct ContentView: View {
         _pm = StateObject(wrappedValue: pmIn)
         _ble = StateObject(wrappedValue: bleIn)
         _bg = StateObject(wrappedValue: bgIn)
+        _theme = StateObject(wrappedValue: pmIn.theme)
     }
     
     var body: some View {
@@ -305,10 +306,9 @@ struct ContentView: View {
 #Preview {
     let laInstance = LiveActivityManager()
     let bleInstance = G1BLEManager(liveIn: laInstance)
-    let pageInstance = PageManager(currentPageIn: "Default")
+    let pageInstance = PageManager(currentPageIn: "Default", themeIn: ThemeColors())
     let bgInstance = BackgroundTaskManager(ble: bleInstance, pmIn: pageInstance)
     
     ContentView(pmIn: pageInstance, bleIn: bleInstance, bgIn: bgInstance)
-        .environmentObject(ThemeColors())
 }
 

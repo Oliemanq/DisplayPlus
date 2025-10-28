@@ -17,8 +17,8 @@ struct SettingsView: View {
     @StateObject private var ble: G1BLEManager
     @StateObject private var pm: PageManager
     @StateObject private var la: LiveActivityManager
+    @StateObject private var theme: ThemeColors
     
-    @EnvironmentObject var theme: ThemeColors
     @Environment(\.openURL) private var openURL
     
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
@@ -42,10 +42,11 @@ struct SettingsView: View {
         return currentCity
     }
     
-    init(bleIn: G1BLEManager, pmIn: PageManager, liveIn: LiveActivityManager){
+    init(bleIn: G1BLEManager, pmIn: PageManager, liveIn: LiveActivityManager) {
         _ble = StateObject(wrappedValue: bleIn)
         _pm = StateObject(wrappedValue: pmIn)
         _la = StateObject(wrappedValue: liveIn)
+        _theme = StateObject(wrappedValue: pmIn.theme)
     }
 
     var body: some View {
@@ -81,14 +82,12 @@ struct SettingsView: View {
                             Spacer()
                             Text("|")
                             NavigationLink {
-                                ThingsSettingsMain(pm, theme: theme)
+                                ThingsSettingsMain(pm)
                             } label: {
                                 Image(systemName: "arrow.right.square.fill")
                             }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 24)
                             .font(.system(size: 24))
-                            .mainButtonStyle(themeIn: theme)
+                            .settingsButton(themeIn: theme)
                         }
                         .settingsItem(themeIn: theme)
                         
@@ -175,7 +174,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), pmIn: PageManager(currentPageIn: "Default"), liveIn: LiveActivityManager())
-        .environmentObject(ThemeColors())
-
+    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), pmIn: PageManager(currentPageIn: "Default", themeIn: ThemeColors()), liveIn: LiveActivityManager())
 }

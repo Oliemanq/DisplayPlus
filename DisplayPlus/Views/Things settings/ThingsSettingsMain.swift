@@ -9,16 +9,17 @@ import SwiftUI
 
 struct ThingsSettingsMain: View {
     var pm: PageManager
-    var theme: ThemeColors
     
-    init(_ pmIn: PageManager, theme: ThemeColors) {
+    init(_ pmIn: PageManager) {
         self.pm = pmIn
-        self.theme = theme
     }
     
     var body: some View {
         let currentPage = pm.getCurrentPage()
         let things = currentPage.getThings()
+        
+        let theme = pm.theme
+        
         NavigationStack{
             ZStack{
                 //backgroundGrid(themeIn: theme)
@@ -38,5 +39,6 @@ struct ThingsSettingsMain: View {
 }
 
 #Preview {
-    ThingsSettingsMain(PageManager(currentPageIn: "Default"), theme: ThemeColors())
+    let theme = ThemeColors()
+    ThingsSettingsMain(PageManager(currentPageIn: "Default", themeIn: theme))
 }

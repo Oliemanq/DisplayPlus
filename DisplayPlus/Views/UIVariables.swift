@@ -383,6 +383,44 @@ extension View {
         }
     }
     
+    @ViewBuilder
+    func settingsButton(themeIn: ThemeColors) -> some View {
+        self
+            .padding(.vertical, 8)
+            .padding(.horizontal, 24)
+            .font(.system(size: 24))
+            .mainButtonStyle(themeIn: themeIn)
+    }
+    @ViewBuilder
+    func settingsButtonText(themeIn: ThemeColors) -> some View {
+        let shape = RoundedCorner(radius: 8, corners: [.topLeft, .bottomLeft])
+        
+        let padding: CGFloat = 8
+        let buttonSidePadding: CGFloat = 36
+        let offset: CGFloat = -42
+        
+        if #available(iOS 26, *) {
+            self
+                .padding(padding)
+                .padding(.trailing, buttonSidePadding)
+                .background(
+                    shape
+                        .foregroundStyle(themeIn.darkMode ? themeIn.priLightAlt : themeIn.secDarkAlt)
+                        .glassEffect(.regular, in: shape)
+                )
+                .padding(.trailing, offset)
+        } else {
+            self
+                .padding(padding)
+                .padding(.trailing, buttonSidePadding)
+                .background(
+                    shape
+                        .foregroundStyle(themeIn.darkMode ? themeIn.priLightAlt : themeIn.secDarkAlt)
+                )
+                .padding(.trailing, offset)
+        }
+    }
+    
     //Modifier for custom toolbar background and sizing
     @ViewBuilder
     func ToolBarBG(pri: Color, sec: Color, darkMode: Bool) -> some View {

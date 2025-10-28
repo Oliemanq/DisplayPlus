@@ -9,6 +9,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 class Thing: NSObject, Encodable, Decodable, ObservableObject {
+    var theme: ThemeColors = ThemeColors()
+    
     var name: String
     var type: String
     var data: String
@@ -18,9 +20,7 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
     var spacerBelow: Bool = false
     var spacersRight: Int = 0
     var spacersBelow: Int = 0
-    
-    var theme: ThemeColors = ThemeColors()
-    
+        
     var updated: Bool = false
     
     private enum CodingKeys: String, CodingKey {
@@ -92,6 +92,10 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
     
     func update() {
         updated = true
+    }
+    
+    func addTheme(themeIn: ThemeColors) {
+        self.theme = themeIn
     }
     
     func getAuthStatus() -> Bool {
