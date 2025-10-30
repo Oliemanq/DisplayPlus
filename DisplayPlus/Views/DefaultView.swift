@@ -293,6 +293,7 @@ struct DefaultView: View {
         .onChange(of: colorScheme) { _, newScheme in
             // Update the theme whenever the color scheme changes (use newScheme, second param)
             theme.darkMode = (newScheme == .dark)
+            pm.updateTheme(themeIn: theme)
         }
         //Preventing delays from waiting for bg timer when changing pages
         .onChange(of: displayOn) {

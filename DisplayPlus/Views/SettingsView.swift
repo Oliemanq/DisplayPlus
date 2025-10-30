@@ -82,7 +82,7 @@ struct SettingsView: View {
                             Spacer()
                             Text("|")
                             NavigationLink {
-                                ThingsSettingsMain(pm)
+                                ThingsSettingsMain(pm: pm)
                             } label: {
                                 Image(systemName: "arrow.right.square.fill")
                             }

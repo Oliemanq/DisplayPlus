@@ -134,9 +134,6 @@ class G1BLEManager: NSObject, ObservableObject{
             connectionStatus = "Disconnected"
         }
         
-        let packet = Data([0x47]) //Unpair command
-        writeData(packet, to: "Both")
-        
         if let lp = leftPeripheral {
             centralManager.cancelPeripheralConnection(lp)
             leftPeripheral = nil

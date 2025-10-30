@@ -162,30 +162,26 @@ struct WeatherThingSettingsView: View {
                     Spacer()
                     Toggle("", isOn: Binding(get: { thing.location }, set: { thing.location = $0 }))
                 }
-                .settingsItem(themeIn: thing.theme, items: (thing.location ? 1 : 3), itemNum: 1)
+                .settingsItem(themeIn: thing.theme, items: (thing.location ? 1 : 2), itemNum: 1)
 
                 if !thing.location {
                     HStack {
                         Text("Pick set location")
                             .fixedSize(horizontal: true, vertical: false)
                         Spacer()
+                        Text("\(thing.fixedCityDisplay)")
+                            .settingsButtonText(themeIn: thing.theme)
                         Button(action: {
                             thing.showingLocationPicker = true
                         }) {
-                            Text("Select")
+                            Image(systemName: "map.circle")
                         }
-                        .padding(6)
-                        .mainButtonStyle(themeIn: thing.theme)
+                        .settingsButton(themeIn: thing.theme)
                     }
-                    .settingsItem(themeIn: thing.theme, items: 3, itemNum: 2)
+                    .settingsItem(themeIn: thing.theme, items: 2, itemNum: 2)
                     .offset(y: -8)
-
-                    HStack {
-                        Text("Current location: \(thing.fixedCityDisplay)")
-                            .ContextualBG(themeIn: thing.theme)
-                    }
-                    .settingsItem(themeIn: thing.theme, items: 3, itemNum: 3)
-                    .offset(y: -16)
+                    
+                    
                 }
             }
             .sheet(isPresented: Binding(get: { thing.showingLocationPicker }, set: { thing.showingLocationPicker = $0 })) {

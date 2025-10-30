@@ -16,10 +16,10 @@ class PageManager: ObservableObject {
     @Published var pages: [Page] = []
     @Published var lastModified = UUID()
     
-    @StateObject var theme: ThemeColors
+    @Published var theme: ThemeColors
     
     init(loadPagesOnStart: Bool = true, currentPageIn: String, themeIn: ThemeColors) {
-        _theme = StateObject(wrappedValue: themeIn)
+        _theme = Published(initialValue: themeIn)
 
         if loadPagesOnStart {
             loadPages()
@@ -29,6 +29,13 @@ class PageManager: ObservableObject {
         }
         updateCurrentPageValue(currentPageIn)
         
+    }
+    
+    func updateTheme(themeIn: ThemeColors) {
+        theme = themeIn
+        for page in pages {
+            page.addTheme(theme: themeIn)
+        }
     }
     
     func addPage(p: Page) {

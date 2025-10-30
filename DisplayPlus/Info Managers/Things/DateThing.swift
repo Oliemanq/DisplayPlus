@@ -105,7 +105,6 @@ class DateThing: Thing {
                         .settingsItem(themeIn: theme)
                     }
                 }
-                .navigationTitle("Date Settings")
             }
         )
     }
