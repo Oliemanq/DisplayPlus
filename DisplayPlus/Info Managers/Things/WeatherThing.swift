@@ -131,7 +131,7 @@ class WeatherThing: Thing {
                             NavigationLink {
                                 WeatherThingSettingsView(thing: self)
                             } label: {
-                                Image(systemName: "arrow.right.square.fill")
+                                Image(systemName: "arrow.up.right.circle")
                             }
                             .padding(.vertical, 8)
                             .padding(.horizontal, 24)
@@ -157,12 +157,22 @@ struct WeatherThingSettingsView: View {
 
             ScrollView(.vertical) {
                 HStack {
-                    Text("Use location for weather updates")
+                    Text("Use location")
                         .fixedSize(horizontal: true, vertical: false)
                     Spacer()
-                    Toggle("", isOn: Binding(get: { thing.location }, set: { thing.location = $0 }))
+                    Text(thing.location ? "On" : "Off")
+                        .settingsButtonText(themeIn: thing.theme)
+                    Button {
+                        withAnimation {
+                            thing.location.toggle()
+                        }
+                    } label: {
+                        Image(systemName: thing.location ? "location" : "location.slash")
+                            .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .nonRepeating))
+                            .settingsButton(themeIn: thing.theme)
+                    }
                 }
-                .settingsItem(themeIn: thing.theme, items: (thing.location ? 1 : 2), itemNum: 1)
+                .settingsItem(themeIn: thing.theme)
 
                 if !thing.location {
                     HStack {
@@ -178,8 +188,7 @@ struct WeatherThingSettingsView: View {
                         }
                         .settingsButton(themeIn: thing.theme)
                     }
-                    .settingsItem(themeIn: thing.theme, items: 2, itemNum: 2)
-                    .offset(y: -8)
+                    .settingsItem(themeIn: thing.theme)
                     
                     
                 }

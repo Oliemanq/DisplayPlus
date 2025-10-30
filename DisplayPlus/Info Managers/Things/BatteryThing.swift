@@ -77,7 +77,7 @@ class BatteryThing: Thing {
                             NavigationLink {
                                 BatterySettingsView(thing: self, themeIn: theme)
                             } label: {
-                                Image(systemName: "arrow.right.square.fill")
+                                Image(systemName: "arrow.up.right.circle")
                             }
                             .padding(.vertical, 8)
                             .padding(.horizontal, 24)
@@ -124,7 +124,8 @@ struct BatterySettingsView: View {
                             print("Changed primaryDevice in BatteryThing to \(thing.primaryDevice)")
                         } label: {
                             HStack {
-                                Image(systemName: "arrow.right.square.fill")
+                                Image(systemName: thing.primaryDevice == "Phone" ? "iphone.gen3" : "faceid")
+                                    .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .nonRepeating))
                                     .settingsButton(themeIn: theme)
                             }
                         }

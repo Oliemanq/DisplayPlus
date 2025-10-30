@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 import EventKit
 import Combine
+import SwiftUI
 
 //
 //  TimeThing.swift
@@ -18,7 +19,6 @@ import Combine
 //
 
 class CalendarThing: Thing {
-    
     var calendar: CalendarManager = CalendarManager()
     
     var events: [EKEvent] = []
@@ -26,6 +26,20 @@ class CalendarThing: Thing {
     @Published var numOfEvents: Int = 0
     @Published var authorizationStatus = ""
     @Published var errorMessage: String = ""
+    
+    var overrides: [String: String] {
+        get {
+            guard let data = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.data(forKey: "calendarOverrides"),
+                  let decoded = try? JSONDecoder().decode([String: String].self, from: data) else {
+                return [:]
+            }
+            return decoded
+        }
+        set {
+            guard let encoded = try? JSONEncoder().encode(newValue) else { return }
+            UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set(encoded, forKey: "calendarOverrides")
+        }
+    }
     
     init(name: String, size: String = "Small") {
         super.init(name: name, type: "Calendar", thingSize: size)
@@ -58,16 +72,15 @@ class CalendarThing: Thing {
                         )
                         
                         if event.title != nil {
-                            let title = event.title
+                            let title = event.title!
                             
-                            if (title! == "Shift as Computer Maintenance at TechCenter at TC/Lib/Comp Maint") {
-                                eventTemp.titleLine = ("Work")
+                            // Check if there's an override for this title
+                            let displayTitle = overrides[title] ?? title
+                            
+                            if displayTitle.count > 30 {
+                                eventTemp.titleLine = String(displayTitle.prefix(27)) + "..."
                             } else {
-                                if title!.count > 30 {
-                                    eventTemp.titleLine = String(title!.prefix(27)) + "..."
-                                } else {
-                                    eventTemp.titleLine = title!
-                                }
+                                eventTemp.titleLine = displayTitle
                             }
                         }
                         
@@ -174,5 +187,144 @@ class CalendarThing: Thing {
             return "Incorrect size input for Calendar thing: \(size), must be Medium, Large, or XL"
         }
     }
+    
+    override func getSettingsView() -> AnyView {
+        AnyView(
+            NavigationStack {
+                ZStack {
+                    //backgroundGrid(themeIn: theme)
+                    (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
+                        .ignoresSafeArea()
+                    VStack{
+                        HStack {
+                            Text("Calendar Thing Settings")
+                            Spacer()
+                            Text("|")
+                            NavigationLink {
+                                calendarSettingsPage(thing: self, themeIn: theme)
+                            } label: {
+                                Image(systemName: "arrow.up.right.circle")
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 24)
+                            .font(.system(size: 24))
+                            .mainButtonStyle(themeIn: theme)
+                        }
+                        .settingsItem(themeIn: theme)
+                    }
+                }
+            }
+        )
+    }
 }
 
+struct calendarSettingsPage: View {
+    @ObservedObject var thing: CalendarThing
+    @StateObject var theme: ThemeColors
+    
+    @State private var originalTitle: String = ""
+    @State private var replacementTitle: String = ""
+    
+    @State var showOverridePopup: Bool = false
+    @State var showAlert: Bool = false
+    
+    init(thing: CalendarThing, themeIn: ThemeColors) {
+        self.thing = thing
+        _theme = StateObject(wrappedValue: themeIn)
+    }
+    
+    var body: some View {
+        ZStack{
+            //backgroundGrid(themeIn: theme)
+            (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
+                .ignoresSafeArea()
+            ScrollView(.vertical) {
+                //Has not been implemented
+                HStack {
+                    Text("Text overrides")
+                    Spacer()
+                    Button {
+                        showOverridePopup = true
+                    } label: {
+                        Image(systemName: "pencil.circle.fill")
+                            .settingsButton(themeIn: theme)
+                    }
+                }
+                .settingsItem(themeIn: theme)
+            }
+        }
+        .navigationTitle("Calendar Thing Settings")
+        .sheet(isPresented: $showOverridePopup) {
+            ZStack {
+                (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
+                    .ignoresSafeArea()
+                
+                VStack {
+                    HStack {
+                        Text("Title Overrides allow you to change the text that's displayed on the glasses for certain events that you might not be able to control, like concerts, meetings, etc.")
+                            .font(theme.bodyFont)
+                            .frame(width: UIScreen.main.bounds.width * 0.8)
+                            .padding(10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(!theme.darkMode ? theme.secDarkAlt : theme.priLightAlt)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(!theme.darkMode ? theme.pri : theme.sec, lineWidth: 0.5)
+                                    )
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                    .padding(.top, 16)
+                    .padding(.bottom, 32)
+                    ScrollView(.vertical) {
+                        ForEach(thing.overrides.keys.sorted(), id: \.self) { key in
+                            HStack {
+                                Text("\"\(key)\"\n^ \"\(thing.overrides[key] ?? "")\"")
+                                Spacer()
+                                Button {
+                                    thing.overrides.removeValue(forKey: key)
+                                } label: {
+                                    Image(systemName: "minus.circle")
+                                        .settingsButton(themeIn: theme)
+                                }
+                            }
+                            .settingsItem(themeIn: theme)
+                        }
+                        Divider()
+                            .background(theme.darkMode ? theme.backgroundLight : theme.backgroundDark)
+                            .opacity(0.3)
+                            .padding(.vertical, 4)
+                        
+                        HStack{
+                            Text("Add title override")
+                            Spacer()
+                            Button {
+                                showAlert = true
+                            } label: {
+                                Image(systemName: "plus.circle")
+                                    .settingsButton(themeIn: theme)
+                            }
+                        }
+                        .settingsItem(themeIn: theme)
+                    }
+                }
+            }
+            .alert("Add Title Override", isPresented: $showAlert) {
+                TextField("Original Event Title", text: $originalTitle)
+                TextField("Replacement Title", text: $replacementTitle)
+                Button("Cancel", role: .cancel) {
+                    originalTitle = ""
+                    replacementTitle = ""
+                }
+                Button("Add") {
+                    thing.overrides[originalTitle] = replacementTitle
+                    originalTitle = ""
+                    replacementTitle = ""
+                }
+            } message: {
+                Text("Enter the original event title and its replacement")
+            }
+        }
+    }
+}

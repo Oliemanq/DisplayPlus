@@ -95,7 +95,7 @@ class DateThing: Thing {
                             NavigationLink {
                                 dateSettingsPage(thing: self, themeIn: theme)
                             } label: {
-                                Image(systemName: "arrow.right.square.fill")
+                                Image(systemName: "arrow.up.right.circle")
                             }
                             .padding(.vertical, 8)
                             .padding(.horizontal, 24)
@@ -121,27 +121,33 @@ struct dateSettingsPage: View {
         
     
     var body: some View {
-        ScrollView(.vertical) {
-            //Has not been implemented
-            HStack {
-                Text("Date format")
-                Spacer()
-                Text(thing.format == "US" ? "MM/DD (US)" : "DD/MM (EU)")
-                    .settingsButtonText(themeIn: theme)
-                Button {
-                    withAnimation {
-                        thing.format = (thing.format == "US") ? "EU" : "US"
+        ZStack{
+            //backgroundGrid(themeIn: theme)
+            (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
+                .ignoresSafeArea()
+            ScrollView(.vertical) {
+                //Has not been implemented
+                HStack {
+                    Text("Date format")
+                    Spacer()
+                    Text(thing.format == "US" ? "MM/DD (US)" : "DD/MM (EU)")
+                        .settingsButtonText(themeIn: theme)
+                    Button {
+                        withAnimation {
+                            thing.format = (thing.format == "US") ? "EU" : "US"
+                        }
+                        
+                        UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set(thing.format, forKey: "dateFormat")
+                        
+                        print("Date format set to \(thing.format)")
+                    } label: {
+                        Image(systemName: "calendar.circle")
+                            .symbolEffect(.wiggle.up.byLayer, options: .nonRepeating, value: thing.format == "US")
+                            .settingsButton(themeIn: theme)
                     }
-
-                    UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set(thing.format, forKey: "dateFormat")
-                    
-                    print("Date format set to \(thing.format)")
-                } label: {
-                    Image(systemName: "arrow.right.square.fill")
-                        .settingsButton(themeIn: theme)
                 }
+                .settingsItem(themeIn: theme)
             }
-            .settingsItem(themeIn: theme)
         }
     }
 }

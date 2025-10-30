@@ -64,7 +64,7 @@ class BackgroundTaskManager: ObservableObject {
                 
         if ble.connectionState == .connectedBoth {
             // Less frequent updates
-            if counter % 10 == 0 { // Every 5 seconds (10 * 0.5s)
+            if counter % 20 == 0 { // Every 10 seconds (20 * 0.5s)
                 ble.fetchData()
                 
                 if logging {

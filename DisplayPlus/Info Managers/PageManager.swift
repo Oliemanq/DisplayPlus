@@ -25,7 +25,11 @@ class PageManager: ObservableObject {
             loadPages()
         }
         if pages.isEmpty {
-            DefaultPageCreator() //Creating default page if no pages found
+            if isNotPhone() {
+                DefaultWithAllThings()
+            }else {
+                DefaultPageCreator() //Creating default page if no pages found
+            }
         }
         updateCurrentPageValue(currentPageIn)
         
@@ -96,6 +100,35 @@ class PageManager: ObservableObject {
         
         let p = Page(name: "Default")
         p.newRow( [t,d,b,w], row: 0)
+        return p
+    }
+    
+    func DefaultWithAllThings() {
+        print("Creating default page with all things and adding it to pm pages")
+        let t = TimeThing(name: "TimeDefaultPage")
+        let d = DateThing(name: "DateDefaultPage")
+        let b = BatteryThing(name: "BatteryDefaultPage")
+        let w = WeatherThing(name: "WeatherDefaultPage")
+        let c = CalendarThing(name: "CalendarDefaultPage", size: "Medium")
+        let m = MusicThing(name: "MusicDefaultPage", size: "Medium")
+        
+        let p = Page(name: "Default")
+        p.newRow( [t,d,b,w], row: 0)
+        p.newRow( [c,m], row: 1)
+        pages.append(p)
+    }
+    func DefaultWithAllThingsWOutput() -> Page {
+        print("Creating default page with all things and adding it to pm pages")
+        let t = TimeThing(name: "TimeDefaultPage")
+        let d = DateThing(name: "DateDefaultPage")
+        let b = BatteryThing(name: "BatteryDefaultPage")
+        let w = WeatherThing(name: "WeatherDefaultPage")
+        let c = CalendarThing(name: "CalendarDefaultPage", size: "Medium")
+        let m = MusicThing(name: "MusicDefaultPage", size: "Medium")
+        
+        let p = Page(name: "Default")
+        p.newRow( [t,d,b,w], row: 0)
+        p.newRow( [c,m], row: 1)
         return p
     }
     

@@ -41,18 +41,6 @@ class TimeThing: Thing {
         }
     }
     
-    
-    private func settingsPage() -> some View {
-        ScrollView(.vertical) {
-            HStack {
-                Text("24 Hour time")
-                Spacer()
-                Toggle("", isOn: $militaryTime)
-            }
-            .settingsItem(themeIn: theme)
-        }
-        .navigationTitle("Time Settings")
-    }
     override func getSettingsView() -> AnyView {
         AnyView(
             NavigationStack {
@@ -66,9 +54,9 @@ class TimeThing: Thing {
                             Spacer()
                             Text("|")
                             NavigationLink {
-                                settingsPage()
+                                TimeSettingsView(thing: self, themeIn: theme)
                             } label: {
-                                Image(systemName: "arrow.right.square.fill")
+                                Image(systemName: "arrow.up.right.circle")
                             }
                             .padding(.vertical, 8)
                             .padding(.horizontal, 24)
@@ -83,3 +71,41 @@ class TimeThing: Thing {
     }
 }
 
+
+struct TimeSettingsView: View {
+    @ObservedObject var thing: TimeThing
+    @StateObject var theme: ThemeColors
+    
+    @Namespace var namespace
+    
+    init(thing: TimeThing, themeIn: ThemeColors){
+        self.thing = thing
+        _theme = StateObject(wrappedValue: themeIn)
+    }
+
+    var body: some View {
+        ZStack{
+            //backgroundGrid(themeIn: theme)
+            (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
+                .ignoresSafeArea()
+            ScrollView(.vertical) {
+                HStack {
+                    Text("24 Hour time")
+                    Spacer()
+                    Text(thing.militaryTime ? "On" : "Off")
+                        .settingsButtonText(themeIn: theme)
+                    Button {
+                        thing.militaryTime.toggle()
+                        thing.update()
+                    } label: {
+                        Image(systemName: thing.militaryTime ? "24.square" : "12.circle")
+                            .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .speed(5).nonRepeating))
+                            .settingsButton(themeIn: theme)
+                    }
+                }
+                .settingsItem(themeIn: theme)
+            }
+            .navigationTitle("Time Settings")
+        }
+    }
+}

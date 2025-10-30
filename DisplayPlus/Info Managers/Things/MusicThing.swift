@@ -210,13 +210,19 @@ class MusicThing: Thing {
     }
     
     private func settingsPage() -> some View {
-        ScrollView(.vertical) {
-            HStack {
-                Text("No settings available for Music Thing")
+        ZStack{
+            //backgroundGrid(themeIn: theme)
+            (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
+                .ignoresSafeArea()
+            
+            ScrollView(.vertical) {
+                HStack {
+                    Text("No settings available for Music Thing")
+                }
+                .settingsItem(themeIn: theme)
             }
-            .settingsItem(themeIn: theme)
+            .navigationTitle("Music Settings")
         }
-        .navigationTitle("Music Settings")
     }
     override func getSettingsView() -> AnyView {
         AnyView(
@@ -233,7 +239,7 @@ class MusicThing: Thing {
                             NavigationLink {
                                 settingsPage()
                             } label: {
-                                Image(systemName: "arrow.right.square.fill")
+                                Image(systemName: "arrow.up.right.circle")
                             }
                             .padding(.vertical, 8)
                             .padding(.horizontal, 24)

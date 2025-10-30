@@ -63,17 +63,37 @@ struct SettingsView: View {
                         HStack{
                             Text("Display timer")
                             Spacer()
-                            Toggle("", isOn: $autoOff)
-                                .disabled(headsUp)
+                            Text(autoOff ? "On" : "Off")
+                                .settingsButtonText(themeIn: theme)
+                            Button {
+                                withAnimation{
+                                    autoOff.toggle()
+                                }
+                            } label: {
+                                Image(systemName: "10.arrow.trianglehead.counterclockwise")
+                                    .symbolEffect(.rotate.byLayer, options: .speed(10), value: autoOff)
+                                    .settingsButton(themeIn: theme)
+                            }
                         }
                         .settingsItem(themeIn: theme)
                         
                         //use heads up for display toggle
                         HStack{
-                            Text("Use HeadsUp for dashboard")
+                            Text("Use HeadsUp gesture")
                                 .fixedSize(horizontal: true, vertical: false)
                             Spacer()
-                            Toggle("", isOn: $headsUp)
+                            Text(headsUp ? "On" : "Off")
+                                .settingsButtonText(themeIn: theme)
+                            Button {
+                                withAnimation{
+                                    headsUp.toggle()
+                                }
+                            } label: {
+                                Image(systemName:headsUp ? "arrow.up.and.person.rectangle.portrait" : "rectangle.portrait.slash")
+                                    .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .nonRepeating))
+                                    .settingsButton(themeIn: theme)
+                            }
+                            
                         }
                         .settingsItem(themeIn: theme)
                         
@@ -84,7 +104,7 @@ struct SettingsView: View {
                             NavigationLink {
                                 ThingsSettingsMain(pm: pm)
                             } label: {
-                                Image(systemName: "arrow.right.square.fill")
+                                Image(systemName: "arrow.up.right.circle")
                             }
                             .font(.system(size: 24))
                             .settingsButton(themeIn: theme)
@@ -94,7 +114,7 @@ struct SettingsView: View {
                         HStack {
                             Text("Live Activity \(showingActivity ? "" : "not ")running")
                             Spacer()
-                            Button("\(Image(systemName: showingActivity ? "stop.circle" : "play.circle"))") {
+                            Button {
                                 if showingActivity {
                                     showingActivity = false
                                     la.stopActivity()
@@ -102,12 +122,11 @@ struct SettingsView: View {
                                     showingActivity = true
                                     la.startActivity()
                                 }
+                            } label: {
+                                Image(systemName: showingActivity ? "stop.circle" : "play.square")
+                                    .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .speed(5).nonRepeating))
+                                    .settingsButton(themeIn: theme)
                             }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 24)
-                            .font(.system(size: 24))
-                            .mainButtonStyle(themeIn: theme)
-                                
                         }
                         .settingsItem(themeIn: theme)
                         
@@ -174,5 +193,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), pmIn: PageManager(currentPageIn: "Default", themeIn: ThemeColors()), liveIn: LiveActivityManager())
+    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), pmIn: PageManager(currentPageIn: "DefaultAllThings", themeIn: ThemeColors()), liveIn: LiveActivityManager())
 }
