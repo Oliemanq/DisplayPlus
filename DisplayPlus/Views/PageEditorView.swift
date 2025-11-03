@@ -18,6 +18,7 @@ struct PageEditorView: View {
     @StateObject var theme: ThemeColors
 
     @State private var draggedThing: Thing? = nil // Track the currently dragged thing
+    @State private var thingBeingDragged: Bool = false
     @State private var refreshID = UUID() // Add refresh trigger
     
     @State private var showAddPageAlert = false
@@ -56,32 +57,53 @@ struct PageEditorView: View {
                         //MARK: - Unused things display/draggable start
                         if !unusedThings.isEmpty {
                             VStack{
-                                Text("Unused Things")
-                                    .font(theme.headerFont)
-                                    .padding(.top, 8)
+                                HStack{
+                                    Text("Unused Things")
+                                        .font(theme.headerFont)
+                                    Button {
+                                        thingBeingDragged = false
+                                    } label: {
+                                        Text("Reset dragged state")
+                                            .padding(10)
+                                            .mainButtonStyle(themeIn: theme)
+                                    }
+                                }
+                                .padding(.top, 8)
                                 Spacer()
                                 HStack{
                                     ForEach(unusedThings.indices, id: \.self) { index in
-                                        Text("\(unusedThings[index].name)")
-                                            .onDrag {
-                                                if !unusedThings.isEmpty {
-                                                    let thing = unusedThings[index]
-                                                    withAnimation {
-                                                        draggedThing = thing
-                                                    }
-                                                    // Encode a simple payload instead of attempting to encode the subclass object
-                                                    let payload = "\(thing.name):\(thing.type):\(thing.size)"
-                                                    if let data = payload.data(using: .utf8) {
-                                                        return NSItemProvider(item: data as NSData, typeIdentifier: UTType.data.identifier)
-                                                    } else {
-                                                        print("Error: Could not encode Thing for dragging.")
-                                                        return NSItemProvider()
-                                                    }
+                                        HStack{
+                                            Text("\(unusedThings[index].name)")
+                                                
+                                            Image(systemName: "x.circle")
+                                                .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
+                                                .frame(width: 10, height: 10)
+                                                .onTapGesture {
+                                                    unusedThings.remove(at: index)
+                                                }
+                                        }
+                                        .onDrag {
+                                            if !unusedThings.isEmpty {
+                                                let thing = unusedThings[index]
+                                                withAnimation {
+                                                    draggedThing = thing
+                                                    thingBeingDragged = true
+                                                }
+                                                // Encode a simple payload instead of attempting to encode the subclass object
+                                                let payload = "\(thing.name):\(thing.type):\(thing.size)"
+                                                if let data = payload.data(using: .utf8) {
+                                                    return NSItemProvider(item: data as NSData, typeIdentifier: UTType.data.identifier)
                                                 } else {
-                                                    print("Error: unusedThings is empty, cannot drag.")
+                                                    print("Error: Could not encode Thing for dragging.")
                                                     return NSItemProvider()
                                                 }
+                                            } else {
+                                                print("Error: unusedThings is empty, cannot drag.")
+                                                return NSItemProvider()
                                             }
+                                        }
+                                        .padding(10)
+                                        .mainButtonStyle(themeIn: theme)
                                     }
                                 }
                                 Spacer()
@@ -119,7 +141,6 @@ struct PageEditorView: View {
                             .padding(10)
                             .mainButtonStyle(themeIn: theme)
                         }
-                        .frame(height: 250)
                         .homeItem(themeIn: theme)
                         .padding(.bottom, 5)
                         
@@ -131,9 +152,12 @@ struct PageEditorView: View {
                                 .foregroundColor(theme.darkMode ? theme.pri : theme.sec)
                                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                             //MARK: - Grid display
-                            ScrollView(.horizontal) {
+                            if thingBeingDragged {
+                                DropTargetView(size: draggedThing?.size ?? "Small")
+                            } else {
                                 VStack(spacing: 2){
                                     let page = pm.getCurrentPage()
+                                    
                                     ForEach(0..<4, id: \.self) { i in
                                         buildDisplayChunk(row: page.getRow(row: i), rowNum: i)
                                     }
@@ -381,6 +405,7 @@ struct PageEditorView: View {
 
                     refreshID = UUID()
                     draggedThing = nil
+                    thingBeingDragged = false
                 }
             }
         }
@@ -416,9 +441,65 @@ extension PageEditorView {
         }
     }
     
+    func DropTargetView(size: String) -> some View {
+        VStack(spacing: 2) {
+            ForEach(0..<4, id: \.self) { i in
+                HStack(spacing: 2) {
+                    dropRowContent(size: size, row: i)
+                }
+            }
+        }
+    }
+
     @ViewBuilder
-    func thingDisplaySegment(thing: Thing, RTotal: Int = 1, RRemaining: Int = 0, DTotal: Int = 1, DRemaining: Int = 0, thingNumInRow: Int, rowNum: Int) -> some View {
-        let isTheThing: Bool = (RTotal - RRemaining == 1)
+    private func dropRowContent(size: String, row: Int) -> some View {
+        switch size {
+        case "Small":
+            ForEach(0..<4, id: \.self) { j in
+                thingDisplaySegment(thing: Thing(name: "\(row),\(j)", type: "Time", thingSize: "Small"), thingNumInRow: j, rowNum: row, dropSpot: true)
+                    .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
+                        return handleDrop(providers: providers, row: row, col: j)
+                    }
+            }
+        case "Medium", "Mediun":
+            ForEach(0..<2, id: \.self) { j in
+                HStack {
+                    thingDisplaySegment(thing: Thing(name: "\(row),\(j)", type: "Time", thingSize: "Medium"), RTotal: 2, RRemaining: 1, thingNumInRow: j, rowNum: row, dropSpot: true)
+                    thingDisplaySegment(thing: Thing(name: "\(row),\(j)", type: "Time", thingSize: "Medium"), RTotal: 2, RRemaining: 0, thingNumInRow: j, rowNum: row, dropSpot: true)
+                }
+                .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
+                    return handleDrop(providers: providers, row: row, col: j)
+                }
+            }
+        case "Large":
+            HStack {
+                thingDisplaySegment(thing: Thing(name: "\(row),1", type: "Time", thingSize: "Large"), RTotal: 4, RRemaining: 3, thingNumInRow: 1, rowNum: row, dropSpot: true)
+                thingDisplaySegment(thing: Thing(name: "\(row),1", type: "Time", thingSize: "Large"), RTotal: 4, RRemaining: 2, thingNumInRow: 1, rowNum: row, dropSpot: true)
+                thingDisplaySegment(thing: Thing(name: "\(row),1", type: "Time", thingSize: "Large"), RTotal: 4, RRemaining: 1, thingNumInRow: 1, rowNum: row, dropSpot: true)
+                thingDisplaySegment(thing: Thing(name: "\(row),1", type: "Time", thingSize: "Large"), RTotal: 4, RRemaining: 0, thingNumInRow: 1, rowNum: row, dropSpot: true)
+            }
+            .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
+                return handleDrop(providers: providers, row: row, col: 1)
+            }
+        case "XL":
+            if row % 2 == 0 {
+                thingDisplaySegment(thing: Thing(name: "\(row),1", type: "Time", thingSize: "XL"), RTotal: 4, RRemaining: 3, DTotal: 2, DRemaining: 1, thingNumInRow: 1, rowNum: row, dropSpot: true)
+                    .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
+                        return handleDrop(providers: providers, row: row, col: 1)
+                    }
+            }
+        default:
+            ForEach(0..<4, id: \.self) { j in
+                thingDisplaySegment(thing: Thing(name: "Invalid size \(row),\(j)", type: "Time", thingSize: "Small"), thingNumInRow: j, rowNum: row, dropSpot: true)
+                    .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
+                        return handleDrop(providers: providers, row: row, col: j)
+                    }
+            }
+        }
+    }
+    @ViewBuilder
+    func thingDisplaySegment(thing: Thing, RTotal: Int = 1, RRemaining: Int = 0, DTotal: Int = 1, DRemaining: Int = 0, thingNumInRow: Int, rowNum: Int, dropSpot: Bool = false) -> some View {
+        let isShowing: Bool = (RTotal - RRemaining == 1)
         
         let segmentWidth: CGFloat = {
             switch RTotal {
@@ -458,31 +539,30 @@ extension PageEditorView {
             Text(thing.name)
                 .font(.system(size: 12))
                 .lineLimit(1)
-                .frame(width: isTheThing ? segmentWidth : 0, height: isTheThing ? segmentHeight : 0)
+                .frame(width: isShowing ? segmentWidth : 0, height: isShowing ? segmentHeight : 0)
                 .editorBlock(themeIn: theme, i: numInThing, j: rowInThing)
                 .onTapGesture {
                     print("Tapped \(thing.name) at \(numInThing),\(rowInThing)")
                 }
-            Image(systemName: "x.circle")
-                .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
-                .frame(width: 10, height: 10)
-                .opacity(0.5)
-                .background(
-                    Circle()
-                        .frame(width: 15, height: 15)
-                        .foregroundStyle(.ultraThickMaterial)
-                )
-                .offset(x: segmentWidth/2 - 5, y: -segmentHeight/2 + 5)
-                .onTapGesture {
-                    print("Removing thing at \(rowNum),\(thingNumInRow)")
-                    pm.getCurrentPage().removeThingAt(row: rowNum, index: thingNumInRow)
-                    pm.savePages()
-                    refreshID = UUID()
-                }
+            if !dropSpot {
+                Image(systemName: "x.circle")
+                    .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
+                    .frame(width: 10, height: 10)
+                    .opacity(0.5)
+                    .background(
+                        Circle()
+                            .frame(width: 15, height: 15)
+                            .foregroundStyle(.ultraThickMaterial)
+                    )
+                    .offset(x: segmentWidth/2 - 5, y: -segmentHeight/2 + 5)
+                    .onTapGesture {
+                        print("Removing thing at \(rowNum),\(thingNumInRow)")
+                        pm.getCurrentPage().removeThingAt(row: rowNum, index: thingNumInRow)
+                        pm.savePages()
+                        refreshID = UUID()
+                    }
+            }
         }
-         .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
-             return handleDrop(providers: providers, row: rowNum, col: thingNumInRow)
-         }
     }
 }
 
