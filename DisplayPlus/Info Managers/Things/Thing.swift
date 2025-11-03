@@ -20,6 +20,25 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
     var spacerBelow: Bool = false
     var spacersRight: Int = 0
     var spacersBelow: Int = 0
+    
+    var sizeRaw: CGFloat {
+        if type == "Spacer" {
+            return 0
+        }
+        switch size {
+        case "Small":
+            return 1
+        case "Medium":
+            return 2
+        case "Large":
+            return 4
+        case "XL":
+            return 4
+        default:
+            return 1
+        }
+        
+    }
         
     var updated: Bool = false
     
@@ -36,9 +55,6 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
     }
     
     init(name: String, type: String, data: String = "", thingSize: String = "Small"){
-        if type == "Empty" {
-            print("Created empty thing")
-        }
         self.name = name
         self.type = type
         self.data = data

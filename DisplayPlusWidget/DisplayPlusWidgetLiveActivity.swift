@@ -60,6 +60,7 @@ struct LiveActivityView: View {
                     Spacer()
                     Button(intent: PageIntents.NextPage()) {
                         Image(systemName: "book.pages")
+                            .symbolEffect(.bounce.down.byLayer, options: .nonRepeating)
                     }
                     .accentColor(Color.clear)
                     .padding(5)
@@ -70,7 +71,8 @@ struct LiveActivityView: View {
                     )
                     
                     Button(intent: DisplayIntents.ToggleDisplay()) {
-                        Image(systemName: context.state.displayOn ? "lightswitch.on" : "lightswitch.off")
+                        Image(systemName: context.state.displayOn ? "lightswitch.on" : "lightswitch.off.fill")
+                            .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .nonRepeating))
                     }
                     .accentColor(Color.clear)
                     .padding(5)

@@ -130,81 +130,13 @@ struct PageEditorView: View {
                                 .frame(width: geometry.size.width*0.95, height: rowHeight*4 + 20)
                                 .foregroundColor(theme.darkMode ? theme.pri : theme.sec)
                                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            VStack(spacing: 2){
-                                ForEach(0..<4, id: \.self) { i in
-                                    HStack(spacing: 2){
-                                        ForEach(0..<4, id: \.self) { j in
-                                            let page = pm.getCurrentPage()
-                                            let cellSize: String = page.thingsOrdered[i][j].size
-                                            let cellType = page.thingsOrdered[i][j].type
-                                            let cellWidthUnit = geometry.size.width*0.9 / 4
-                                            
-                                            let frameWidth: CGFloat = {
-                                                let size = draggedThing?.size ?? cellSize
-                                                switch size {
-                                                case "Medium":
-                                                    return (cellWidthUnit * 2) + 2
-                                                case "Large", "XL":
-                                                    return (cellWidthUnit * 4) + 6
-                                                default:
-                                                    return cellWidthUnit
-                                                }
-                                            }()
-                                            let frameHeight: CGFloat = {
-                                                let size = draggedThing?.size ?? cellSize
-                                                return (size == "XL" ? rowHeight * 2 : rowHeight)
-                                            }()
-                                            let showing: Bool = {
-                                                // prefer the dragged thing size while dragging, otherwise use the cell's own size/type
-                                                let size = draggedThing?.size ?? cellSize
-                                                if cellType == "Spacer" && draggedThing == nil {
-                                                    return false
-                                                }
-                                                switch size {
-                                                case "Medium": return j % 2 == 0
-                                                case "Large": return j == 0
-                                                case "XL": return i % 2 == 0 && j == 0
-                                                default: return true
-                                                }
-                                            }()
-                                            
-                                            ZStack{
-                                                if showing {
-                                                    // Show the current display text so it updates after a drop
-                                                    Text(cellType == "Blank" ? "(Empty @\(i),\(j))" : page.thingsOrdered[i][j].name)
-                                                        .font(.system(size: 12))
-                                                        .lineLimit(1)
-                                                        .frame(width: showing ? frameWidth : 0, height: showing ? frameHeight : 0)
-                                                        .editorBlock(themeIn: theme, i: i, j: j)
-                                                        .onTapGesture {
-                                                            print("Tapped thing at \(i),\(j) - \(page.thingsOrdered[i][j].name)")
-                                                        }
-                                                    Image(systemName: "x.circle")
-                                                        .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
-                                                        .frame(width: 10, height: 10)
-                                                        .opacity(0.5)
-                                                        .background(
-                                                            Circle()
-                                                                .frame(width: 15, height: 15)
-                                                                .foregroundStyle(.ultraThickMaterial)
-                                                        )
-                                                        .offset(x: frameWidth/2 - 5, y: -frameHeight/2 + 5)
-                                                        .onTapGesture {
-                                                            print("Removing thing at \(i),\(j)")
-                                                            page.removeThingAt(row: i, index: j)
-                                                            pm.savePages()
-                                                            refreshID = UUID()
-                                                        }
-                                                }
-                                            }
-                                             
-                                             
-                                             .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
-                                                 return handleDrop(providers: providers, row: i, col: j)
-                                             }
-                                        }
+                            //MARK: - Grid display
+                            ScrollView(.horizontal) {
+                                VStack(spacing: 2){
+                                    let page = pm.getCurrentPage()
+                                    ForEach(0..<4, id: \.self) { i in
+                                        buildDisplayChunk(row: page.getRow(row: i), rowNum: i)
                                     }
-                                    
                                 }
                             }
                         }
@@ -456,8 +388,109 @@ struct PageEditorView: View {
         return true
     }
 }
-#Preview {
-    let theme = ThemeColors()
-    PageEditorView(pmIn: PageManager(currentPageIn: "Default", themeIn: theme))
+extension PageEditorView {
+    func buildDisplayChunk(row: [Thing], rowNum: Int) -> some View {
+        HStack {
+            ForEach(0..<row.count, id: \.self) { i in
+                if !row.isEmpty {
+                    let thing = row[i]
+                    let thingSize = thing.size
+                    switch thingSize {
+                    case "Small":
+                        thingDisplaySegment(thing: thing, thingNumInRow: i, rowNum: rowNum)
+                    case "Medium":
+                        thingDisplaySegment(thing: thing, RTotal: 2, RRemaining: 1, thingNumInRow: i, rowNum: rowNum)
+                        thingDisplaySegment(thing: thing, RTotal: 2, RRemaining: 0, thingNumInRow: i, rowNum: rowNum)
+                    case "Large":
+                        thingDisplaySegment(thing: thing, RTotal: 4, RRemaining: 3, thingNumInRow: i, rowNum: rowNum)
+                        thingDisplaySegment(thing: thing, RTotal: 4, RRemaining: 2, thingNumInRow: i, rowNum: rowNum)
+                        thingDisplaySegment(thing: thing, RTotal: 4, RRemaining: 1, thingNumInRow: i,   rowNum: rowNum)
+                        thingDisplaySegment(thing: thing, RTotal: 4, RRemaining: 0, thingNumInRow: i, rowNum: rowNum)
+                    case "XL":
+                        thingDisplaySegment(thing: thing, RTotal: 4, RRemaining: 3, DTotal: 2, DRemaining: 1, thingNumInRow: i, rowNum: rowNum)
+                    default:
+                        Text("\(Image(systemName: "x.circle")) Invalid size")
+                    }
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    func thingDisplaySegment(thing: Thing, RTotal: Int = 1, RRemaining: Int = 0, DTotal: Int = 1, DRemaining: Int = 0, thingNumInRow: Int, rowNum: Int) -> some View {
+        let isTheThing: Bool = (RTotal - RRemaining == 1)
+        
+        let segmentWidth: CGFloat = {
+            switch RTotal {
+            case 1:
+                //Size Small
+                return (UIScreen.main.bounds.width*0.9 / 4)
+            case 2:
+                //Size Medium
+                return (UIScreen.main.bounds.width*0.9 / 4) * 2
+            case 4:
+                //Size Large or XL
+                return UIScreen.main.bounds.width*0.9
+            default:
+                print("Invalid RTotal value: \(RTotal), defaulting to Small size width.")
+                return (UIScreen.main.bounds.width*0.9 / 4)
+            }
+        }()
+        let segmentHeight: CGFloat = {
+            switch DTotal {
+            case 1:
+                //Size Small, Medium, Large
+                return 35
+            case 2:
+                //Size XL
+                return 70
+            default:
+                print("Invalid DTotal value: \(DTotal), defaulting to Small size height.")
+                return 35
+            }
+        }()
+        
+        let numInThing = RTotal - RRemaining
+        let rowInThing = DTotal - DRemaining
+        
+        ZStack{
+            // Show the current display text so it updates after a drop
+            Text(thing.name)
+                .font(.system(size: 12))
+                .lineLimit(1)
+                .frame(width: isTheThing ? segmentWidth : 0, height: isTheThing ? segmentHeight : 0)
+                .editorBlock(themeIn: theme, i: numInThing, j: rowInThing)
+                .onTapGesture {
+                    print("Tapped \(thing.name) at \(numInThing),\(rowInThing)")
+                }
+            Image(systemName: "x.circle")
+                .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
+                .frame(width: 10, height: 10)
+                .opacity(0.5)
+                .background(
+                    Circle()
+                        .frame(width: 15, height: 15)
+                        .foregroundStyle(.ultraThickMaterial)
+                )
+                .offset(x: segmentWidth/2 - 5, y: -segmentHeight/2 + 5)
+                .onTapGesture {
+                    print("Removing thing at \(rowNum),\(thingNumInRow)")
+                    pm.getCurrentPage().removeThingAt(row: rowNum, index: thingNumInRow)
+                    pm.savePages()
+                    refreshID = UUID()
+                }
+        }
+         .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
+             return handleDrop(providers: providers, row: rowNum, col: thingNumInRow)
+         }
+    }
 }
 
+#Preview {
+    let theme = ThemeColors()
+    let pm = {
+        let temp = PageManager(currentPageIn: "Music", themeIn: theme)
+        return temp
+    }()
+    PageEditorView(pmIn: pm)
+}
