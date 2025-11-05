@@ -237,7 +237,7 @@ struct DefaultView: View {
                         let hasRight = (pair.right != nil)
                         
                         VStack{
-                            Text("Pair for channel \(pair.channel.map(String.init) ?? "unknown")")
+                            Text("\(String(describing: pair.model!)) pair for channel \(pair.channel.map(String.init) ?? "unknown")")
                             HStack {
                                 HStack{
                                     Image(systemName: hasLeft ? "checkmark.circle" : "x.circle")

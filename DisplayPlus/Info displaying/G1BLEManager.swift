@@ -18,6 +18,7 @@ import WidgetKit
 
 struct G1DiscoveredPair {
     var channel: Int? = nil
+    var model: String? = nil
     var left: CBPeripheral? = nil
     var right: CBPeripheral? = nil
 }
@@ -128,11 +129,9 @@ class G1BLEManager: NSObject, ObservableObject{
     ///Disconnect from both arms.
     func disconnect() {
         @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
-
-        withAnimation{
-            connectionState = .disconnected
-            connectionStatus = "Disconnected"
-        }
+        
+        connectionState = .disconnected
+        connectionStatus = "Disconnected"
         
         if let lp = leftPeripheral {
             centralManager.cancelPeripheralConnection(lp)
@@ -193,6 +192,7 @@ class G1BLEManager: NSObject, ObservableObject{
         let components = name.components(separatedBy: "_")
         guard components.count >= 4 else { return }
 
+        let model = components[0].components(separatedBy: " ")[1]
         let channelNumber = components[1]
         let sideIndicator = components[2]
         let pairKey = "Pair_\(channelNumber)"
@@ -206,7 +206,7 @@ class G1BLEManager: NSObject, ObservableObject{
                 print("Updated left on existing pair for channel \(channelNumber)")
             } else {
                 print(discoveredPairs)
-                let newPair = G1DiscoveredPair(channel: Int(channelNumber), left: peripheral)
+                let newPair = G1DiscoveredPair(channel: Int(channelNumber), model: model, left: peripheral)
                 discoveredPairs[pairKey] = newPair
                 print("Created a new pair and left for channel \(channelNumber)")
             }

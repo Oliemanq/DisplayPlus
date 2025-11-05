@@ -413,24 +413,6 @@ class Page: Observable {
             rowWidth += thing.sizeRaw
         }
 
-        switch rowIn.count {
-        case 0...3:
-            var i = rowWidth
-            while i < 4 {
-                finalRow.append(Thing(name: "Empty\(i)", type: "Blank"))
-                i += 1
-            }
-        case 4:
-            break
-        case let x where x > 4:
-            print("Row width \(rowWidth) exceeds maximum of 4")
-            while finalRow.count > 4 {
-                finalRow.removeLast()
-            }
-        default:
-            print("Invalid row width calculated")
-        }
-
         guard thingsOrdered.indices.contains(row) else {
             print("Invalid row index \(row). Valid range 0...\(thingsOrdered.count - 1)")
             return

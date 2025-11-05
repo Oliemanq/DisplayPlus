@@ -60,13 +60,6 @@ struct PageEditorView: View {
                                 HStack{
                                     Text("Unused Things")
                                         .font(theme.headerFont)
-                                    Button {
-                                        thingBeingDragged = false
-                                    } label: {
-                                        Text("Reset dragged state")
-                                            .padding(10)
-                                            .mainButtonStyle(themeIn: theme)
-                                    }
                                 }
                                 .padding(.top, 8)
                                 Spacer()
@@ -74,7 +67,7 @@ struct PageEditorView: View {
                                     ForEach(unusedThings.indices, id: \.self) { index in
                                         HStack{
                                             Text("\(unusedThings[index].name)")
-                                                
+                                            
                                             Image(systemName: "x.circle")
                                                 .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
                                                 .frame(width: 10, height: 10)
@@ -111,61 +104,71 @@ struct PageEditorView: View {
                             .homeItem(themeIn: theme)
                         }
                         
-                        VStack{
-                            Button {
-                                pm.log()
-                                print("Logging pm ", currentPage)
-                                print("Pages in storage: \(pagesString)")
-                            } label: {
-                                Text("print Page info")
-                            }
-                            .padding(10)
-                            .mainButtonStyle(themeIn: theme)
-                            Button {
-                                pm.savePages()
-                                print("Saving pages")
-                            } label: {
-                                Text("Force save pages")
-                            }
-                            .padding(10)
-                            .mainButtonStyle(themeIn: theme)
-                            Button {
-                                UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.removeObject(forKey: "pages")
-                                UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.removeObject(forKey: "currentPage")
-                                pm.resetPages()
-                                print("Reset pages")
-                                exit(0)
-                            } label: {
-                                Text("Reset all pages in storage")
-                            }
-                            .padding(10)
-                            .mainButtonStyle(themeIn: theme)
-                        }
-                        .homeItem(themeIn: theme)
-                        .padding(.bottom, 5)
+                        //MARK: - Debug buttons
+//                        VStack{
+//                            Button {
+//                                pm.log()
+//                                print("Logging pm ", currentPage)
+//                                print("Pages in storage: \(pagesString)")
+//                            } label: {
+//                                Text("print Page info")
+//                            }
+//                            .padding(10)
+//                            .mainButtonStyle(themeIn: theme)
+//                            Button {
+//                                pm.savePages()
+//                                print("Saving pages")
+//                            } label: {
+//                                Text("Force save pages")
+//                            }
+//                            .padding(10)
+//                            .mainButtonStyle(themeIn: theme)
+//                            Button {
+//                                UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.removeObject(forKey: "pages")
+//                                UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.removeObject(forKey: "currentPage")
+//                                pm.resetPages()
+//                                print("Reset pages")
+//                                exit(0)
+//                            } label: {
+//                                Text("Reset all pages in storage")
+//                            }
+//                            .padding(10)
+//                            .mainButtonStyle(themeIn: theme)
+//                        }
+//                        .homeItem(themeIn: theme)
+//                        .padding(.bottom, 5)
                         
                         //Grid of drop targets
                         ZStack{
-                            //background for grid
-                            Rectangle()
-                                .frame(width: geometry.size.width*0.95, height: rowHeight*4 + 20)
-                                .foregroundColor(theme.darkMode ? theme.pri : theme.sec)
-                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                             //MARK: - Grid display
                             if thingBeingDragged {
-                                DropTargetView(size: draggedThing?.size ?? "Small")
-                            } else {
                                 VStack(spacing: 2){
-                                    let page = pm.getCurrentPage()
-                                    
+                                    DropTargetView(size: draggedThing?.size ?? "Small")
+                                    HStack{
+                                        Spacer()
+                                        Button {
+                                            withAnimation {
+                                                thingBeingDragged = false
+                                                draggedThing = nil
+                                            }
+                                        } label: {
+                                            Text("Cancel Drag")
+                                                .padding(10)
+                                                .mainButtonStyle(themeIn: theme)
+                                        }
+                                    }
+                                }
+                            } else {
+                                let page = pm.getCurrentPage()
+                                VStack(spacing: 2) {
                                     ForEach(0..<4, id: \.self) { i in
                                         buildDisplayChunk(row: page.getRow(row: i), rowNum: i)
                                     }
                                 }
                             }
                         }
+                        .homeItem(themeIn: theme, height: thingBeingDragged ?  rowHeight*5 + 12 : rowHeight*4 + 10)
                         .id(refreshID)
-                        
                         Spacer()
                     }
                 }
@@ -259,7 +262,6 @@ struct PageEditorView: View {
                             }
                             
                         } label: {
-                            // Force showing both title and icon and adjust visual size
                             HStack(spacing: 6) {
                                 Image(systemName: "plus")
                                 Text("Add Things")
@@ -343,7 +345,8 @@ struct PageEditorView: View {
         }
         
     }
-    
+
+    //MARK: - Drop handling
     private func handleDrop(providers: [NSItemProvider], row i: Int, col j: Int) -> Bool {
         guard let provider = providers.first else {
             print("drop failed--------")
@@ -395,12 +398,14 @@ struct PageEditorView: View {
                     let page = pm.getCurrentPage()
                     let currentRow = page.getRow(row: i)
                     var newRow: [Thing] = currentRow
-                    newRow[j] = thing
+                    if j < newRow.count {
+                        newRow.insert(thing, at: j)
+                    } else {
+                        newRow.append(thing)
+                    }
                     page.newRow(newRow, row: i)
 
-                    // Ensure all things update so the mirror text reflects the change
                     page.updateAllThingsFromPage()
-                    
                     pm.savePages()
 
                     refreshID = UUID()
@@ -414,25 +419,23 @@ struct PageEditorView: View {
     }
 }
 extension PageEditorView {
+    //MARK: - Display chunk builder
     func buildDisplayChunk(row: [Thing], rowNum: Int) -> some View {
-        HStack {
+        HStack(spacing: 2) {
             ForEach(0..<row.count, id: \.self) { i in
                 if !row.isEmpty {
                     let thing = row[i]
                     let thingSize = thing.size
+                    
                     switch thingSize {
                     case "Small":
                         thingDisplaySegment(thing: thing, thingNumInRow: i, rowNum: rowNum)
                     case "Medium":
-                        thingDisplaySegment(thing: thing, RTotal: 2, RRemaining: 1, thingNumInRow: i, rowNum: rowNum)
-                        thingDisplaySegment(thing: thing, RTotal: 2, RRemaining: 0, thingNumInRow: i, rowNum: rowNum)
+                        thingDisplaySegment(thing: thing, RTotal: 2, thingNumInRow: i, rowNum: rowNum)
                     case "Large":
-                        thingDisplaySegment(thing: thing, RTotal: 4, RRemaining: 3, thingNumInRow: i, rowNum: rowNum)
-                        thingDisplaySegment(thing: thing, RTotal: 4, RRemaining: 2, thingNumInRow: i, rowNum: rowNum)
-                        thingDisplaySegment(thing: thing, RTotal: 4, RRemaining: 1, thingNumInRow: i,   rowNum: rowNum)
-                        thingDisplaySegment(thing: thing, RTotal: 4, RRemaining: 0, thingNumInRow: i, rowNum: rowNum)
+                        thingDisplaySegment(thing: thing, RTotal: 4, thingNumInRow: i, rowNum: rowNum)
                     case "XL":
-                        thingDisplaySegment(thing: thing, RTotal: 4, RRemaining: 3, DTotal: 2, DRemaining: 1, thingNumInRow: i, rowNum: rowNum)
+                        thingDisplaySegment(thing: thing, RTotal: 4, DTotal: 2, thingNumInRow: i, rowNum: rowNum)
                     default:
                         Text("\(Image(systemName: "x.circle")) Invalid size")
                     }
@@ -444,46 +447,48 @@ extension PageEditorView {
     func DropTargetView(size: String) -> some View {
         VStack(spacing: 2) {
             ForEach(0..<4, id: \.self) { i in
-                HStack(spacing: 2) {
-                    dropRowContent(size: size, row: i)
-                }
+                dropRowContent(size: size, row: i)
             }
         }
     }
 
     @ViewBuilder
     private func dropRowContent(size: String, row: Int) -> some View {
+        let spacing: CGFloat = 2
         switch size {
         case "Small":
-            ForEach(0..<4, id: \.self) { j in
-                thingDisplaySegment(thing: Thing(name: "\(row),\(j)", type: "Time", thingSize: "Small"), thingNumInRow: j, rowNum: row, dropSpot: true)
-                    .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
-                        return handleDrop(providers: providers, row: row, col: j)
-                    }
-            }
-        case "Medium", "Mediun":
-            ForEach(0..<2, id: \.self) { j in
-                HStack {
-                    thingDisplaySegment(thing: Thing(name: "\(row),\(j)", type: "Time", thingSize: "Medium"), RTotal: 2, RRemaining: 1, thingNumInRow: j, rowNum: row, dropSpot: true)
-                    thingDisplaySegment(thing: Thing(name: "\(row),\(j)", type: "Time", thingSize: "Medium"), RTotal: 2, RRemaining: 0, thingNumInRow: j, rowNum: row, dropSpot: true)
+            HStack (spacing: spacing) {
+                ForEach(0..<4, id: \.self) { j in
+                    thingDisplaySegment(thing: Thing(name: "\(row),\(j)", type: "Time", thingSize: "Small"), thingNumInRow: j, rowNum: row, dropSpot: true)
+                        .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
+                            return handleDrop(providers: providers, row: row, col: j)
+                        }
                 }
-                .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
-                    return handleDrop(providers: providers, row: row, col: j)
+            }
+        case "Medium":
+            HStack(spacing: spacing){
+                ForEach(0..<4, id: \.self) { j in
+                    if j % 2 == 0 {
+                        HStack(spacing: 0){
+                            thingDisplaySegment(thing: Thing(name: "\(row),\(j)", type: "Time", thingSize: "Medium"), RTotal: 2, thingNumInRow: j, rowNum: row, dropSpot: true)
+                            thingDisplaySegment(thing: Thing(name: "\(row),\(j)", type: "Time", thingSize: "Medium"), RTotal: 2, thingNumInRow: j, rowNum: row, dropSpot: true)
+                        }
+                        .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
+                            return handleDrop(providers: providers, row: row, col: j)
+                        }
+                    }
                 }
             }
         case "Large":
-            HStack {
-                thingDisplaySegment(thing: Thing(name: "\(row),1", type: "Time", thingSize: "Large"), RTotal: 4, RRemaining: 3, thingNumInRow: 1, rowNum: row, dropSpot: true)
-                thingDisplaySegment(thing: Thing(name: "\(row),1", type: "Time", thingSize: "Large"), RTotal: 4, RRemaining: 2, thingNumInRow: 1, rowNum: row, dropSpot: true)
-                thingDisplaySegment(thing: Thing(name: "\(row),1", type: "Time", thingSize: "Large"), RTotal: 4, RRemaining: 1, thingNumInRow: 1, rowNum: row, dropSpot: true)
-                thingDisplaySegment(thing: Thing(name: "\(row),1", type: "Time", thingSize: "Large"), RTotal: 4, RRemaining: 0, thingNumInRow: 1, rowNum: row, dropSpot: true)
+            HStack(spacing: spacing) {
+                thingDisplaySegment(thing: Thing(name: "\(row),1", type: "Time", thingSize: "Large"), RTotal: 4, thingNumInRow: 1, rowNum: row, dropSpot: true)
             }
             .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
                 return handleDrop(providers: providers, row: row, col: 1)
             }
         case "XL":
             if row % 2 == 0 {
-                thingDisplaySegment(thing: Thing(name: "\(row),1", type: "Time", thingSize: "XL"), RTotal: 4, RRemaining: 3, DTotal: 2, DRemaining: 1, thingNumInRow: 1, rowNum: row, dropSpot: true)
+                thingDisplaySegment(thing: Thing(name: "\(row),1", type: "Time", thingSize: "XL"), RTotal: 4, DTotal: 2, thingNumInRow: 1, rowNum: row, dropSpot: true)
                     .onDrop(of: [UTType.data], isTargeted: isTargeted) { providers in
                         return handleDrop(providers: providers, row: row, col: 1)
                     }
@@ -498,8 +503,8 @@ extension PageEditorView {
         }
     }
     @ViewBuilder
-    func thingDisplaySegment(thing: Thing, RTotal: Int = 1, RRemaining: Int = 0, DTotal: Int = 1, DRemaining: Int = 0, thingNumInRow: Int, rowNum: Int, dropSpot: Bool = false) -> some View {
-        let isShowing: Bool = (RTotal - RRemaining == 1)
+    func thingDisplaySegment(thing: Thing, RTotal: Int = 1, DTotal: Int = 1, thingNumInRow: Int, rowNum: Int, dropSpot: Bool = false) -> some View {
+        let spacing: CGFloat = 2
         
         let segmentWidth: CGFloat = {
             switch RTotal {
@@ -508,10 +513,10 @@ extension PageEditorView {
                 return (UIScreen.main.bounds.width*0.9 / 4)
             case 2:
                 //Size Medium
-                return (UIScreen.main.bounds.width*0.9 / 4) * 2
+                return (UIScreen.main.bounds.width*0.9 / 2) + (spacing)
             case 4:
                 //Size Large or XL
-                return UIScreen.main.bounds.width*0.9
+                return UIScreen.main.bounds.width*0.9 + (spacing*3)
             default:
                 print("Invalid RTotal value: \(RTotal), defaulting to Small size width.")
                 return (UIScreen.main.bounds.width*0.9 / 4)
@@ -524,25 +529,22 @@ extension PageEditorView {
                 return 35
             case 2:
                 //Size XL
-                return 70
+                return 70 + spacing
             default:
                 print("Invalid DTotal value: \(DTotal), defaulting to Small size height.")
                 return 35
             }
         }()
         
-        let numInThing = RTotal - RRemaining
-        let rowInThing = DTotal - DRemaining
-        
         ZStack{
-            // Show the current display text so it updates after a drop
             Text(thing.name)
                 .font(.system(size: 12))
                 .lineLimit(1)
-                .frame(width: isShowing ? segmentWidth : 0, height: isShowing ? segmentHeight : 0)
-                .editorBlock(themeIn: theme, i: numInThing, j: rowInThing)
+                .frame(width: segmentWidth, height: segmentHeight)
+                .editorBlock(themeIn: theme)
                 .onTapGesture {
-                    print("Tapped \(thing.name) at \(numInThing),\(rowInThing)")
+                    print("Tapped \(thing.name) at \(rowNum),\(thingNumInRow)")
+                    thing.action()
                 }
             if !dropSpot {
                 Image(systemName: "x.circle")

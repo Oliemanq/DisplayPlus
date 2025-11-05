@@ -499,7 +499,7 @@ extension View {
     }
         
     @ViewBuilder
-    func editorBlock(themeIn: ThemeColors, i: Int, j: Int) -> some View {
+    func editorBlock(themeIn: ThemeColors) -> some View {
         let shape: RoundedCorner = {
             let cornerRounding: CGFloat = 10
             return RoundedCorner(radius: cornerRounding, corners: [.allCorners])

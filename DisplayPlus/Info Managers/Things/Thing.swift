@@ -129,6 +129,10 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
         )
     }
     
+    func action() {
+        print("No action assigned to Thing type \(type)")
+    }
+    
     func toString(mirror: Bool = false) -> String {
        return data
     }
