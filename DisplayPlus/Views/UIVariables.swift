@@ -6,220 +6,7 @@
 //
 import SwiftUI
 
-let smallBGHeight: CGFloat = 55
-let smallFGHeight: CGFloat = 35
-let bigBGHeight: CGFloat = 75
-let bigFGHeight: CGFloat = 55
-
-struct VisualEffectView: UIViewRepresentable {
-    var effect: UIVisualEffect?
-    func makeUIView(context: UIViewRepresentableContext<Self>) -> UIVisualEffectView { UIVisualEffectView() }
-    func updateUIView(_ uiView: UIVisualEffectView, context: UIViewRepresentableContext<Self>) { uiView.effect = effect }
-}
-
-//MARK: - Icon style for floating button
-struct FloatingButtonStyle: ViewModifier {
-    var primaryColor: Color
-    var secondaryColor: Color
-    var namespace: Namespace.ID
-    @Environment(\.colorScheme) private var colorScheme
-    
-    func body(content: Content) -> some View {
-        let darkMode: Bool = (colorScheme == .dark)
-        
-        if #available(iOS 26, *){
-            content
-                .frame(width: 65, height: 55)
-                .glassEffect(.regular.tint(darkMode ? primaryColor : secondaryColor).interactive(true)) //, in: Rectangle()
-                .glassEffectID("floatingButton", in: namespace)
-                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                .fontWeight(.semibold)
-        }else{
-            content
-                .font(.system(size: 22))
-                .fontWeight(.semibold)
-                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                .padding(7)
-                .contentShape(.rect(cornerRadius: 12))
-                .background(.ultraThinMaterial, in: .rect(cornerRadius: 12))
-        }
-    }
-}
-extension Image {
-    func floatingButtonStyle(prim: Color, sec: Color, namespace: Namespace.ID) -> some View {
-        modifier(FloatingButtonStyle(primaryColor: prim, secondaryColor: sec, namespace: namespace))
-    }
-}
-//MARK: - Text style for floating button
-struct FloatingTextStyle: ViewModifier {
-    var primaryColor: Color
-    var secondaryColor: Color
-    var text: String
-    var namespace: Namespace.ID
-    var scale: CGFloat?
-    @Environment(\.colorScheme) private var colorScheme
-
-    
-    func body(content: Content) -> some View {
-        let darkMode: Bool = (colorScheme == .dark)
-        let textCount: CGFloat = CGFloat(text.count)
-        
-        if #available(iOS 26, *){
-            content
-                .frame (width: (120+(textCount*1.25))*(scale ?? 1), height: 55*(scale ?? 1))
-                .glassEffect(.regular.tint(darkMode ? primaryColor : secondaryColor).interactive(true)) //, in: Rectangle()
-                .glassEffectID("floatingButton", in: namespace)
-                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                .font(.system(size: 16*(scale ?? 1)))
-                .fontWeight(.semibold)
-        }else{
-            content
-                .font(.system(size: 12))
-                .fontWeight(.semibold)
-                .foregroundStyle(!darkMode ? primaryColor : secondaryColor)
-                .padding(10)
-                .contentShape(.rect(cornerRadius: 8))
-                .background(.ultraThinMaterial, in: .rect(cornerRadius: 8))
-        }
-    }
-}
-
-extension Text {
-    func floatingTextStyle(prim: Color, sec: Color, text: String, namespace: Namespace.ID, scale: CGFloat?) -> some View {
-        modifier(FloatingTextStyle(primaryColor: prim, secondaryColor: sec, text: text, namespace: namespace, scale: scale))
-    }
-}
-
-//MARK: - Floating button creator
-struct FloatingButtonItem: Identifiable {
-    private(set) var id: UUID = .init()
-    var iconSystemName: String
-    var extraText: String?
-    var action: () -> Void
-}
-struct FloatingButtons: View {
-    let items: [FloatingButtonItem]
-    let standardOffset: CGFloat = 65
-    
-    @Environment(\.colorScheme) private var colorScheme
-        
-    @State var isExpanded: Bool = false
-    @State private var isPressed: Bool = false
-    @EnvironmentObject var theme: ThemeColors
-    @Namespace private var namespace
-    
-    var body: some View {
-        
-        ZStack {
-            //Custon popup menu and buttons
-            if #available(iOS 26, *){
-                //Background when button pressed
-                if isExpanded {
-                    VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
-                        .onTapGesture {
-                            withAnimation{
-                                isExpanded = false
-                            }
-                        }
-                        .ignoresSafeArea()
-                        .opacity(0.9)
-                }
-                
-                //Left button
-                GeometryReader { geometry in
-                    GlassEffectContainer(spacing: 10){
-                        ZStack{
-                            if isExpanded{
-                                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                                    HStack(spacing: 0){
-                                        Image(systemName: item.iconSystemName)
-                                            .floatingButtonStyle(prim: theme.pri, sec: theme.sec, namespace: namespace)
-                                            .font(.system(size: 28))
-                                        
-                                        Text(item.extraText ?? "")
-                                            .floatingTextStyle(prim: theme.pri, sec: theme.sec, text: item.extraText ?? "", namespace: namespace, scale: 1)
-                                            .offset(x: -5)
-                                    }
-                                    .onTapGesture {
-                                        withAnimation{
-                                            item.action()
-                                            isExpanded.toggle()
-                                        }
-                                    }
-                                    .offset(y: -CGFloat(index+1) * standardOffset)
-                                }.offset(x: -10)
-                            }
-                            Image(systemName: !isExpanded ? "folder.badge.plus" : "folder.fill.badge.plus")
-                                .floatingButtonStyle(prim: theme.pri, sec: theme.sec, namespace: namespace)
-                                .font(.system(size: !isPressed ? 28 : 34))
-                                .onTapGesture {
-                                    withAnimation {
-                                        isExpanded.toggle()
-                                    }
-                                    
-                                }
-                                .offset(x: !isExpanded ? 0 : -standardOffset) //Fix random offset when expanded
-                        }
-                    }.position(x: standardOffset-10, y: geometry.frame(in: .global).maxY - 75)
-                        .offset(x: !isExpanded ? 0 : standardOffset)
-                }
-                
-                
-                
-            }else{
-                GeometryReader { geometry in
-                    if isExpanded {
-                        VisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-                            .onTapGesture {
-                                withAnimation{
-                                    isExpanded = false
-                                }
-                            }
-                            .ignoresSafeArea()
-                            .frame(width: 10000, height: 10000)
-                    }
-                    
-                    ZStack{
-                        if isExpanded{
-                            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                                HStack(){
-                                    Image(systemName: item.iconSystemName)
-                                        .floatingButtonStyle(prim: theme.pri, sec: theme.sec, namespace: namespace)
-                                    Text(item.extraText ?? "")
-                                        .floatingTextStyle(prim: theme.pri, sec: theme.sec, text: item.extraText ?? "", namespace: namespace, scale: 1)
-                                    Spacer()
-                                }
-                                .onTapGesture {
-                                    item.action()
-                                    withAnimation{
-                                        isExpanded.toggle()
-                                    }
-                                }
-                                .opacity(isExpanded ? 1 : 0)
-                                .offset(x: isExpanded ? -15 : 10, y: isExpanded ? -standardOffset*CGFloat(index+1) : 0)
-                                .animation(.easeInOut(duration: 0.2).delay(0.03 * Double(index)), value: isExpanded)
-                            }
-                            .offset(x: !isExpanded ? 0 : 125)
-                        }
-                        HStack{
-                            Image(systemName: "plus")
-                                .floatingButtonStyle(prim: theme.pri, sec: theme.sec, namespace: namespace)
-                                .animation(.easeInOut, value: isExpanded)
-                                .rotationEffect(.degrees(isExpanded ? 45 : 0))
-                            Text("Other screens")
-                                .floatingTextStyle(prim: theme.pri, sec: theme.sec, text: "Other screens", namespace: namespace, scale: 1)
-                        }.onTapGesture {
-                            withAnimation{
-                                isExpanded.toggle()
-                            }
-                        }
-                    }
-                    .position(x: 100, y: geometry.frame(in: .global).maxY - 75)
-                }
-            }
-        }
-    }
-}
+let BGHeight: CGFloat = 55
 
 //MARK: - General background modifiers
 extension View {
@@ -235,10 +22,10 @@ extension View {
         let alone = items == 1
         
         let darkMode = themeIn.darkMode
-        let pri = themeIn.pri
-        let sec = themeIn.sec
-        let priLightAlt = themeIn.priLightAlt
-        let secDarkAlt = themeIn.secDarkAlt
+        let pri = themeIn.dark
+        let sec = themeIn.light
+        let priLightAlt = themeIn.darkSec
+        let secDarkAlt = themeIn.lightSec
         //        let accentLight = themeIn.accentLight
         //        let accentDark = themeIn.accentDark
         //Custom shape that allows the liquid glass to render properly
@@ -362,10 +149,10 @@ extension View {
     @ViewBuilder
     func mainButtonStyle(themeIn: ThemeColors) -> some View {
         let darkMode = themeIn.darkMode
-        let pri = themeIn.pri
-        let sec = themeIn.sec
-        let priLightAlt = themeIn.priLightAlt
-        let secDarkAlt = themeIn.secDarkAlt
+        let pri = themeIn.dark
+        let sec = themeIn.light
+        let priLightAlt = themeIn.darkSec
+        let secDarkAlt = themeIn.lightSec
         //        let accentLight = themeIn.accentLight
         //        let accentDark = themeIn.accentDark
         
@@ -405,7 +192,7 @@ extension View {
                 .padding(.trailing, buttonSidePadding)
                 .background(
                     shape
-                        .foregroundStyle(themeIn.darkMode ? themeIn.priLightAlt : themeIn.secDarkAlt)
+                        .foregroundStyle(themeIn.darkMode ? themeIn.darkSec : themeIn.lightSec)
                         .glassEffect(.regular, in: shape)
                 )
                 .padding(.trailing, offset)
@@ -415,7 +202,7 @@ extension View {
                 .padding(.trailing, buttonSidePadding)
                 .background(
                     shape
-                        .foregroundStyle(themeIn.darkMode ? themeIn.priLightAlt : themeIn.secDarkAlt)
+                        .foregroundStyle(themeIn.darkMode ? themeIn.darkSec : themeIn.lightSec)
                 )
                 .padding(.trailing, offset)
         }
@@ -462,39 +249,21 @@ extension View {
             HStack{
                 self
             }
-            .frame(width: screenWidth * 0.9, height: (height == 0 ? bigBGHeight*(small ? 1.25 : 1.75) : height))
+            .frame(width: screenWidth * 0.9, height: (height == 0 ? 75*(small ? 1.25 : 1.75) : height))
             .padding(.horizontal, 6)
             .ContextualBG(themeIn: themeIn, bg: true)
         }
     }
     
     @ViewBuilder
-    func infoItem(themeIn: ThemeColors, subItem: Bool = false, items: Int = 1, itemNum: Int = 1) -> some View {
+    func settingsItem(themeIn: ThemeColors, items: Int = 1, itemNum: Int = 1) -> some View {
         let screenWidth = UIScreen.main.bounds.width
-        //let screenHeight = UIScreen.main.bounds.height
         
         self
-            .ContextualBG(themeIn: themeIn, items: items, itemNum: itemNum)
-            .frame(width: screenWidth * 0.9, height: subItem ?  smallBGHeight : bigBGHeight)
-            .ContextualBG(themeIn: themeIn, bg: true, items: items, itemNum: itemNum)
-        
-    }
-    
-    @ViewBuilder
-    func settingsItem(themeIn: ThemeColors, subItem: Bool = false, items: Int = 1, itemNum: Int = 1) -> some View {
-        let darkMode = themeIn.darkMode
-        //        let pri = themeIn.pri
-        //        let sec = themeIn.sec
-        let accentLight = themeIn.accentLight
-        let accentDark = themeIn.accentDark
-        
-        let screenWidth = UIScreen.main.bounds.width
-        //let screenHeight = UIScreen.main.bounds.height
-        
-        self
+            .font(themeIn.bodyFont)
             .padding(.horizontal, 12)
-            .tint(darkMode ? accentDark : accentLight)
-            .frame(width: screenWidth * 0.9, height: subItem ?  smallBGHeight : bigBGHeight)
+            .tint(themeIn.darkMode ? themeIn.accentDark : themeIn.accentLight)
+            .frame(width: screenWidth * 0.9, height: BGHeight)
             .ContextualBG(themeIn: themeIn, bg: true, items: items, itemNum: itemNum)
     }
         
@@ -506,18 +275,45 @@ extension View {
         }()
         
         self
-            .foregroundStyle(!themeIn.darkMode ? themeIn.priLightAlt : themeIn.secDarkAlt)
+            .foregroundStyle(!themeIn.darkMode ? themeIn.darkSec : themeIn.lightSec)
             .background {
                 shape
-                    .foregroundStyle(themeIn.darkMode ? themeIn.priLightAlt : themeIn.secDarkAlt)
+                    .foregroundStyle(themeIn.darkMode ? themeIn.darkSec : themeIn.lightSec)
                     .overlay(
                         shape
-                            .stroke(themeIn.darkMode ? Color.clear : themeIn.priLightAlt, lineWidth: 1)
+                            .stroke(themeIn.darkMode ? Color.clear : themeIn.darkSec, lineWidth: 1)
                     )
             }
             .clipShape(shape)
     }
-        
+    
+    //MARK: - Text modifiers
+    @ViewBuilder
+    func explanationText(themeIn: ThemeColors, width: CGFloat = .infinity) -> some View {
+        self
+            .font(.custom("TrebuchetMS",size: 14))
+            .foregroundStyle(themeIn.darkMode ? themeIn.lightSec : themeIn.darkSec)
+            .frame(maxWidth: width)
+    }
+    
+    @ViewBuilder
+    func pageHeaderText(themeIn: ThemeColors) -> some View {
+        self
+            .font(themeIn.headerFont)
+            .foregroundStyle(themeIn.darkMode ? themeIn.light : themeIn.dark)
+            .padding(10)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .foregroundStyle(themeIn.darkMode ? themeIn.darkTert : themeIn.lightTert)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(!themeIn.darkMode ? themeIn.darkSec : themeIn.lightSec, lineWidth: 0.35)
+                    )
+            )
+            .padding(.top, 5)
+    }
+
+
 }
 
 
@@ -566,56 +362,6 @@ struct Grid: Shape {
     }
 }
 
-func backgroundGrid(themeIn: ThemeColors) -> some View {
-    let theme: ThemeColors = themeIn
-    
-    // State variables to hold the customizable properties of the grid.
-    @State var lineColor: Color = theme.darkMode ? theme.pri : theme.sec
-    @State var lineWidth: CGFloat = 1
-    @State var spacing: CGFloat = 10
-    
-    
-    return ZStack{
-        if theme.darkMode {
-            LinearGradient(
-                gradient: Gradient(stops: [
-                    .init(color: theme.sec, location: 0.0), // Lighter color at top-left
-                    .init(color: theme.pri, location: 0.5),  // Transition to darker
-                    .init(color: theme.pri, location: 1.0)   // Darker color for the rest
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        } else {
-            LinearGradient(
-                gradient: Gradient(stops: [
-                    .init(color: theme.pri, location: 0.0), // Darker color at top-left
-                    .init(color: theme.sec, location: 0.5),  // Transition to lighter
-                    .init(color: theme.sec, location: 1.0)   // Lighter color for the rest
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        }
-        
-        Grid(spacing: spacing)
-            .stroke(lineColor, lineWidth: lineWidth)
-            .offset(x: -300, y: 25)
-            .rotationEffect(.degrees(45))
-        
-        LinearGradient(
-            gradient: Gradient(stops: [
-                .init(color: theme.darkMode ? theme.pri.opacity(0.95) : theme.sec.opacity(0.95), location: 0.05),
-                .init(color: Color.clear, location: 0.1)
-            ]),
-            startPoint: .top,
-            endPoint: .bottom
-        )
-    }
-
-    .edgesIgnoringSafeArea(.all)
-}
-
 //Quick modifier for colors that desaturates them by "amount" percentage
 extension Color {
     func desaturated(amount: CGFloat = 1) -> Color {
@@ -647,36 +393,31 @@ extension Color {
 
 //MARK: - Preview
 struct PreviewVars: View {
+    @State private var theme = ThemeColors()
+    @State private var refreshID = UUID()
+
     var body: some View {
-        let theme = ThemeColors()
-        
-        ZStack{
-            backgroundGrid(themeIn: theme)
-            ScrollView(.vertical){
-                VStack{
-                    Text("Main button style")
-                        .frame(width: 150, height: 40)
-                        .mainButtonStyle(themeIn: theme)
-                    Text("Rounded corner style")
-                        .frame(width: 200, height: 40)
-                        .foregroundStyle(theme.sec)
-                        .background(
-                            RoundedCorner(radius: 24 ,corners: [.topLeft, .bottomRight])
-                        )
-                    Text("Background glass")
-                        .foregroundStyle(theme.sec)
-                        .ContextualBG(themeIn: theme, bg: true)
-                    
-                    Button("Toggle UI colors"){
-                        theme.darkMode.toggle()
-                    }
-                    .frame(width: 150, height: 40)
-                    .mainButtonStyle(themeIn: theme)
-                    
-                    Text("Toolbar background")
-                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+        ZStack {
+            (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
+                .ignoresSafeArea()
+
+            ScrollView(.vertical) {
+                Text("Page Header text")
+                    .pageHeaderText(themeIn: theme)
+                Text("Settings Explanation text")
+                    .explanationText(themeIn: theme)
+                
+            }
+            .id(refreshID)
+            .padding(.top, 250)
+        }
+        .onAppear {
+            Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { _ in
+                DispatchQueue.main.async {
+                    theme.darkMode.toggle()
+                    refreshID = UUID()
+                    print("toggle dark mode \(theme.darkMode)")
                 }
-                .padding(.top, 250)
             }
         }
     }

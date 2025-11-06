@@ -217,11 +217,16 @@ class MusicThing: Thing {
             
             ScrollView(.vertical) {
                 HStack {
-                    Text("No settings available for Music Thing")
+                    Text("No settings currently available for Music Thing, to be added in the future with more integrations")
                 }
                 .settingsItem(themeIn: theme)
             }
-            .navigationTitle("Music Settings")
+        }
+        .toolbar{
+            ToolbarItem(placement: .title) {
+                Text("Music Thing Settings")
+                    .pageHeaderText(themeIn: theme)
+            }
         }
     }
     override func getSettingsView() -> AnyView {

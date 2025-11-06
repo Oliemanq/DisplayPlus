@@ -56,7 +56,6 @@ struct ContentView: View {
                 
                 ScrollView(.vertical) {
                     VStack {
-                        Spacer(minLength: 16)
                         if ble.connectionState == .connectedBoth || isNotPhone() {
                             //MARK: - Glasses mirror
                             ZStack{
@@ -95,7 +94,7 @@ struct ContentView: View {
                                             Text("\(Image(systemName: silentMode ? "checkmark.circle" : "x.circle"))")
                                                 .foregroundStyle(silentMode ?
                                                                  (!theme.darkMode ? theme.accentLight : theme.accentDark) :
-                                                                    (!theme.darkMode ? theme.pri : theme.sec))
+                                                                    (!theme.darkMode ? theme.dark : theme.light))
                                         }
                                         .padding(.horizontal, buttonPadding)
                                     }
@@ -116,7 +115,7 @@ struct ContentView: View {
                                                 Text("\(Image(systemName: displayOn ? "checkmark.circle" : "x.circle"))")
                                                     .foregroundStyle(displayOn ?
                                                                      (theme.darkMode ? theme.accentLight : theme.accentDark) :
-                                                                        (!theme.darkMode ? theme.pri : theme.sec))
+                                                                        (!theme.darkMode ? theme.dark : theme.light))
                                             }.padding(.horizontal, buttonPadding)
                                         }
                                         .frame(width: buttonWidth, height: 50)
@@ -252,13 +251,25 @@ struct ContentView: View {
                                 }
                             }
                             .homeItem(themeIn: theme, height: ble.autoBrightnessEnabled ? 115 : 160)
+                        } else {
+                            //MARK: - Not connected view
+                            VStack(spacing: 16){
+                                Text("Device not connected")
+                                    .settingsItem(themeIn: theme)
+                                Text("Please connect to your glasses using the toolbar button to continue. \(Image(systemName: "arrow.down"))")
+                                    .settingsItem(themeIn: theme)
+                            }
                         }
                     }
                 }
                 .padding(.horizontal, 16)
             }
-            .navigationTitle("Home")
-            
+            .toolbar {
+                ToolbarItem(placement: .title) {
+                    Text("Home screen")
+                        .pageHeaderText(themeIn: theme)
+                }
+            }
             .onAppear() {
                 self.brightnessSlider = Double(ble.brightnessRaw)
             }

@@ -173,6 +173,10 @@ struct PageEditorView: View {
                     }
                 }
                 .toolbar {
+                    ToolbarItem(placement: .title) {
+                        Text("Page Editor")
+                            .pageHeaderText(themeIn: theme)
+                    }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Menu{
                             Text("Add Thing")
@@ -264,7 +268,7 @@ struct PageEditorView: View {
                         } label: {
                             HStack(spacing: 6) {
                                 Image(systemName: "plus")
-                                Text("Add Things")
+                                    .padding(.horizontal, 5)
                             }
                             .foregroundStyle(.primary)
                         }
@@ -304,9 +308,7 @@ struct PageEditorView: View {
                         }label: {
                             HStack(spacing: 6) {
                                 Image(systemName: "pencil.tip")
-                                    .font(.system(size: 16))
-                                Text("\(currentPage)")
-                                    .font(theme.headerFont)
+                                    .padding(.horizontal, 7)
                             }
                             .foregroundStyle(.primary)
                         }

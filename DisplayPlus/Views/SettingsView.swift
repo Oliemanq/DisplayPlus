@@ -48,147 +48,167 @@ struct SettingsView: View {
         _la = StateObject(wrappedValue: liveIn)
         _theme = StateObject(wrappedValue: pmIn.theme)
     }
-
+    
     var body: some View {
-        NavigationStack {
-            ZStack{
-                //backgroundGrid(themeIn: theme)
-                (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
-                    .ignoresSafeArea()
-                
-                ScrollView(.vertical) {
-                    Spacer(minLength: 16)
-                    VStack{
-                        //toggle display on timer
-                        HStack{
-                            Text("Display timer")
-                            Spacer()
-                            Text(autoOff ? "On" : "Off")
-                                .settingsButtonText(themeIn: theme)
-                            Button {
-                                withAnimation{
-                                    autoOff.toggle()
+        GeometryReader { geo in
+            NavigationStack {
+                ZStack{
+                    //backgroundGrid(themeIn: theme)
+                    (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
+                        .ignoresSafeArea()
+                    ScrollView(.vertical) {
+                        VStack(alignment: .leading){
+                            Text("Glasses settings")
+                                .pageHeaderText(themeIn: theme)
+                                .padding(.leading, 1)
+                            
+                            //toggle display on timer
+                            HStack{
+                                Text("Display timer")
+                                Spacer()
+                                Text(autoOff ? "On" : "Off")
+                                    .settingsButtonText(themeIn: theme)
+                                Button {
+                                    withAnimation{
+                                        autoOff.toggle()
+                                    }
+                                } label: {
+                                    Image(systemName: "10.arrow.trianglehead.counterclockwise")
+                                        .symbolEffect(.rotate.byLayer, options: .speed(10), value: autoOff)
+                                        .settingsButton(themeIn: theme)
                                 }
-                            } label: {
-                                Image(systemName: "10.arrow.trianglehead.counterclockwise")
-                                    .symbolEffect(.rotate.byLayer, options: .speed(10), value: autoOff)
-                                    .settingsButton(themeIn: theme)
                             }
-                        }
-                        .settingsItem(themeIn: theme)
-                        
-                        //use heads up for display toggle
-                        HStack{
-                            Text("Use HeadsUp gesture")
-                                .fixedSize(horizontal: true, vertical: false)
-                            Spacer()
-                            Text(headsUp ? "On" : "Off")
-                                .settingsButtonText(themeIn: theme)
-                            Button {
-                                withAnimation{
-                                    headsUp.toggle()
+                            .settingsItem(themeIn: theme)
+                            
+                            //use heads up for display toggle
+                            HStack{
+                                Text("Use HeadsUp gesture")
+                                    .fixedSize(horizontal: true, vertical: false)
+                                Spacer()
+                                Text(headsUp ? "On" : "Off")
+                                    .settingsButtonText(themeIn: theme)
+                                Button {
+                                    withAnimation{
+                                        headsUp.toggle()
+                                    }
+                                } label: {
+                                    Image(systemName:headsUp ? "arrow.up.and.person.rectangle.portrait" : "rectangle.portrait.slash")
+                                        .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .nonRepeating))
+                                        .settingsButton(themeIn: theme)
                                 }
-                            } label: {
-                                Image(systemName:headsUp ? "arrow.up.and.person.rectangle.portrait" : "rectangle.portrait.slash")
-                                    .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .nonRepeating))
-                                    .settingsButton(themeIn: theme)
+                                
                             }
+                            .settingsItem(themeIn: theme)
+                            HStack{
+                                Image(systemName: "exclamationmark.square")
+                                Text("Uses angle configuration set in the Even app")
+                            }
+                            .explanationText(themeIn: theme, width: geo.size.width * 0.9)
+                            
+                            
+                            Text("Things settings")
+                                .pageHeaderText(themeIn: theme)
+                                .padding(.leading, 1)
+                            HStack {
+                                Text("Thing settings")
+                                Spacer()
+                                Text("|")
+                                NavigationLink {
+                                    ThingsSettingsMain(pm: pm)
+                                } label: {
+                                    Image(systemName: "arrow.up.right.circle")
+                                }
+                                .font(.system(size: 24))
+                                .settingsButton(themeIn: theme)
+                            }
+                            .settingsItem(themeIn: theme)
+                            
+                            Text("Live Activity settings")
+                                .pageHeaderText(themeIn: theme)
+                                .padding(.leading, 1)
+                            HStack {
+                                Text("Live Activity \(showingActivity ? "" : "not ")running")
+                                Spacer()
+                                Button {
+                                    if showingActivity {
+                                        showingActivity = false
+                                        la.stopActivity()
+                                    } else {
+                                        showingActivity = true
+                                        la.startActivity()
+                                    }
+                                } label: {
+                                    Image(systemName: showingActivity ? "stop.circle" : "play.square")
+                                        .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .speed(5).nonRepeating))
+                                        .settingsButton(themeIn: theme)
+                                }
+                            }
+                            .settingsItem(themeIn: theme)
+                            
                             
                         }
-                        .settingsItem(themeIn: theme)
-                        
-                        HStack {
-                            Text("Thing settings")
-                            Spacer()
-                            Text("|")
-                            NavigationLink {
-                                ThingsSettingsMain(pm: pm)
-                            } label: {
-                                Image(systemName: "arrow.up.right.circle")
-                            }
-                            .font(.system(size: 24))
-                            .settingsButton(themeIn: theme)
-                        }
-                        .settingsItem(themeIn: theme)
-                        
-                        HStack {
-                            Text("Live Activity \(showingActivity ? "" : "not ")running")
-                            Spacer()
+                    }
+                    .padding(.top, -40)
+                }
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Menu {
                             Button {
-                                if showingActivity {
-                                    showingActivity = false
-                                    la.stopActivity()
-                                } else {
-                                    showingActivity = true
-                                    la.startActivity()
-                                }
+                                openURL(URL(string: "https://github.com/Oliemanq/DisplayPlus")!)
                             } label: {
-                                Image(systemName: showingActivity ? "stop.circle" : "play.square")
-                                    .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .speed(5).nonRepeating))
-                                    .settingsButton(themeIn: theme)
+                                Label("GitHub Repo", systemImage: "archivebox")
                             }
+                            .tint(.primary)
+                            Button {
+                                openURL(URL(string: "https://discord.gg/AH2MxHSepn")!)
+                            } label: {
+                                Label("Discord Server", systemImage: "bubble.left.and.bubble.right")
+                            }
+                            .tint(.primary)
+                            Button {
+                                showingSupportAlert = true
+                            } label: {
+                                Label("Support the developer!", systemImage: "heart")
+                            }
+                            .tint(.primary)
+                            Divider()
+                            Button {
+                                openURL(URL(string: "https://github.com/Oliemanq/DisplayPlus/issues")!)
+                            } label: {
+                                Label("Report an Issue", systemImage: "exclamationmark.bubble")
+                            }
+                            .tint(.primary)
+                        } label: {
+                            HStack{
+                                Text("Links")
+                                Image(systemName: "link.circle")
+                                    .symbolRenderingMode(.monochrome)
+                            }
+                            .foregroundStyle(.primary)
                         }
-                        .settingsItem(themeIn: theme)
-                        
-                        
+                        .tint(.primary)
+                    }
+                    ToolbarItem(placement: .title) {
+                        Text("Settings")
+                            .pageHeaderText(themeIn: theme)
                     }
                 }
-            }
-            .navigationTitle("Settings")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button {
-                            openURL(URL(string: "https://github.com/Oliemanq/DisplayPlus")!)
-                        } label: {
-                            Label("GitHub Repo", systemImage: "archivebox")
-                        }
-                        .tint(.primary)
-                        Button {
-                            openURL(URL(string: "https://discord.gg/AH2MxHSepn")!)
-                        } label: {
-                            Label("Discord Server", systemImage: "bubble.left.and.bubble.right")
-                        }
-                        .tint(.primary)
-                        Button {
-                            showingSupportAlert = true
-                        } label: {
-                            Label("Support the developer!", systemImage: "heart")
-                        }
-                        .tint(.primary)
-                        Divider()
-                        Button {
-                            openURL(URL(string: "https://github.com/Oliemanq/DisplayPlus/issues")!)
-                        } label: {
-                            Label("Report an Issue", systemImage: "exclamationmark.bubble")
-                        }
-                        .tint(.primary)
-                    } label: {
-                        HStack{
-                            Text("Links")
-                            Image(systemName: "link.circle")
-                                .symbolRenderingMode(.monochrome)
-                        }
-                        .foregroundStyle(.primary)
-                    }
-                    .tint(.primary)
+                .alert("Support the developer!", isPresented: $showingSupportAlert) {
+                    Button("OK", role: .cancel) { }
+                } message: {
+                    Text("Thank you for considering supporting my work! If you'd like to contribute, please visit my GitHub page or my Discord for more info.")
                 }
             }
-            .alert("Support the developer!", isPresented: $showingSupportAlert) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("Thank you for considering supporting my work! If you'd like to contribute, please visit my GitHub page or my Discord for more info.")
+            .tint(.primary)
+            .onChange(of: fixedLocation) {
+                if let newLocation = fixedLocation {
+                    fixedLatitude = newLocation.latitude
+                    fixedLongitude = newLocation.longitude
+                    pm.updateCurrentPage()
+                }
             }
+            .animation(.default, value: location)
         }
-        .tint(.primary)
-        .onChange(of: fixedLocation) {
-            if let newLocation = fixedLocation {
-                fixedLatitude = newLocation.latitude
-                fixedLongitude = newLocation.longitude
-                pm.updateCurrentPage()
-            }
-        }
-        .animation(.default, value: location)
     }
 }
 

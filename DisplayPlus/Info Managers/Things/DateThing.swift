@@ -136,10 +136,7 @@ struct dateSettingsPage: View {
                         withAnimation {
                             thing.format = (thing.format == "US") ? "EU" : "US"
                         }
-                        
                         UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set(thing.format, forKey: "dateFormat")
-                        
-                        print("Date format set to \(thing.format)")
                     } label: {
                         Image(systemName: "calendar.circle")
                             .symbolEffect(.wiggle.up.byLayer, options: .nonRepeating, value: thing.format == "US")
@@ -147,6 +144,12 @@ struct dateSettingsPage: View {
                     }
                 }
                 .settingsItem(themeIn: theme)
+            }
+        }
+        .toolbar{
+            ToolbarItem(placement: .title) {
+                Text("Date Thing Settings")
+                    .pageHeaderText(themeIn: theme)
             }
         }
     }

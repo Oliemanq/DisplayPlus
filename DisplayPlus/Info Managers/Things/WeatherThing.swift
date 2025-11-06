@@ -151,56 +151,69 @@ struct WeatherThingSettingsView: View {
     @ObservedObject var thing: WeatherThing
 
     var body: some View {
-        ZStack {
-            (thing.theme.darkMode ? thing.theme.backgroundDark : thing.theme.backgroundLight)
-                .ignoresSafeArea()
-
-            ScrollView(.vertical) {
-                HStack {
-                    Text("Use location")
-                        .fixedSize(horizontal: true, vertical: false)
-                    Spacer()
-                    Text(thing.location ? "On" : "Off")
-                        .settingsButtonText(themeIn: thing.theme)
-                    Button {
-                        withAnimation {
-                            thing.location.toggle()
-                        }
-                    } label: {
-                        Image(systemName: thing.location ? "location" : "location.slash")
-                            .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .nonRepeating))
-                            .settingsButton(themeIn: thing.theme)
-                    }
-                }
-                .settingsItem(themeIn: thing.theme)
-
-                if !thing.location {
+        GeometryReader { geometry in
+            ZStack {
+                (thing.theme.darkMode ? thing.theme.backgroundDark : thing.theme.backgroundLight)
+                    .ignoresSafeArea()
+                
+                ScrollView(.vertical) {
                     HStack {
-                        Text("Pick set location")
+                        Text("Use location")
                             .fixedSize(horizontal: true, vertical: false)
                         Spacer()
-                        Text("\(thing.fixedCityDisplay)")
+                        Text(thing.location ? "On" : "Off")
                             .settingsButtonText(themeIn: thing.theme)
-                        Button(action: {
-                            thing.showingLocationPicker = true
-                        }) {
-                            Image(systemName: "map.circle")
+                        Button {
+                            withAnimation {
+                                thing.location.toggle()
+                            }
+                        } label: {
+                            Image(systemName: thing.location ? "location" : "location.slash")
+                                .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .nonRepeating))
+                                .settingsButton(themeIn: thing.theme)
                         }
-                        .settingsButton(themeIn: thing.theme)
                     }
                     .settingsItem(themeIn: thing.theme)
+                    Text("Disables location usage and reverts to a predefined location")
+                        .explanationText(themeIn: thing.theme, width: geometry.size.width * 0.9)
+                    Text("\(Image(systemName: "exclamationmark.square"))Using location for weather updates uses a lot of battery life on the phone")
+                        .explanationText(themeIn: thing.theme, width: geometry.size.width * 0.9)
+                    
+                    if !thing.location {
+                        HStack {
+                            Text("Pick set location")
+                                .fixedSize(horizontal: true, vertical: false)
+                            Spacer()
+                            Text("\(thing.fixedCityDisplay)")
+                                .settingsButtonText(themeIn: thing.theme)
+                            Button(action: {
+                                thing.showingLocationPicker = true
+                            }) {
+                                Image(systemName: "map.circle")
+                            }
+                            .settingsButton(themeIn: thing.theme)
+                        }
+                        .settingsItem(themeIn: thing.theme)
+                        
+                        
+                    }
                     
                     
                 }
+                .sheet(isPresented: Binding(get: { thing.showingLocationPicker }, set: { thing.showingLocationPicker = $0 })) {
+                    LocationPickerView(
+                        location: Binding(get: { thing.fixedLocation }, set: { thing.fixedLocation = $0 }),
+                        theme: thing.theme
+                    )
+                }
             }
-            .sheet(isPresented: Binding(get: { thing.showingLocationPicker }, set: { thing.showingLocationPicker = $0 })) {
-                LocationPickerView(
-                    location: Binding(get: { thing.fixedLocation }, set: { thing.fixedLocation = $0 }),
-                    theme: thing.theme
-                )
+            .toolbar{
+                ToolbarItem(placement: .title) {
+                    Text("Weather Thing Settings")
+                        .pageHeaderText(themeIn: thing.theme)
+                }
             }
         }
-        .navigationTitle("Weather Settings")
-
+        
     }
 }

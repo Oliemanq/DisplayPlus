@@ -105,7 +105,12 @@ struct TimeSettingsView: View {
                 }
                 .settingsItem(themeIn: theme)
             }
-            .navigationTitle("Time Settings")
+            .toolbar {
+                ToolbarItem(placement: .title) {
+                    Text("Time Thing Settings")
+                        .pageHeaderText(themeIn: theme)
+                }
+            }
         }
     }
 }

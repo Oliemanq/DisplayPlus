@@ -88,7 +88,7 @@ struct DefaultView: View {
                             }
                         }
                         .frame(width: 110)
-                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                        .ToolBarBG(pri: theme.dark, sec: theme.light, darkMode: theme.darkMode)
                         .glassEffectID("toolbar", in: namespace)
                         
                         Menu("Pages \(Image(systemName: "folder.badge.gear"))") {
@@ -104,14 +104,14 @@ struct DefaultView: View {
                             
                         }
                         .frame(width: 80)
-                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                        .ToolBarBG(pri: theme.dark, sec: theme.light, darkMode: theme.darkMode)
                         .glassEffectID("toolbar", in: namespace)
                         
 //                        Button("Force") {
 //                            bg.forceUpdateInfo = true
 //                        }
 //                        .frame(width: 70)
-//                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+//                        .ToolBarBG(pri: theme.dark, sec: theme.light, darkMode: theme.darkMode)
 //                        .glassEffectID("toolbar", in: namespace)
                     }
                     
@@ -125,7 +125,7 @@ struct DefaultView: View {
                                 }
                                 .offset(x: -55, y: -55)
                                 .frame(width: 200)
-                                .foregroundStyle(theme.darkMode ? theme.sec : theme.pri)
+                                .foregroundStyle(theme.darkMode ? theme.light : theme.dark)
                             }
                             if ble.connectionState == .connectedBoth {
                                 VStack{
@@ -133,7 +133,7 @@ struct DefaultView: View {
                                         .multilineTextAlignment(.center)
                                     Image(systemName: "arrow.down")
                                 }
-                                .foregroundStyle(theme.darkMode ? theme.sec : theme.pri)
+                                .foregroundStyle(theme.darkMode ? theme.light : theme.dark)
                                 .offset(x: 70, y: -55)
                                 .frame(width: 225)
                             }
@@ -164,7 +164,7 @@ struct DefaultView: View {
                             }
                         }
                         .frame(width: 110)
-                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                        .ToolBarBG(pri: theme.dark, sec: theme.light, darkMode: theme.darkMode)
                         
                         Menu("Pages \(Image(systemName: "folder.badge.gear"))") {
                             Button("\(Image(systemName: "house.fill")) Default") {
@@ -193,7 +193,7 @@ struct DefaultView: View {
 
                         }
                         .frame(width: 120)
-                        .ToolBarBG(pri: theme.pri, sec: theme.sec, darkMode: theme.darkMode)
+                        .ToolBarBG(pri: theme.dark, sec: theme.light, darkMode: theme.darkMode)
                     }
                     
                     if !FTUEFinished {
@@ -228,7 +228,7 @@ struct DefaultView: View {
         //Popover for devices page
         .popover(isPresented: $isPresentingScanView) {
             ZStack {
-                theme.darkMode ? theme.pri.opacity(0.5).ignoresSafeArea() : theme.sec.opacity(0.75).ignoresSafeArea()
+                theme.darkMode ? theme.dark.opacity(0.5).ignoresSafeArea() : theme.light.opacity(0.75).ignoresSafeArea()
                 
                 VStack {
                     let pairs = Array(ble.discoveredPairs.values)
@@ -237,7 +237,7 @@ struct DefaultView: View {
                         let hasRight = (pair.right != nil)
                         
                         VStack{
-                            Text("\(String(describing: pair.model!)) pair for channel \(pair.channel.map(String.init) ?? "unknown")")
+                            Text("\(String(describing: pair.model ?? "")) pair for channel \(pair.channel.map(String.init) ?? "unknown")")
                             HStack {
                                 HStack{
                                     Image(systemName: hasLeft ? "checkmark.circle" : "x.circle")
@@ -260,16 +260,16 @@ struct DefaultView: View {
                                 .mainButtonStyle(themeIn: theme)
                             }
                         }
-                        .foregroundStyle(!theme.darkMode ? theme.pri : theme.sec)
+                        .foregroundStyle(!theme.darkMode ? theme.dark : theme.light)
                         .padding(.horizontal, 50)
                         .padding(.vertical, 12)
                         .background(
                             RoundedRectangle(cornerRadius: 24)
-                                .fill(!theme.darkMode ? Color(theme.pri).opacity(0.05) : Color(theme.sec).opacity(0.1))
+                                .fill(!theme.darkMode ? Color(theme.dark).opacity(0.05) : Color(theme.light).opacity(0.1))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 24)
                                         .stroke(
-                                            (!theme.darkMode ? theme.pri : theme.sec).opacity(0.3),
+                                            (!theme.darkMode ? theme.dark : theme.light).opacity(0.3),
                                             lineWidth: 0.5
                                         )
                                 )

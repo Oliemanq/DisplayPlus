@@ -129,11 +129,17 @@ struct BatterySettingsView: View {
                                     .settingsButton(themeIn: theme)
                             }
                         }
-                        
+                        Text("Select prefered device to be shown in Small sized Thing.")
+                            .explanationText(themeIn: theme)
                     }
                     .settingsItem(themeIn: theme)
                 }
-                .navigationTitle("Battery Settings")
+                .toolbar{
+                    ToolbarItem(placement: .title) {
+                        Text("Battery Thing Settings")
+                            .pageHeaderText(themeIn: theme)
+                    }
+                }
         }
     }
 }

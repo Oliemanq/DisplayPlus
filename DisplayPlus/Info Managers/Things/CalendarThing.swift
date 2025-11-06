@@ -234,96 +234,114 @@ struct calendarSettingsPage: View {
     }
     
     var body: some View {
-        ZStack{
-            //backgroundGrid(themeIn: theme)
-            (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
-                .ignoresSafeArea()
-            ScrollView(.vertical) {
-                //Has not been implemented
-                HStack {
-                    Text("Text overrides")
-                    Spacer()
-                    Button {
-                        showOverridePopup = true
-                    } label: {
-                        Image(systemName: "pencil.circle.fill")
-                            .settingsButton(themeIn: theme)
-                    }
-                }
-                .settingsItem(themeIn: theme)
-            }
-        }
-        .navigationTitle("Calendar Thing Settings")
-        .sheet(isPresented: $showOverridePopup) {
-            ZStack {
+        GeometryReader { geometry in
+            ZStack{
+                //backgroundGrid(themeIn: theme)
                 (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
                     .ignoresSafeArea()
-                
-                VStack {
+                ScrollView(.vertical) {
+                    //Has not been implemented
                     HStack {
-                        Text("Title Overrides allow you to change the text that's displayed on the glasses for certain events that you might not be able to control, like concerts, meetings, etc.")
-                            .font(theme.bodyFont)
-                            .frame(width: UIScreen.main.bounds.width * 0.8)
-                            .padding(10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(!theme.darkMode ? theme.secDarkAlt : theme.priLightAlt)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(!theme.darkMode ? theme.pri : theme.sec, lineWidth: 0.5)
-                                    )
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        Text("Text overrides")
+                        Spacer()
+                        Button {
+                            showOverridePopup = true
+                        } label: {
+                            Image(systemName: "pencil.circle.fill")
+                                .settingsButton(themeIn: theme)
+                        }
                     }
-                    .padding(.top, 16)
-                    .padding(.bottom, 32)
-                    ScrollView(.vertical) {
-                        ForEach(thing.overrides.keys.sorted(), id: \.self) { key in
-                            HStack {
-                                Text("\"\(key)\"\n^ \"\(thing.overrides[key] ?? "")\"")
+                    .settingsItem(themeIn: theme)
+                    
+                    Text("Override event titles. Titles to be overriden must be exact matches.")
+                        .explanationText(themeIn: theme, width: geometry.size.width * 0.9)
+                }
+            }
+            .toolbar{
+                ToolbarItem(placement: .title) {
+                    Text("Calendar Thing Settings")
+                        .pageHeaderText(themeIn: theme)
+                }
+            }
+            .sheet(isPresented: $showOverridePopup) {
+                ZStack {
+                    (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
+                        .ignoresSafeArea()
+                    
+                    VStack {
+                        HStack {
+                            Text("Title Overrides allow you to change the text that's displayed on the glasses for certain events that you might not be able to control.\n\nExamples:\n  Shift at front desk -> Work\n  General Biology Lecture -> Bio lecture")
+                                .font(theme.bodyFont)
+                                .frame(width: UIScreen.main.bounds.width * 0.85)
+                                .padding(10)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(!theme.darkMode ? theme.lightTert : theme.darkTert)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(!theme.darkMode ? theme.dark : theme.light, lineWidth: 0.5)
+                                        )
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                        }
+                        .padding(.top, 16)
+                        .padding(.bottom, 32)
+                        ScrollView(.vertical) {
+                            ForEach(thing.overrides.keys.sorted(), id: \.self) { key in
+                                HStack {
+                                    VStack{
+                                        Text(key)
+                                    }
+                                    VStack{
+                                        Text("->")
+                                    }
+                                    VStack{
+                                        Text(thing.overrides[key] ?? "")
+                                    }
+                                    Spacer()
+                                    Button {
+                                        thing.overrides.removeValue(forKey: key)
+                                    } label: {
+                                        Image(systemName: "minus.circle")
+                                            .settingsButton(themeIn: theme)
+                                    }
+                                }
+                                .settingsItem(themeIn: theme)
+                            }
+                            Divider()
+                                .background(theme.darkMode ? theme.backgroundLight : theme.backgroundDark)
+                                .opacity(0.3)
+                                .padding(.vertical, 4)
+                            
+                            HStack{
+                                Text("Add title override")
                                 Spacer()
                                 Button {
-                                    thing.overrides.removeValue(forKey: key)
+                                    showAlert = true
                                 } label: {
-                                    Image(systemName: "minus.circle")
+                                    Image(systemName: "plus.circle")
                                         .settingsButton(themeIn: theme)
                                 }
                             }
                             .settingsItem(themeIn: theme)
                         }
-                        Divider()
-                            .background(theme.darkMode ? theme.backgroundLight : theme.backgroundDark)
-                            .opacity(0.3)
-                            .padding(.vertical, 4)
-                        
-                        HStack{
-                            Text("Add title override")
-                            Spacer()
-                            Button {
-                                showAlert = true
-                            } label: {
-                                Image(systemName: "plus.circle")
-                                    .settingsButton(themeIn: theme)
-                            }
-                        }
-                        .settingsItem(themeIn: theme)
                     }
                 }
-            }
-            .alert("Add Title Override", isPresented: $showAlert) {
-                TextField("Original Event Title", text: $originalTitle)
-                TextField("Replacement Title", text: $replacementTitle)
-                Button("Cancel", role: .cancel) {
-                    originalTitle = ""
-                    replacementTitle = ""
+                .alert("Add Title Override", isPresented: $showAlert) {
+                    TextField("Original Event Title", text: $originalTitle)
+                    TextField("Replacement Title", text: $replacementTitle)
+                    Button("Cancel", role: .cancel) {
+                        originalTitle = ""
+                        replacementTitle = ""
+                    }
+                    Button("Add") {
+                        thing.overrides[originalTitle] = replacementTitle
+                        originalTitle = ""
+                        replacementTitle = ""
+                    }
+                } message: {
+                    Text("Enter the original event title and its replacement")
                 }
-                Button("Add") {
-                    thing.overrides[originalTitle] = replacementTitle
-                    originalTitle = ""
-                    replacementTitle = ""
-                }
-            } message: {
-                Text("Enter the original event title and its replacement")
             }
         }
     }
