@@ -11,10 +11,10 @@ extension Comparable {
 struct ContentView: View {
     @State var showingDeviceSelectionPopup: Bool = false
     
-    @StateObject private var info: InfoManager
+    @StateObject private var pm: PageManager
     @StateObject private var ble: G1BLEManager
     @StateObject private var bg: BackgroundTaskManager
-    @EnvironmentObject var theme: ThemeColors
+    @StateObject private var theme: ThemeColors
     
     @AppStorage("currentPage", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var currentPage = "Default"
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var displayOn = false
@@ -36,10 +36,11 @@ struct ContentView: View {
     @State private var isSliderDragging = false
     @State private var brightnessUpdateTimer: Timer?
     
-    init(infoInstance: InfoManager, bleInstance: G1BLEManager, bgInstance: BackgroundTaskManager) {
-        _info = StateObject(wrappedValue: infoInstance)
-        _ble = StateObject(wrappedValue: bleInstance)
-        _bg = StateObject(wrappedValue: bgInstance)
+    init(pmIn: PageManager, bleIn: G1BLEManager, bgIn: BackgroundTaskManager) {
+        _pm = StateObject(wrappedValue: pmIn)
+        _ble = StateObject(wrappedValue: bleIn)
+        _bg = StateObject(wrappedValue: bgIn)
+        _theme = StateObject(wrappedValue: pmIn.theme)
     }
     
     var body: some View {
@@ -55,13 +56,12 @@ struct ContentView: View {
                 
                 ScrollView(.vertical) {
                     VStack {
-                        Spacer(minLength: 16)
-                        if ble.connectionState == .connectedBoth || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+                        if ble.connectionState == .connectedBoth || isNotPhone() {
                             //MARK: - Glasses mirror
                             ZStack{
                                 if displayOn{
                                     VStack(alignment: .center){
-                                        Text(bg.pageHandler(mirror: true))
+                                        Text(pm.getCurrentPage().outputPage(mirror: true))
                                             .multilineTextAlignment(.center)
                                             .font(.system(size: 11))
                                             .foregroundColor(theme.darkMode ? theme.accentLight : theme.accentDark)
@@ -94,7 +94,7 @@ struct ContentView: View {
                                             Text("\(Image(systemName: silentMode ? "checkmark.circle" : "x.circle"))")
                                                 .foregroundStyle(silentMode ?
                                                                  (!theme.darkMode ? theme.accentLight : theme.accentDark) :
-                                                                    (!theme.darkMode ? theme.pri : theme.sec))
+                                                                    (!theme.darkMode ? theme.dark : theme.light))
                                         }
                                         .padding(.horizontal, buttonPadding)
                                     }
@@ -115,7 +115,7 @@ struct ContentView: View {
                                                 Text("\(Image(systemName: displayOn ? "checkmark.circle" : "x.circle"))")
                                                     .foregroundStyle(displayOn ?
                                                                      (theme.darkMode ? theme.accentLight : theme.accentDark) :
-                                                                        (!theme.darkMode ? theme.pri : theme.sec))
+                                                                        (!theme.darkMode ? theme.dark : theme.light))
                                             }.padding(.horizontal, buttonPadding)
                                         }
                                         .frame(width: buttonWidth, height: 50)
@@ -251,20 +251,31 @@ struct ContentView: View {
                                 }
                             }
                             .homeItem(themeIn: theme, height: ble.autoBrightnessEnabled ? 115 : 160)
+                        } else {
+                            //MARK: - Not connected view
+                            VStack(spacing: 16){
+                                Text("Device not connected")
+                                    .settingsItem(themeIn: theme)
+                                Text("Please connect to your glasses using the toolbar button to continue. \(Image(systemName: "arrow.down"))")
+                                    .settingsItem(themeIn: theme)
+                            }
                         }
                     }
                 }
                 .padding(.horizontal, 16)
             }
-            .navigationTitle("Home")
-            
+            .toolbar {
+                ToolbarItem(placement: .title) {
+                    Text("Home screen")
+                        .pageHeaderText(themeIn: theme)
+                }
+            }
             .onAppear() {
                 self.brightnessSlider = Double(ble.brightnessRaw)
             }
             
             //MARK: - onChange
             .onChange(of: currentPage) {
-                info.changed = true
                 displayOn = true
             }
             .onChange(of: silentMode) {
@@ -305,12 +316,10 @@ struct ContentView: View {
 
 #Preview {
     let laInstance = LiveActivityManager()
-    let infoInstance = InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager()) //, health: HealthInfoGetter()
     let bleInstance = G1BLEManager(liveIn: laInstance)
-    let pageInstance = PageManager(info: infoInstance)
-    let bgInstance = BackgroundTaskManager(ble: bleInstance, info: infoInstance, page: pageInstance)
+    let pageInstance = PageManager(currentPageIn: "Default", themeIn: ThemeColors())
+    let bgInstance = BackgroundTaskManager(ble: bleInstance, pmIn: pageInstance)
     
-    ContentView(infoInstance: infoInstance, bleInstance: bleInstance, bgInstance: bgInstance)
-        .environmentObject(ThemeColors())
+    ContentView(pmIn: pageInstance, bleIn: bleInstance, bgIn: bgInstance)
 }
 

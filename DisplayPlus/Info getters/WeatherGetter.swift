@@ -20,10 +20,7 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     public var currentLocation: CLLocation?
     @Published var currentTemp: Int = 0
     @Published var currentWind: Int = 0
-    @Published var currentCity: String? = nil
-    
-    @AppStorage("useLocation", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) public var useLocation: Bool = false
-    
+    @AppStorage("currentCity", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var currentCity: String = ""
     @State var counter: Int = 0
     
     override init() {
@@ -33,6 +30,8 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.requestAlwaysAuthorization()
         updateLocationMonitoring()
     }
+    
+    
     
     private func updateLocationMonitoring() {
         if useLocation {
@@ -45,9 +44,12 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
     
-    func toggleLocationUsage(on: Bool) {
-        useLocation = on
-        updateLocationMonitoring()
+    @AppStorage("useLocation", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) public var useLocation: Bool = false {
+        didSet {
+            DispatchQueue.main.async { [weak self] in
+                self?.updateLocationMonitoring()
+            }
+        }
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -166,7 +168,7 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         reverseGeocodeIfNeeded(coordinate: coordinate) { [weak self] name in
             guard let self else { return }
             DispatchQueue.main.async {
-                self.currentCity = name
+                self.currentCity = name ?? "Unknown..."
             }
         }
     }
@@ -176,8 +178,8 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         if let last = lastGeocodeCoordinate, let lastDate = lastGeocodeDate {
             let latDiff = abs(last.latitude - coordinate.latitude)
             let lonDiff = abs(last.longitude - coordinate.longitude)
-            if latDiff < 0.001 && lonDiff < 0.001 && Date().timeIntervalSince(lastDate) < geocodeThrottle, let cached = currentCity {
-                completion(cached)
+            if latDiff < 0.001 && lonDiff < 0.001 && Date().timeIntervalSince(lastDate) < geocodeThrottle {
+                completion(currentCity)
                 return
             }
         }

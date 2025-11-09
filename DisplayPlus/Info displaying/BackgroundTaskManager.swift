@@ -8,8 +8,7 @@ import SwiftUI
 
 class BackgroundTaskManager: ObservableObject {
     private var ble: G1BLEManager
-    private var page: PageManager
-    private var info: InfoManager
+    private var pm: PageManager
     
     var timer: Timer?
     
@@ -30,11 +29,11 @@ class BackgroundTaskManager: ObservableObject {
     @AppStorage("useLocation", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var useLocation: Bool = false
     @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
     @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
+    @AppStorage("glassesInCase", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var glassesInCase = false
 
-    init(ble: G1BLEManager, info: InfoManager, page: PageManager) {
+    init(ble: G1BLEManager, pmIn: PageManager) {
         self.ble = ble
-        self.page = page
-        self.info = info
+        self.pm = pmIn
     }
     
     func startTimer() {
@@ -61,30 +60,21 @@ class BackgroundTaskManager: ObservableObject {
     // Run one timer tick on the main actor to safely call @MainActor methods and touch @AppStorage.
     @MainActor
     private func tick() {
-        
-        if useLocation {
-            info.updateAllSafe()
-            if (counter % 600 == 0 || forceUpdateInfo) {  // 600 ticks * 0.5s/tick = 300 seconds = 5 mins
-                Task {
-                    if self.info.getLocationAuthStatus() {
-                        await self.info.updateWeather()
-                    }
-                }
-                if logging {
-                    print("Weather updated")
-                }
-            }
-        } else {
-            info.updateAll(counter: counter)
-        }
+        pm.updateCurrentPage()
                 
         if ble.connectionState == .connectedBoth {
             // Less frequent updates
-            if counter % 20 == 0 { // Every 10 seconds (20 * 0.5s)
-                ble.fetchBrightness()
-                ble.fetchSilentMode()
+            if counter % 30 == 0 { // Every 15 seconds (30 * 0.5s)
+                ble.fetchData()
+                
                 if logging {
-                    print("Brightness and silent mode fetched")
+                    print("glasses info fetched")
+                }
+            }
+            
+            if ((glassesBattery <= 3 && glassesBattery != 0) || ble.glassesBatteryLeft <= 1 || ble.glassesBatteryRight <= 1){
+                Task {
+                    await self.lowBatteryDisconnect()
                 }
             }
             
@@ -92,18 +82,6 @@ class BackgroundTaskManager: ObservableObject {
             if HBTriggerCounter % 48 == 0 || HBTriggerCounter == 1 { //Sending heartbeat command every ~24 seconds to maintain connection
                 ble.sendHeartbeat(counter: HBCounter % 255)
                 HBCounter += 1
-            }
-            
-            if counter % 60 == 0 || forceUpdateInfo{ // every 30 seconds (60 * 0.5s)
-                ble.fetchGlassesBattery()
-                if ((glassesBattery <= 3 && glassesBattery != 0) || ble.glassesBatteryLeft <= 1 || ble.glassesBatteryRight <= 1){
-                    Task {
-                        await self.lowBatteryDisconnect()
-                    }
-                }
-                if logging {
-                    print("Glasses battery fetched")
-                }
             }
             
             if autoOff {
@@ -116,15 +94,10 @@ class BackgroundTaskManager: ObservableObject {
                     displayOn = false
                 }
             }
-            
-            // Re-fetch displayOn as it might have been changed by the autoOff logic above in the same tick
-            let currentDisplayOn = displayOn
-            
-            //info.changed is to reduce unnecessary updates to the glasses
-            if (currentDisplayOn && info.changed) || forceUpdateInfo { // Only update display if it's on and info has changed
-                let pageText = pageHandler()
+
+            if displayOn && !glassesInCase {
+                let pageText = pm.getCurrentPage().outputPage()
                 ble.sendText(text: pageText, counter: counter)
-                info.changed = false
             }
             
             forceUpdateInfo = false // Reset after first full update
@@ -136,47 +109,7 @@ class BackgroundTaskManager: ObservableObject {
         
         counter += 1
     }
-    
-    func pageHandler(mirror: Bool = false) -> String {
-        page.mirror = mirror //Checking if handler is being called from display mirror, stops centering text if true
-        textOutput = page.header()
         
-        if currentPage == "Default" { // DEFAULT PAGE HANDLER
-            let _ = 1 //placeholder cause this is stupid and shouldn't have to exist
-            
-        } else if currentPage == "Music" { // MUSIC PAGE HANDLER
-            let displayLines = page.musicDisplay()
-            
-            if displayLines.isEmpty {
-                textOutput = "broken"
-            } else {
-                textOutput.append(displayLines.joined(separator: "\n"))
-            }
-            
-        } else if currentPage == "Calendar" { // CALENDAR PAGE HANDLER
-            let displayLines = page.calendarDisplay()
-            
-            if displayLines.isEmpty {
-                textOutput = "Broken"
-            } else if info.numOfEvents >= 2 {
-                for index in 0..<3 {
-                    print(displayLines[index])
-                    if index == 2 {
-                        textOutput.append(displayLines[index])
-                    } else {
-                        textOutput.append(displayLines[index] + "\n")
-                    }
-                }
-            } else {
-                textOutput.append(displayLines.joined(separator: "\n"))
-            }
-        } else {
-            textOutput = "No page selected"
-        }
-        
-        return textOutput
-    }
-    
     func lowBatteryDisconnect() async {
         print("Low battery disconnect triggered")
         //Stopping timer to stop overwritting eachother
@@ -187,13 +120,13 @@ class BackgroundTaskManager: ObservableObject {
         //Looping animation drawing attention to disconnecting glasses
         var i = 0
         while i < 3 {
-            textOutput = page.centerText(text: "Battery low, disconnecting") + "."
+            textOutput = tm.centerText( "Battery low, disconnecting") + "."
             ble.sendTextCommand(seq: 1, text: textOutput)
             try? await Task.sleep(nanoseconds: 500_000_000)
-            textOutput = page.centerText(text: "Battery low, disconnecting") + ".."
+            textOutput = tm.centerText( "Battery low, disconnecting") + ".."
             ble.sendTextCommand(seq: 2, text: textOutput)
             try? await Task.sleep(nanoseconds: 500_000_000)
-            textOutput = page.centerText(text: "Battery low, disconnecting") + "..."
+            textOutput = tm.centerText( "Battery low, disconnecting") + "..."
             ble.sendTextCommand(seq: 3, text: textOutput)
             try? await Task.sleep(nanoseconds: 500_000_000)
             i += 1
@@ -203,7 +136,6 @@ class BackgroundTaskManager: ObservableObject {
         ble.disconnect()
     }
     
-    @MainActor
     func disconnectProper() async {
         //Stopping timer to stop overwritting eachother
         stopTimer()
@@ -213,13 +145,13 @@ class BackgroundTaskManager: ObservableObject {
         //Looping animation drawing attention to disconnecting glasses
         var i = 0
         while i < 3 {
-            textOutput = page.centerText(text: "Disconnecting") + "."
+            textOutput = tm.centerText( "Disconnecting") + "."
             ble.sendTextCommand(seq: 1, text: textOutput)
             try? await Task.sleep(nanoseconds: 500_000_000)
-            textOutput = page.centerText(text: "Disconnecting") + ".."
+            textOutput = tm.centerText( "Disconnecting") + ".."
             ble.sendTextCommand(seq: 2, text: textOutput)
             try? await Task.sleep(nanoseconds: 500_000_000)
-            textOutput = page.centerText(text: "Disconnecting") + "..."
+            textOutput = tm.centerText( "Disconnecting") + "..."
             ble.sendTextCommand(seq: 3, text: textOutput)
             try? await Task.sleep(nanoseconds: 500_000_000)
             i += 1

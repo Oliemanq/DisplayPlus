@@ -29,7 +29,7 @@ struct LiveActivityView: View {
                         .foregroundStyle(Color.green)
                         .background(
                             Capsule(style: .circular)
-                                .foregroundStyle(Color.green.opacity(darkMode ? 0.3 : 0.1))
+                                .foregroundStyle(Color.green.opacity(0.3))
                         )
                 }
             }
@@ -44,19 +44,10 @@ struct LiveActivityView: View {
                     Text("\(Int(context.state.glassesBattery))%")
                         .font(bodyFont)
                         .frame(width: 60)
+                        .contentTransition(.numericText(value: Double(context.state.glassesBattery)))
                 }
                 .accentColor(context.state.glassesBattery > 20 ? Color.green : Color.red)
-//                HStack {
-//                    Image(systemName: "earbuds.case")
-//                        .frame(width: 30)
-//                    if context.state.caseCharging {
-//                        Image(systemName: "bolt.fill")
-//                    }
-//                    ProgressView(value: context.state.caseBattery / 100.0)
-//                    Text("\(Int(context.state.caseBattery))%")
-//                        .frame(width: 60)
-//                }
-//                .accentColor(context.state.caseBattery > 20 ? Color.green : Color.red)
+                
                 HStack{
                     Text("Glasses \(context.state.connectionStatus)")
                         .font(bodyFont)
@@ -69,6 +60,7 @@ struct LiveActivityView: View {
                     Spacer()
                     Button(intent: PageIntents.NextPage()) {
                         Image(systemName: "book.pages")
+                            .symbolEffect(.bounce.down.byLayer, options: .nonRepeating)
                     }
                     .accentColor(Color.clear)
                     .padding(5)
@@ -79,7 +71,8 @@ struct LiveActivityView: View {
                     )
                     
                     Button(intent: DisplayIntents.ToggleDisplay()) {
-                        Image(systemName: context.state.displayOn ? "lightswitch.on" : "lightswitch.off")
+                        Image(systemName: context.state.displayOn ? "lightswitch.on" : "lightswitch.off.fill")
+                            .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .nonRepeating))
                     }
                     .accentColor(Color.clear)
                     .padding(5)
@@ -89,7 +82,7 @@ struct LiveActivityView: View {
                             .foregroundStyle(Color.green.opacity(0.2))
                     )
                 }
-
+                
             }
         }
         .padding(15)
@@ -219,6 +212,7 @@ extension DisplayPlusWidgetAttributes {
    DisplayPlusWidgetLiveActivity()
 } contentStates: {
     DisplayPlusWidgetAttributes.ContentState(glassesBattery: 75, caseBattery: 50, connectionStatus: "Connected", glassesCharging: true, caseCharging: false, displayOn: true)
+    DisplayPlusWidgetAttributes.ContentState(glassesBattery: 85, caseBattery: 50, connectionStatus: "Connected", glassesCharging: true, caseCharging: false, displayOn: true)
     DisplayPlusWidgetAttributes.ContentState(glassesBattery: 75, caseBattery: 50, connectionStatus: "Disconnected", glassesCharging: false, caseCharging: false, displayOn: false)
     DisplayPlusWidgetAttributes.ContentState(glassesBattery: 100, caseBattery: 100, connectionStatus: "Connected", glassesCharging: false, caseCharging: true, displayOn: true)
     DisplayPlusWidgetAttributes.ContentState(glassesBattery: 0, caseBattery: 0, connectionStatus: "Connected", glassesCharging: true, caseCharging: true, displayOn: false)

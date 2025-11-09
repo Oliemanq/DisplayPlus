@@ -15,9 +15,10 @@ extension CLLocationCoordinate2D: @retroactive Equatable {
 
 struct SettingsView: View {
     @StateObject private var ble: G1BLEManager
-    @StateObject private var info: InfoManager
-    @EnvironmentObject var theme: ThemeColors
+    @StateObject private var pm: PageManager
     @StateObject private var la: LiveActivityManager
+    @StateObject private var theme: ThemeColors
+    
     @Environment(\.openURL) private var openURL
     
     @AppStorage("autoOff", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var autoOff: Bool = false
@@ -25,6 +26,7 @@ struct SettingsView: View {
     @AppStorage("useLocation", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var location: Bool = false
     @AppStorage("fixedLatitude", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var fixedLatitude: Double = 0.0
     @AppStorage("fixedLongitude", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var fixedLongitude: Double = 0.0
+    @AppStorage("currentCity", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var currentCity: String = ""
     @State private var showingLocationPicker = false
     @State private var fixedLocation: CLLocationCoordinate2D?
     
@@ -37,169 +39,179 @@ struct SettingsView: View {
     // Display helper for fixed location city (uses published weather.currentCity)
     private var fixedCityDisplay: String {
         if fixedLatitude == 0 && fixedLongitude == 0 { return "Not set" }
-        return info.weather.currentCity ?? "Resolving..."
+        return currentCity
     }
     
-    init(bleIn: G1BLEManager, infoIn: InfoManager, liveIn: LiveActivityManager){
+    init(bleIn: G1BLEManager, pmIn: PageManager, liveIn: LiveActivityManager) {
         _ble = StateObject(wrappedValue: bleIn)
-        _info = StateObject(wrappedValue: infoIn)
+        _pm = StateObject(wrappedValue: pmIn)
         _la = StateObject(wrappedValue: liveIn)
+        _theme = StateObject(wrappedValue: pmIn.theme)
     }
-
+    
     var body: some View {
-        NavigationStack {
-            ZStack{
-                //backgroundGrid(themeIn: theme)
-                (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
-                    .ignoresSafeArea()
-                
-                ScrollView(.vertical) {
-                    Spacer(minLength: 16)
-                    VStack{
-                        //toggle display on timer
-                        HStack{
-                            Text("Display timer")
-                            Spacer()
-                            Toggle("", isOn: $autoOff)
-                                .disabled(headsUp)
-                        }
-                        .settingsItem(themeIn: theme)
-                        
-                        //use heads up for display toggle
-                        HStack{
-                            Text("Use HeadsUp for dashboard")
-                                .fixedSize(horizontal: true, vertical: false)
-                            Spacer()
-                            Toggle("", isOn: $headsUp)
-                        }
-                        .settingsItem(themeIn: theme)
-                        
-                        //use user location for weather updates
-                        HStack {
-                            Text("Use location for weather updates")
-                                .fixedSize(horizontal: true, vertical: false)
-                            Spacer()
-                            Toggle("", isOn: $location)
-                        }
-                        .settingsItem(themeIn: theme, items: (location ? 1 : 3), itemNum: 1)
-                        
-                        //fixed location for weather updates
-                        if !location {
+        GeometryReader { geo in
+            NavigationStack {
+                ZStack{
+                    //backgroundGrid(themeIn: theme)
+                    (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
+                        .ignoresSafeArea()
+                    ScrollView(.vertical) {
+                        VStack(alignment: .leading){
+                            Text("Glasses settings")
+                                .pageHeaderText(themeIn: theme)
+                                .padding(.leading, 1)
+                            
+                            //toggle display on timer
                             HStack{
-                                Text("Pick set location")
+                                Text("Display timer")
+                                Spacer()
+                                Text(autoOff ? "On" : "Off")
+                                    .settingsButtonText(themeIn: theme)
+                                Button {
+                                    withAnimation{
+                                        autoOff.toggle()
+                                    }
+                                } label: {
+                                    Image(systemName: "10.arrow.trianglehead.counterclockwise")
+                                        .symbolEffect(.rotate.byLayer, options: .speed(10), value: autoOff)
+                                        .settingsButton(themeIn: theme)
+                                }
+                            }
+                            .settingsItem(themeIn: theme)
+                            
+                            //use heads up for display toggle
+                            HStack{
+                                Text("Use HeadsUp gesture")
                                     .fixedSize(horizontal: true, vertical: false)
                                 Spacer()
-                                Button(action: {
-                                    showingLocationPicker = true
-                                }) {
-                                    Text("Select")
+                                Text(headsUp ? "On" : "Off")
+                                    .settingsButtonText(themeIn: theme)
+                                Button {
+                                    withAnimation{
+                                        headsUp.toggle()
+                                    }
+                                } label: {
+                                    Image(systemName:headsUp ? "arrow.up.and.person.rectangle.portrait" : "rectangle.portrait.slash")
+                                        .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .nonRepeating))
+                                        .settingsButton(themeIn: theme)
                                 }
-                                .padding(6)
-                                .mainButtonStyle(themeIn: theme)
-                            }
-                            .settingsItem(themeIn: theme, items: 3, itemNum: 2)
-                            .offset(y: -8)
-                            HStack {
-                                Text("Current location: \(fixedCityDisplay)") // Use cached/published city
-                                    .ContextualBG(themeIn: theme)
-                            }
-                            .settingsItem(themeIn: theme, items: 3, itemNum: 3)
-                            .offset(y: -16)
-                        }
-                        
-                        HStack {
-                            Text("Live Activity \(showingActivity ? "" : "not ")running")
-                            Spacer()
-                            Button("\(Image(systemName: showingActivity ? "stop.circle" : "play.circle"))") {
-                                if showingActivity {
-                                    showingActivity = false
-                                    la.stopActivity()
-                                } else {
-                                    showingActivity = true
-                                    la.startActivity()
-                                }
-                            }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 24)
-                            .font(.system(size: 24))
-                            .mainButtonStyle(themeIn: theme)
                                 
+                            }
+                            .settingsItem(themeIn: theme)
+                            HStack{
+                                Image(systemName: "exclamationmark.square")
+                                Text("Uses angle configuration set in the Even app")
+                            }
+                            .explanationText(themeIn: theme, width: geo.size.width * 0.9)
+                            
+                            
+                            Text("Things settings")
+                                .pageHeaderText(themeIn: theme)
+                                .padding(.leading, 1)
+                            HStack {
+                                Text("Thing settings")
+                                Spacer()
+                                Text("|")
+                                NavigationLink {
+                                    ThingsSettingsMain(pm: pm)
+                                } label: {
+                                    Image(systemName: "arrow.up.right.circle")
+                                }
+                                .font(.system(size: 24))
+                                .settingsButton(themeIn: theme)
+                            }
+                            .settingsItem(themeIn: theme)
+                            
+                            Text("Live Activity settings")
+                                .pageHeaderText(themeIn: theme)
+                                .padding(.leading, 1)
+                            HStack {
+                                Text("Live Activity \(showingActivity ? "" : "not ")running")
+                                Spacer()
+                                Button {
+                                    if showingActivity {
+                                        showingActivity = false
+                                        la.stopActivity()
+                                    } else {
+                                        showingActivity = true
+                                        la.startActivity()
+                                    }
+                                } label: {
+                                    Image(systemName: showingActivity ? "stop.circle" : "play.square")
+                                        .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .speed(5).nonRepeating))
+                                        .settingsButton(themeIn: theme)
+                                }
+                            }
+                            .settingsItem(themeIn: theme)
+                            
+                            
                         }
-                        .settingsItem(themeIn: theme)
-                        
+                    }
+                    .padding(.top, -40)
+                }
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Menu {
+                            Button {
+                                openURL(URL(string: "https://github.com/Oliemanq/DisplayPlus")!)
+                            } label: {
+                                Label("GitHub Repo", systemImage: "archivebox")
+                            }
+                            .tint(.primary)
+                            Button {
+                                openURL(URL(string: "https://discord.gg/AH2MxHSepn")!)
+                            } label: {
+                                Label("Discord Server", systemImage: "bubble.left.and.bubble.right")
+                            }
+                            .tint(.primary)
+                            Button {
+                                showingSupportAlert = true
+                            } label: {
+                                Label("Support the developer!", systemImage: "heart")
+                            }
+                            .tint(.primary)
+                            Divider()
+                            Button {
+                                openURL(URL(string: "https://github.com/Oliemanq/DisplayPlus/issues")!)
+                            } label: {
+                                Label("Report an Issue", systemImage: "exclamationmark.bubble")
+                            }
+                            .tint(.primary)
+                        } label: {
+                            HStack{
+                                Text("Links")
+                                Image(systemName: "link.circle")
+                                    .symbolRenderingMode(.monochrome)
+                            }
+                            .foregroundStyle(.primary)
+                        }
+                        .tint(.primary)
+                    }
+                    ToolbarItem(placement: .title) {
+                        Text("Settings")
+                            .pageHeaderText(themeIn: theme)
                     }
                 }
-            }
-            
-            .navigationTitle("Settings")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button {
-                            openURL(URL(string: "https://github.com/Oliemanq/DisplayPlus")!)
-                        } label: {
-                            Label("GitHub Repo", systemImage: "archivebox")
-                        }
-                        .tint(.primary)
-                        Button {
-                            openURL(URL(string: "https://discord.gg/AH2MxHSepn")!)
-                        } label: {
-                            Label("Discord Server", systemImage: "bubble.left.and.bubble.right")
-                        }
-                        .tint(.primary)
-                        Button {
-                            showingSupportAlert = true
-                        } label: {
-                            Label("Support the developer!", systemImage: "heart")
-                        }
-                        .tint(.primary)
-                        Divider()
-                        Button {
-                            openURL(URL(string: "https://github.com/Oliemanq/DisplayPlus/issues")!)
-                        } label: {
-                            Label("Report an Issue", systemImage: "exclamationmark.bubble")
-                        }
-                        .tint(.primary)
-                    } label: {
-                        HStack{
-                            Text("Links")
-                            Image(systemName: "link.circle")
-                                .symbolRenderingMode(.monochrome)
-                        }
-                        .foregroundStyle(.primary)
-                    }
-                    .tint(.primary)
+                .alert("Support the developer!", isPresented: $showingSupportAlert) {
+                    Button("OK", role: .cancel) { }
+                } message: {
+                    Text("Thank you for considering supporting my work! If you'd like to contribute, please visit my GitHub page or my Discord for more info.")
                 }
             }
-            .alert("Support the developer!", isPresented: $showingSupportAlert) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("Thank you for considering supporting my work! If you'd like to contribute, please visit my GitHub page or my Discord for more info.")
-            }
-            .sheet(isPresented: $showingLocationPicker) {
-                LocationPickerView(location: $fixedLocation, theme: theme)
-            }
-        }
-        .tint(.primary)
-        .onChange(of: fixedLocation) {
-            if let newLocation = fixedLocation {
-                fixedLatitude = newLocation.latitude
-                fixedLongitude = newLocation.longitude
-                Task {
-                    await info.updateWeather() // This will trigger reverse geocode via WeatherManager
+            .tint(.primary)
+            .onChange(of: fixedLocation) {
+                if let newLocation = fixedLocation {
+                    fixedLatitude = newLocation.latitude
+                    fixedLongitude = newLocation.longitude
+                    pm.updateCurrentPage()
                 }
             }
+            .animation(.default, value: location)
         }
-        .task(id: location) {
-            info.weather.toggleLocationUsage(on: location)
-            await info.updateWeather()
-        }
-        .animation(.default, value: location)
     }
 }
 
 #Preview {
-    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), infoIn: InfoManager(cal: CalendarManager(), music: AMMonitor(), weather: WeatherManager()), liveIn: LiveActivityManager()) //, health: HealthInfoGetter()
-        .environmentObject(ThemeColors())
-
+    SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), pmIn: PageManager(currentPageIn: "DefaultAllThings", themeIn: ThemeColors()), liveIn: LiveActivityManager())
 }

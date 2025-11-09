@@ -13,7 +13,7 @@ class LiveActivityManager: ObservableObject {
     @AppStorage("glassesBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesBattery: Int = 0
     @AppStorage("caseBattery", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseBattery: Int = 0
     @AppStorage("connectionStatus", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var connectionStatus: String = "Disconnected"
-    @AppStorage("glassesCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var glassesCharging: Bool = false
+    @AppStorage("glassesInCase", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var glassesInCase = false
     @AppStorage("caseCharging", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var caseCharging: Bool = false
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
     
@@ -32,7 +32,7 @@ class LiveActivityManager: ObservableObject {
         let state = DisplayPlusWidgetAttributes.ContentState(
             glassesBattery: Float(glassesBattery), caseBattery: Float(caseBattery),
             connectionStatus: connectionStatus,
-            glassesCharging: glassesCharging,
+            glassesCharging: glassesInCase,
             caseCharging: caseCharging,
             displayOn: displayOn
         )
@@ -46,7 +46,7 @@ class LiveActivityManager: ObservableObject {
             glassesBattery: Float(glassesBattery),
             caseBattery: Float(caseBattery),
             connectionStatus: connectionStatus,
-            glassesCharging: glassesCharging,
+            glassesCharging: glassesInCase,
             caseCharging: caseCharging,
             displayOn: displayOn
         )
