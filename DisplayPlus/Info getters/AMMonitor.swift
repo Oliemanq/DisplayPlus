@@ -10,6 +10,7 @@ class AMMonitor: ObservableObject {
 
     private var isObserving = false
 
+    //MARK: - Music Observation and updating
     private func startMusicObservation() {
         guard !isObserving else { return }
         isObserving = true
@@ -23,7 +24,6 @@ class AMMonitor: ObservableObject {
 
         player.beginGeneratingPlaybackNotifications()
     }
-
     @objc private func nowPlayingItemChanged() {
         updateCurrentSong()
     }
@@ -65,6 +65,21 @@ class AMMonitor: ObservableObject {
         }
     }
     
+    //MARK: - Playback Controls
+    public func skipForward() {
+        player.skipToNextItem()
+    }
+    public func skipBack() {
+        player.skipToPreviousItem()
+    }
+    public func playPauseToggle() {
+        if player.playbackState == .playing {
+            player.pause()
+        } else {
+            player.play()
+        }
+    }
+        
     public func getCurSong() -> Song {
         curSong.songChanged = false // Reset after being read
         return curSong

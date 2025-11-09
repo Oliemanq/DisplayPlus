@@ -21,6 +21,8 @@ class BackgroundTaskManager: ObservableObject {
     var autoOffCounter: Int = 0
     var forceUpdateInfo: Bool = true
     
+    var hardwareFetched = false
+    
     var logging: Bool = false // For debugging purposes
     
     @AppStorage("displayOn", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var displayOn = false
@@ -63,6 +65,10 @@ class BackgroundTaskManager: ObservableObject {
         pm.updateCurrentPage()
                 
         if ble.connectionState == .connectedBoth {
+            if !hardwareFetched {
+                ble.fetchHardwareInfo()
+                hardwareFetched = true
+            }
             // Less frequent updates
             if counter % 30 == 0 { // Every 15 seconds (30 * 0.5s)
                 ble.fetchData()

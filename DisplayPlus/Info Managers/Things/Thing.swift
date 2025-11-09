@@ -20,6 +20,9 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
     var spacerBelow: Bool = false
     var spacersRight: Int = 0
     var spacersBelow: Int = 0
+        
+    var actions: [action] = []
+    var selectedAction: Int = 0
     
     var sizeRaw: CGFloat {
         if type == "Spacer" {
@@ -54,7 +57,7 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
         case updated
     }
     
-    init(name: String, type: String, data: String = "", thingSize: String = "Small"){
+    init(name: String, type: String, data: String = "", thingSize: String = "Small") {
         self.name = name
         self.type = type
         self.data = data
@@ -113,6 +116,19 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
     func addTheme(themeIn: ThemeColors) {
         self.theme = themeIn
     }
+    func addAction(_ actionIn: action) {
+        actions.append(actionIn)
+    }
+    func selectAction(index: Int) {
+        if index >= 0 && index < actions.count {
+            selectedAction = index
+        }
+    }
+    func runAction() {
+        if actions.indices.contains(selectedAction) {
+            actions[selectedAction].performAction()
+        }
+    }
     
     func getAuthStatus() -> Bool {
         return false
@@ -129,12 +145,31 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
         )
     }
     
-    func action() {
-        print("No action assigned to Thing type \(type)")
-    }
-    
     func toString(mirror: Bool = false) -> String {
        return data
+    }
+}
+class action {
+    var name: String
+    var symbol: String
+    private var handler: (() -> Void)?
+
+    init(name: String, symbol: String, handler: (() -> Void)? = nil) {
+        self.name = name
+        self.symbol = symbol
+        self.handler = handler
+    }
+
+    func toString() -> String {
+        return " \(symbol) \(name)"
+    }
+
+    func setAction(_ handler: @escaping () -> Void) {
+        self.handler = handler
+    }
+
+    func performAction() {
+        handler?()
     }
 }
 

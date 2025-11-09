@@ -28,6 +28,7 @@ struct SettingsView: View {
     @AppStorage("fixedLongitude", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) private var fixedLongitude: Double = 0.0
     @AppStorage("currentCity", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var currentCity: String = ""
     @State private var showingLocationPicker = false
+    @State private var showingHardwareInfo = false
     @State private var fixedLocation: CLLocationCoordinate2D?
     
     // Add a debounce timer
@@ -105,6 +106,19 @@ struct SettingsView: View {
                             }
                             .explanationText(themeIn: theme, width: geo.size.width * 0.9)
                             
+                            if ble.connectionState == .connectedBoth || isNotPhone(){
+                                HStack{
+                                    Text("Hardware info")
+                                    Spacer()
+                                    NavigationLink {
+                                        HardwareInfoView(theme: theme, ble: ble)
+                                    }label: {
+                                        Image(systemName: "info.circle")
+                                            .settingsButton(themeIn: theme)
+                                    }
+                                }
+                                .settingsItem(themeIn: theme)
+                            }
                             
                             Text("Things settings")
                                 .pageHeaderText(themeIn: theme)
@@ -214,4 +228,58 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView(bleIn: G1BLEManager(liveIn: LiveActivityManager()), pmIn: PageManager(currentPageIn: "DefaultAllThings", themeIn: ThemeColors()), liveIn: LiveActivityManager())
+}
+
+
+struct HardwareInfoView: View {
+    @StateObject var theme: ThemeColors
+    @StateObject var ble: G1BLEManager
+    
+    var body: some View{
+        NavigationStack {
+            ZStack{
+                (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
+                    .ignoresSafeArea()
+                ScrollView(.vertical) {
+                    VStack{
+                        HStack{
+                            Text("Hardware model:")
+                            Spacer()
+                            Text(ble.model ?? "Unknown model")
+                        }
+                        .settingsItem(themeIn: theme)
+                        
+                        HStack{
+                            Text("Connection channel")
+                            Spacer()
+                            Text(ble.channel ?? "Unknown channel")
+                        }
+                        .settingsItem(themeIn: theme)
+                        
+                        HStack{
+                            Text("Firmware version:")
+                            Spacer()
+                            Text(ble.firmwareVersion ?? "Unknown version")
+                        }
+                        .settingsItem(themeIn: theme)
+                        
+                        
+                        HStack{
+                            Text("Serial Number")
+                            Spacer()
+                            Text(ble.serialNumber ?? "Unknown serial")
+                        }
+                        .settingsItem(themeIn: theme)
+                        
+                    }
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .title) {
+                    Text("Hardware Information")
+                        .pageHeaderText(themeIn: theme)
+                }
+            }
+        }
+    }
 }

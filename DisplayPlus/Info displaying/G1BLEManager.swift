@@ -60,6 +60,14 @@ class G1BLEManager: NSObject, ObservableObject{
     private var rightWChar: CBCharacteristic?  // Write Char for right arm
     private var rightRChar: CBCharacteristic?  // Read  Char for right arm
     
+    public private(set) var deviceName: String?
+    public private(set) var model: String? //Hardware model (G1, G2)
+    public private(set) var channel: String?
+    public private(set) var firmwareVersion: String?
+    public private(set) var serialNumber: String?
+    public private(set) var bluetoothMAC: String?
+    public private(set) var connectedRing: Bool = false
+    
     // Nordic UART-like service & characteristics (customize if needed)
     private let uartServiceUUID =  CBUUID(string: "6E400001-B5A3-F393-E0A9-E50E24DCCA9E")
     private let uartTXCharUUID  =  CBUUID(string: "6E400002-B5A3-F393-E0A9-E50E24DCCA9E")
@@ -152,7 +160,7 @@ class G1BLEManager: NSObject, ObservableObject{
         
         print("Disconnected from G1 glasses.")
     }
-    
+        
     ///writeData function
     func writeData(_ data: Data, to arm: String = "Both") {
         switch arm {
@@ -256,6 +264,9 @@ class G1BLEManager: NSObject, ObservableObject{
                 centralManager.connect(pair.left!, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
             }
         }
+        
+        model = pair.model
+        channel = String(describing: pair.channel!)
     }
     
     //Needed to maintain connection to glasses when not displaying something
@@ -289,19 +300,17 @@ class G1BLEManager: NSObject, ObservableObject{
         let data = Data(packet)
         writeData(data, to: arm) //both arms
     }
-    
     //Sending new text to screen, usually a new page
     func sendText(text: String = "", counter: Int) {
         // Ensure counter is treated as an integer for sequence number
         sendTextCommand(seq: UInt8(Int(counter) % 256), text: text)
     }
-    
     //Send blank text to screen, used to clear screen
     func sendBlank() {
         sendTextCommand(seq: 0, text: "")
     }
     
-    //MARK: - Fetch info functions
+    //MARK: - Fetch dynamic hw info functions
     func fetchGlassesBattery(){
         var packet = [UInt8]()
         packet.append(0x2C)
@@ -324,10 +333,31 @@ class G1BLEManager: NSObject, ObservableObject{
         let data = Data(packet)
         writeData(data, to: "Right")
     }
-    func fetchData() {
+    func fetchData(){
         fetchGlassesBattery()
         fetchSilentMode()
         fetchBrightness()
+    }
+    
+    //MARK: - Fetch static hardware info functions
+    func fetchHardwareInfo() {
+        fetchFirmware()
+        fetchSN()
+    }
+    func fetchFirmware() {
+        var packet = [UInt8]()
+        packet.append(0x23)
+        packet.append(0x74)
+        let data = Data(packet)
+        print("Fetching hardware info")
+        writeData(data, to: "Both")
+    }
+    func fetchSN() {
+        var packet = [UInt8]()
+        packet.append(0x34)
+        
+        let data = Data(packet)
+        writeData(data, to: "Both")
     }
     
     //MARK: - Set Info functions
@@ -347,7 +377,6 @@ class G1BLEManager: NSObject, ObservableObject{
         let data = Data(packet)
         writeData(data, to: "Both")
     }
-    
     func setBrightness(value: CGFloat) {
         
         let valueHex = UInt8(value)
@@ -718,9 +747,23 @@ extension G1BLEManager: CBPeripheralDelegate {
                     updateBattery(device: name!, batteryLevel: byteArray[2])
                 }
             default:
-                print("Unknown message from battery fetch \(byteArray)")
+                print("Unknown message from battery fetch--------\n\(byteArray)")
+            }
+            
+        //MARK: - Hardware info response
+        case 110: //0x6E
+            let trimmed = byteArray.dropFirst(2) //Drop first 2 bytes (header and subcommand)
+            if let versionString = String(bytes: trimmed, encoding: .utf8) {
+                let split = versionString.split(separator: ", ")
+                firmwareVersion = String(split[2])
+            }
+        case 52: //0x34
+            let trimmed = byteArray.dropFirst(2) //Drop first 2 bytes (header and subcommand)
+            if let snString = String(bytes: trimmed, encoding: .utf8) {
+                serialNumber = snString.trimmingCharacters(in: .controlCharacters)
             }
         
+            
         //MARK: - Silent mode
         //Silent mode fetch response
         case 43: //0x2B return from fetchSilentStatus
@@ -737,25 +780,6 @@ extension G1BLEManager: CBPeripheralDelegate {
                 print("unknown response from fetchSilentStatus \(String(byteArray[2], radix: 16)) \(byteArray[2]) \(byteArray)")
             }
             
-//            switch String(format: "%02X", byteArray[2]){
-//            case "06":
-//                glassesOn()
-//            case "07":
-//                glassesOff()
-//            case "08":
-//                glassesInCase = true
-//                print("Glasses in case, lid open")
-//            case "0A":
-//                glassesInCase = true
-//                print("Glasses in case, lid closed")
-//            case "0B":
-//                glassesInCase = true
-//                caseCharging = true
-//                print("Glasses in case, lid closed, case plugged in")
-//            default:
-//                break
-//            }
-//            
         //Silent mode set response
         case 3: //0x03 return from setSilentModeStatus
             switch byteArray[1]{
@@ -789,6 +813,8 @@ extension G1BLEManager: CBPeripheralDelegate {
                 print("unknown response from setBrightness \(byteArray[1])")
             }
             
+        
+            
         //MARK: - Unknown/unused signals from glasses
             
         //Audio stream started response (not sure why it would be called outside of the main app, I don't use the mic)
@@ -799,7 +825,7 @@ extension G1BLEManager: CBPeripheralDelegate {
         case 34:
             print("response from syncronization signal. To do with getting info about dashboard. Ignore\n")
         default:
-            print("unknown message \(byteArray)")
+//            print("unknown message \(byteArray)")
             print("Header: \(String(format: "%02X", byteArray[0])), subcommand: \(String(format: "%02X", byteArray[1]))\n")
         }
     }
@@ -872,4 +898,3 @@ extension G1BLEManager: CBPeripheralDelegate {
         }
     }
 }
-
