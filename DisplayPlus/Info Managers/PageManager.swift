@@ -406,7 +406,7 @@ class Page: Observable {
     }
     
     func newRow(_ rowIn: [Thing], row: Int) {
-        var finalRow = rowIn
+        let finalRow = rowIn
 
         var rowWidth: CGFloat = 0
         for thing in rowIn {

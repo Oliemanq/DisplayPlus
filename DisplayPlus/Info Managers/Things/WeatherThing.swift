@@ -10,6 +10,7 @@ class WeatherThing: Thing {
     @Published var fixedLatitude: Double
     @Published var fixedLongitude: Double
     @Published var currentCity: String
+    @Published var useCelsius: Bool
 
     @Published var showingLocationPicker: Bool
     @Published var fixedLocation: CLLocationCoordinate2D?
@@ -21,6 +22,7 @@ class WeatherThing: Thing {
 
     var weather: WeatherManager = WeatherManager()
     var updateCounter = 0
+    var forceUpdate = false
 
     init(name: String, size: String = "Small") {
         // initialize published properties from UserDefaults before calling super
@@ -28,6 +30,7 @@ class WeatherThing: Thing {
         self.fixedLatitude = defaults.double(forKey: "fixedLatitude")
         self.fixedLongitude = defaults.double(forKey: "fixedLongitude")
         self.currentCity = defaults.string(forKey: "currentCity") ?? ""
+        self.useCelsius = defaults.bool(forKey: "useCelsius")
         self.showingLocationPicker = false
         self.fixedLocation = nil
 
@@ -42,6 +45,7 @@ class WeatherThing: Thing {
         self.fixedLatitude = defaults.double(forKey: "fixedLatitude")
         self.fixedLongitude = defaults.double(forKey: "fixedLongitude")
         self.currentCity = defaults.string(forKey: "currentCity") ?? ""
+        self.useCelsius = defaults.bool(forKey: "useCelsius")
         self.showingLocationPicker = false
         self.fixedLocation = nil
 
@@ -57,22 +61,27 @@ class WeatherThing: Thing {
                 self?.defaults.set(new, forKey: "useLocation")
             }
             .store(in: &cancellables)
-
+        
         $fixedLatitude
             .sink { [weak self] new in
                 self?.defaults.set(new, forKey: "fixedLatitude")
             }
             .store(in: &cancellables)
-
+        
         $fixedLongitude
             .sink { [weak self] new in
                 self?.defaults.set(new, forKey: "fixedLongitude")
             }
             .store(in: &cancellables)
-
+        
         $currentCity
             .sink { [weak self] new in
                 self?.defaults.set(new, forKey: "currentCity")
+            }
+            .store(in: &cancellables)
+        $useCelsius
+            .sink { [weak self] new in
+                self?.defaults.set(new, forKey: "useCelsius")
             }
             .store(in: &cancellables)
 
@@ -91,16 +100,18 @@ class WeatherThing: Thing {
     private var cancellables = Set<AnyCancellable>()
 
     override func update() {
-        if updateCounter % 360 == 0 {
+        if updateCounter % 360 == 0 || forceUpdate {
             Task {
                 try await weather.fetchWeatherData()
             }
+            forceUpdate = false
             print("Weather with\(!weather.useLocation ? "out" : "") location, fetch successful")
+            print("Current temp: \(weather.currentTemp)")
         }
         updateCounter += 1
     }
 
-    func getCurrentTemp() -> Int {
+    func getCurrentTemp() -> String {
         return weather.currentTemp
     }
 
@@ -110,7 +121,7 @@ class WeatherThing: Thing {
 
     override func toString(mirror: Bool = false) -> String {
         if size == "Small" {
-            return "\(weather.currentTemp)°F"
+            return "\(weather.currentTemp)"
         } else {
             return "Incorrect size input for Weather thing: \(size), must be Small"
         }
@@ -159,13 +170,14 @@ struct WeatherThingSettingsView: View {
                 ScrollView(.vertical) {
                     HStack {
                         Text("Use location")
-                            .fixedSize(horizontal: true, vertical: false)
                         Spacer()
                         Text(thing.location ? "On" : "Off")
                             .settingsButtonText(themeIn: thing.theme)
                         Button {
                             withAnimation {
                                 thing.location.toggle()
+                                thing.forceUpdate = true
+                                thing.update()
                             }
                         } label: {
                             Image(systemName: thing.location ? "location" : "location.slash")
@@ -198,6 +210,24 @@ struct WeatherThingSettingsView: View {
                         
                     }
                     
+                    HStack {
+                        Text("Temperature unit")
+                        Spacer()
+                        Text(thing.useCelsius ? "Celsius" : "Fahrenheit")
+                            .settingsButtonText(themeIn: thing.theme)
+                        Button {
+                            withAnimation {
+                                thing.useCelsius.toggle()
+                                thing.forceUpdate = true
+                                thing.update()
+                            }
+                        } label: {
+                            Image(systemName: thing.useCelsius ? "degreesign.celsius" : "degreesign.fahrenheit")
+                                .contentTransition(.symbolEffect(.replace))
+                                .settingsButton(themeIn: thing.theme)
+                        }
+                    }
+                    .settingsItem(themeIn: thing.theme)
                     
                 }
                 .sheet(isPresented: Binding(get: { thing.showingLocationPicker }, set: { thing.showingLocationPicker = $0 })) {

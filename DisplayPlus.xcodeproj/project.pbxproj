@@ -10,7 +10,7 @@
 		4E627B962E72676F00E38E36 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E627B952E72676F00E38E36 /* WidgetKit.framework */; };
 		4E627B972E72676F00E38E36 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E8DA2912E1EFDFF00934ED3 /* SwiftUI.framework */; };
 		4E627BA62E72677000E38E36 /* DisplayPlusWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4E627B942E72676F00E38E36 /* DisplayPlusWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		4EB23FCD2DF89699005A2750 /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 4EB23FCC2DF89699005A2750 /* OpenMeteoSdk */; };
+		4E7CA4AB2EC10C0C0097C19D /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 4E7CA4AA2EC10C0C0097C19D /* OpenMeteoSdk */; };
 		4EE28AFB2E839A7B00438919 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4EE28AFA2E839A7B00438919 /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
@@ -128,7 +128,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4EB23FCD2DF89699005A2750 /* OpenMeteoSdk in Frameworks */,
+				4E7CA4AB2EC10C0C0097C19D /* OpenMeteoSdk in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -218,7 +218,7 @@
 			);
 			name = DisplayPlus;
 			packageProductDependencies = (
-				4EB23FCC2DF89699005A2750 /* OpenMeteoSdk */,
+				4E7CA4AA2EC10C0C0097C19D /* OpenMeteoSdk */,
 			);
 			productName = DisplayPlus;
 			productReference = 4E70104E2DBD6F4800F868F4 /* DisplayPlus.app */;
@@ -279,7 +279,7 @@
 			mainGroup = 4E7010452DBD6F4700F868F4;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				4EB23FCB2DF89699005A2750 /* XCRemoteSwiftPackageReference "sdk" */,
+				4E7CA4A92EC10C0C0097C19D /* XCRemoteSwiftPackageReference "sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4E70104F2DBD6F4800F868F4 /* Products */;
@@ -363,7 +363,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = DisplayPlusWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 339H2WC2Z9;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DisplayPlusWidget/Info.plist;
@@ -375,7 +375,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus.DisplayPlusWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -395,7 +395,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = DisplayPlusWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 339H2WC2Z9;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DisplayPlusWidget/Info.plist;
@@ -407,7 +407,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus.DisplayPlusWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -551,7 +551,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = DisplayPlus/DisplayPlus.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 339H2WC2Z9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -576,7 +576,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -593,7 +593,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = DisplayPlus/DisplayPlus.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 339H2WC2Z9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -618,7 +618,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -707,20 +707,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		4EB23FCB2DF89699005A2750 /* XCRemoteSwiftPackageReference "sdk" */ = {
+		4E7CA4A92EC10C0C0097C19D /* XCRemoteSwiftPackageReference "sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/open-meteo/sdk.git";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		4EB23FCC2DF89699005A2750 /* OpenMeteoSdk */ = {
+		4E7CA4AA2EC10C0C0097C19D /* OpenMeteoSdk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4EB23FCB2DF89699005A2750 /* XCRemoteSwiftPackageReference "sdk" */;
+			package = 4E7CA4A92EC10C0C0097C19D /* XCRemoteSwiftPackageReference "sdk" */;
 			productName = OpenMeteoSdk;
 		};
 /* End XCSwiftPackageProductDependency section */
