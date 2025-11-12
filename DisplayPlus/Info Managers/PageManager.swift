@@ -68,18 +68,27 @@ class PageManager: ObservableObject {
     func getPageThings() -> [[Thing]] {
         return getCurrentPage().thingsOrdered
     }
+    
+    func removePage(name: String) {
+        print("Removing page: \(name)")
+        pages.removeAll { $0.PageName == name }
+        for page in pages {
+            print(" - Remaining page: \(page.PageName)")
+        }
+    }
+        
 
     func updateCurrentPageValue(_ in: String) {
         withAnimation{
             currentPage = `in`
         }
     }
-    
     func updateCurrentPage() {
         let p = getCurrentPage()
         p.updateAllThingsFromPage()
     }
     
+    //MARK: - Default page creators
     func DefaultPageCreator() {
         print("Creating default page and adding it to pm pages")
         let t = TimeThing(name: "TimeDefaultPage")
@@ -102,7 +111,6 @@ class PageManager: ObservableObject {
         p.newRow( [t,d,b,w], row: 0)
         return p
     }
-    
     func DefaultWithAllThings() {
         print("Creating default page with all things and adding it to pm pages")
         let t = TimeThing(name: "TimeDefaultPage")
@@ -131,7 +139,6 @@ class PageManager: ObservableObject {
         p.newRow( [c,m], row: 1)
         return p
     }
-    
     func MusicPageCreator() {
         print("Creating music page and adding it to pm pages")
         let t = TimeThing(name: "TimeMusicPage")
@@ -300,7 +307,7 @@ class PageManager: ObservableObject {
     }
 }
 
-class Page: Observable {
+class Page: Observable, ObservableObject {
     var PageName: String
     var thingsOrdered: [[Thing]]
     
@@ -324,16 +331,7 @@ class Page: Observable {
             }
         }
     }
-    
-    func getRow(row: Int) -> [Thing] {
-        if row < thingsOrdered.count {
-            return thingsOrdered[row]
-        }else {
-            print("Invalid row num, exceeded limit of rows")
-            return []
-        }
-    }
-    
+        
     func getThingTypes() -> [String] {
         var seen = Set<String>()
         var result: [String] = []
@@ -361,13 +359,6 @@ class Page: Observable {
         }
         return result
     }
-    
-    func blankRowBelow(row: Int) {
-        if row + 1 < thingsOrdered.count {
-            thingsOrdered[row + 1] = []
-        }
-    }
-    
     func removeThingAt(row: Int, index: Int) {
         if row < thingsOrdered.count {
             if index < thingsOrdered[row].count {
@@ -385,28 +376,18 @@ class Page: Observable {
             }
         }
     }
-    
-    func printPageForSaving() -> String {
-        var output: String = ""
-        output += "~\(PageName)"
         
-        for row in thingsOrdered {
-            //adding | to seperate out rows
-            output += "|"
-            for thing in row {
-                //Adding / to seperate things in row
-                output += "/\(thing.name):\(thing.type):\(thing.size)" //. inbetween to seperate attributes
-            }
+    func getRow(row: Int) -> [Thing] {
+        if row < thingsOrdered.count {
+            return thingsOrdered[row]
+        }else {
+            print("Invalid row num, exceeded limit of rows")
+            return []
         }
-        //~PageName | /name:type:size /name:type:size | /name:type:size /name:type:size
-        //~Music | /time:Time:Small / battery:Battery:Small | /music:Music:Large
-        
-        //A row called "name" with 2 rows, each with 2 things.
-        return output
     }
     
     func newRow(_ rowIn: [Thing], row: Int) {
-        var finalRow = rowIn
+        let finalRow = rowIn
 
         var rowWidth: CGFloat = 0
         for thing in rowIn {
@@ -426,6 +407,13 @@ class Page: Observable {
 
         thingsOrdered[row] = finalRow
     }
+    func blankRowBelow(row: Int) {
+        if row + 1 < thingsOrdered.count {
+            thingsOrdered[row + 1] = []
+        }
+    }
+
+    
     //MARK: - display output function
     func outputPage(mirror: Bool = false) -> String {
         var output: String = ""
@@ -456,7 +444,24 @@ class Page: Observable {
         }
         return output
     }
-    
+    func printPageForSaving() -> String {
+        var output: String = ""
+        output += "~\(PageName)"
+        
+        for row in thingsOrdered {
+            //adding | to seperate out rows
+            output += "|"
+            for thing in row {
+                //Adding / to seperate things in row
+                output += "/\(thing.name):\(thing.type):\(thing.size)" //. inbetween to seperate attributes
+            }
+        }
+        //~PageName | /name:type:size /name:type:size | /name:type:size /name:type:size
+        //~Music | /time:Time:Small / battery:Battery:Small | /music:Music:Large
+        
+        //A row called "name" with 2 rows, each with 2 things.
+        return output
+    }
 }
 #Preview {
     PagePreviewView()

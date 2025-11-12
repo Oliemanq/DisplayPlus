@@ -20,6 +20,9 @@ struct PageEditorView: View {
     @State private var draggedThing: Thing? = nil // Track the currently dragged thing
     @State private var thingBeingDragged: Bool = false
     @State private var refreshID = UUID() // Add refresh trigger
+        
+    @State private var showDeleteConfirmation = false
+    @State private var selectedPage = ""
     
     @State private var showAddPageAlert = false
     @State private var newPageName = ""
@@ -169,6 +172,7 @@ struct PageEditorView: View {
                         }
                         .homeItem(themeIn: theme, height: thingBeingDragged ?  rowHeight*5 + 12 : rowHeight*4 + 10)
                         .id(refreshID)
+                        
                         Spacer()
                     }
                 }
@@ -289,9 +293,22 @@ struct PageEditorView: View {
                             Divider()
                             
                             ForEach(pm.pages, id: \.PageName) { page in
-                                Button {
-                                    currentPage = page.PageName
-                                    print("Switched to page \(page.PageName) from menu")
+                                Menu {
+                                    Button {
+                                        currentPage = page.PageName
+                                        print("Switched to page \(page.PageName) from menu")
+                                    } label: {
+                                        Label("\(currentPage == page.PageName ? "Current page" : "Page selected")", systemImage: "\(currentPage == page.PageName ? "checkmark.circle" : "circle")")
+                                    }
+                                    Button(role: .destructive) {
+                                        print("setting selectedPage")
+                                        selectedPage = page.PageName
+                                        
+                                        showDeleteConfirmation = true
+                                    } label: {
+                                        Label("Delete Page", systemImage: "trash")
+                                            .tint(.red)
+                                    }
                                 } label: {
                                     Text(page.PageName)
                                 }
@@ -339,6 +356,24 @@ struct PageEditorView: View {
             })
         }, message: {
             Text("Enter a name for the new page.")
+        })
+        .alert("Delete Page", isPresented: $showDeleteConfirmation, actions: {
+            Button("Delete", role: .destructive) {
+                if pm.pages.count <= 1 {
+                    pm.resetPages()
+                } else {
+                    if currentPage == selectedPage {
+                        let newCurrent = pm.pages.first?.PageName ?? "Default"
+                        currentPage = newCurrent
+                        pm.updateCurrentPageValue(newCurrent) // Add this line
+                    }
+                    pm.removePage(name: selectedPage)
+                    pm.savePages()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }, message: {
+            Text("Are you sure you want to delete the page '\(selectedPage)'? This action cannot be undone.")
         })
     }
     func addItemToUnused(item: Thing) {
@@ -546,7 +581,6 @@ extension PageEditorView {
                 .editorBlock(themeIn: theme)
                 .onTapGesture {
                     print("Tapped \(thing.name) at \(rowNum),\(thingNumInRow)")
-                    thing.action()
                 }
             if !dropSpot {
                 Image(systemName: "x.circle")

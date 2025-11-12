@@ -18,9 +18,11 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var lastGeocodeDate: Date?
     private let geocodeThrottle: TimeInterval = 60 // seconds
     public var currentLocation: CLLocation?
-    @Published var currentTemp: Int = 0
-    @Published var currentWind: Int = 0
+    @Published var currentTemp: String = "0"
+    @Published var currentWind: String = "0"
     @AppStorage("currentCity", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var currentCity: String = ""
+    @AppStorage("useLocation", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) public var useLocation: Bool = false
+    @AppStorage("useCelsius", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) public var useCelsius: Bool = false
     @State var counter: Int = 0
     
     override init() {
@@ -41,14 +43,6 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         } else {
             print("Location usage off")
             locationManager.stopUpdatingLocation()
-        }
-    }
-    
-    @AppStorage("useLocation", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) public var useLocation: Bool = false {
-        didSet {
-            DispatchQueue.main.async { [weak self] in
-                self?.updateLocationMonitoring()
-            }
         }
     }
     
@@ -122,7 +116,8 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             updateCityNameIfNeeded(for: CLLocationCoordinate2D(latitude: latitude, longitude: longitude))
         }
         
-        let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(latitude)&longitude=\(longitude)&current=temperature_2m,wind_speed_10m&timezone=auto&forecast_days=1&wind_speed_unit=mph&temperature_unit=fahrenheit&precipitation_unit=inch&format=flatbuffers")!
+        let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(latitude)&longitude=\(longitude)&current=temperature_2m,wind_speed_10m&timezone=auto&forecast_days=1\(useCelsius ? "" : "&wind_speed_unit=mph")\(useCelsius ? "" : "&temperature_unit=fahrenheit")\(useCelsius ? "" : "&precipitation_unit=inch")&format=flatbuffers")!
+        
         let responses = try await WeatherApiResponse.fetch(url: url)
         
         /// Process first location. Add a for-loop for multiple locations or weather models
@@ -151,8 +146,8 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         let windValue = Int(ceil(data.current.windSpeed10m))
         
         await MainActor.run {
-            self.currentTemp = tempValue
-            self.currentWind = windValue
+            self.currentTemp = "\(tempValue)\(useCelsius ? "°C" : "°F")"
+            self.currentWind = "\(windValue)\(useCelsius ? " KM/H" : " MPH")"
         }
     }
     

@@ -20,9 +20,9 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
     var spacerBelow: Bool = false
     var spacersRight: Int = 0
     var spacersBelow: Int = 0
-        
+    
     var actions: [action] = []
-    var selectedAction: Int = 0
+    var selectedAction: Int = -1
     
     var sizeRaw: CGFloat {
         if type == "Spacer" {
@@ -42,7 +42,7 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
         }
         
     }
-        
+    
     var updated: Bool = false
     
     private enum CodingKeys: String, CodingKey {
@@ -146,30 +146,7 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
     }
     
     func toString(mirror: Bool = false) -> String {
-       return data
-    }
-}
-class action {
-    var name: String
-    var symbol: String
-    private var handler: (() -> Void)?
-
-    init(name: String, symbol: String, handler: (() -> Void)? = nil) {
-        self.name = name
-        self.symbol = symbol
-        self.handler = handler
-    }
-
-    func toString() -> String {
-        return " \(symbol) \(name)"
-    }
-
-    func setAction(_ handler: @escaping () -> Void) {
-        self.handler = handler
-    }
-
-    func performAction() {
-        handler?()
+        return data
     }
 }
 
