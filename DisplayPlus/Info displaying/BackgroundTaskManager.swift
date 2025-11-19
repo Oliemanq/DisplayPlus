@@ -16,8 +16,6 @@ class BackgroundTaskManager: ObservableObject {
     
     //various counters
     var counter: Int = 0
-    var HBTriggerCounter: Int = 0
-    var HBCounter: Int = 0
     var autoOffCounter: Int = 0
     var forceUpdateInfo: Bool = true
     
@@ -82,12 +80,6 @@ class BackgroundTaskManager: ObservableObject {
                 Task {
                     await self.lowBatteryDisconnect()
                 }
-            }
-            
-            HBTriggerCounter += 1
-            if HBTriggerCounter % 48 == 0 || HBTriggerCounter == 1 { //Sending heartbeat command every ~24 seconds to maintain connection
-                ble.sendHeartbeat(counter: HBCounter % 255)
-                HBCounter += 1
             }
             
             if autoOff {

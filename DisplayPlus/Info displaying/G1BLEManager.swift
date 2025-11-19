@@ -48,6 +48,8 @@ class G1BLEManager: NSObject, ObservableObject{
     private var reconnectAttempts: [UUID: Int] = [:]
     private let maxReconnectAttempts = 3
     private let reconnectDelay: TimeInterval = 1.0
+    private var HBTimer: Timer?
+    private var HBCounter: Int = 0
     
     private var centralManager: CBCentralManager!
     // Left & Right peripheral references
@@ -279,6 +281,30 @@ class G1BLEManager: NSObject, ObservableObject{
         
         let data = Data(packet)
         writeData(data, to: "Both") //1 to both
+    }
+    func startHB() {
+        // Invalidate any existing timer before starting a new one
+        HBTimer?.invalidate()
+        
+        // Reset the counter when starting a new heartbeat sequence
+        HBCounter = 0
+        
+        // Create a repeating timer on a background queue that fires
+        // approximately every 25 seconds and sends a heartbeat.
+        HBTimer = Timer.scheduledTimer(withTimeInterval: 25.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
+            // Increment and wrap the counter to stay within 0...255
+            self.HBCounter = (self.HBCounter + 1) % 256
+            
+            // Perform the BLE write work on a background queue
+            DispatchQueue.global(qos: .background).async {
+                self.sendHeartbeat(counter: self.HBCounter)
+            }
+        }
+        
+        // Add the timer to the current run loop in common modes
+        RunLoop.current.add(HBTimer!, forMode: .common)
     }
     
     //MARK: - Glasses communication functions
@@ -558,7 +584,7 @@ extension G1BLEManager: CBPeripheralDelegate {
         
     }
     
-    //didUpdateNoficicationState handling
+    //didUpdateNoficitationState handling
     func peripheral(_ peripheral: CBPeripheral,
                     didUpdateNotificationStateFor characteristic: CBCharacteristic,
                     error: Error?) {
@@ -699,6 +725,8 @@ extension G1BLEManager: CBPeripheralDelegate {
                         withAnimation{
                             connectionState = .connectedBoth
                             connectionStatus = "Connected"
+                            
+                            startHB()
                         }
                     }
                 } else if connectionState == .connectedRightOnly{
@@ -706,12 +734,16 @@ extension G1BLEManager: CBPeripheralDelegate {
                         withAnimation{
                             connectionState = .connectedBoth
                             connectionStatus = "Connected"
+                            
+                            startHB()
                         }
                     }
                 } else {
                     withAnimation {
                         connectionState = .connectedBoth
                         connectionStatus = "Connected"
+                        
+                        startHB()
                         
                         fetchData()
                     }
