@@ -21,9 +21,6 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
     var spacersRight: Int = 0
     var spacersBelow: Int = 0
     
-    var actions: [action] = []
-    var selectedAction: Int = -1
-    
     var sizeRaw: CGFloat {
         if type == "Spacer" {
             return 0
@@ -115,19 +112,6 @@ class Thing: NSObject, Encodable, Decodable, ObservableObject {
     
     func addTheme(themeIn: ThemeColors) {
         self.theme = themeIn
-    }
-    func addAction(_ actionIn: action) {
-        actions.append(actionIn)
-    }
-    func selectAction(index: Int) {
-        if index >= 0 && index < actions.count {
-            selectedAction = index
-        }
-    }
-    func runAction() {
-        if actions.indices.contains(selectedAction) {
-            actions[selectedAction].performAction()
-        }
     }
     
     func getAuthStatus() -> Bool {

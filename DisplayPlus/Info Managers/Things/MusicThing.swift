@@ -13,24 +13,6 @@ class MusicThing: Thing {
         curSongForPreview = curSong
                 
         super.init(name: name, type: "Music", thingSize: size)
-        
-        let action1 = action(name: "Play/Pause", symbol: "playpause")
-        action1.setAction {
-            self.music.playPauseToggle()
-        }
-        actions.append(action1)
-        
-        let action2 = action(name: "Next Track", symbol: "forward.end.fill")
-        action2.setAction {
-            self.music.skipForward()
-        }
-        actions.append(action2)
-        
-        let action3 = action(name: "Previous Track", symbol: "backward.end.fill")
-        action3.setAction {
-            self.music.skipBack()
-        }
-        actions.append(action3)
     }
     
     required init(from decoder: Decoder) throws {
