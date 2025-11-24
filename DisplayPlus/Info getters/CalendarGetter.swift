@@ -1,5 +1,6 @@
 import Foundation
 import EventKit
+import SwiftUI
 
 class CalendarManager {
     private let eventStore = EKEventStore()
@@ -14,22 +15,28 @@ class CalendarManager {
     }
     
     // Request access to the calendar and fetch events for the next day
-    func fetchEventsForNextDay(completion: @escaping CalendarEventsCompletion) {
+    // Modified to accept optional list of calendar IDs to filter
+    func fetchEventsForNextDay(calendarIDs: [String] = [], completion: @escaping CalendarEventsCompletion) {
         // Request access to calendar
         requestAccess { [weak self] success in
             guard let self = self else { return }
             
             if success {
-                self.getTodayEvents(completion: completion)
+                self.getTodayEvents(calendarIDs: calendarIDs, completion: completion)
             } else {
                 completion(.failure(CalendarError.accessDenied))
             }
         }
     }
     
+    // New function to retrieve all available calendars
+    func getAvailableCalendars() -> [EKCalendar] {
+        return eventStore.calendars(for: .event)
+    }
+    
     // Request calendar access permission with proper handling of all authorization states
     private func requestAccess(completion: @escaping (Bool) -> Void) {
-        // Check for EventKit authorization status
+        // ... (Existing implementation remains unchanged) ...
         let authorizationStatus = EKEventStore.authorizationStatus(for: .event)
         
         switch authorizationStatus {
@@ -40,36 +47,28 @@ class CalendarManager {
             completion(true)
             
         case .writeOnly:
+            print("Calendar write access")
             completion(false)
             
         case .notDetermined:
-            // Request permission using the appropriate API based on iOS version
-            if #available(iOS 17.0, macOS 14.0, *) {
-                // Use new API for iOS 17+
-                eventStore.requestFullAccessToEvents { granted, error in
-                    DispatchQueue.main.async {
-                        completion(granted)
-                    }
-                }
-            } else {
-                // Use older API for pre-iOS 17
-                eventStore.requestAccess(to: .event) { granted, error in
-                    DispatchQueue.main.async {
-                        completion(granted)
-                    }
+            eventStore.requestFullAccessToEvents { granted, error in
+                DispatchQueue.main.async {
+                    completion(granted)
                 }
             }
             
         case .denied, .restricted:
+            print("Calendar access denied/restricted")
             completion(false)
             
         @unknown default:
+            print("Calendar access unknown default")
             completion(false)
         }
     }
     
-    // Fetch events for the next day
-    private func getTodayEvents(completion: @escaping CalendarEventsCompletion) {
+    // Fetch events for the next day, filtered by the user's selected calendars.
+    private func getTodayEvents(calendarIDs: [String], completion: @escaping CalendarEventsCompletion) {
         // Get the current date and calendar
         let today = Date()
         let calendar = Calendar.current
@@ -81,13 +80,15 @@ class CalendarManager {
             return
         }
         
-        var morning = DateComponents()
-        morning.hour = 0
-        morning.minute = 0
-        
+        // Resolve calendar objects from IDs if provided
+        var calendarsToSearch: [EKCalendar]? = nil
+        if !calendarIDs.isEmpty {
+            calendarsToSearch = calendarIDs.compactMap { self.eventStore.calendar(withIdentifier: $0) }
+        }
         
         // Create the date range predicate for the search.
-        let predicate = eventStore.predicateForEvents(withStart: today, end: endOfToday, calendars: nil)
+        // Pass the specific calendars if selected, otherwise nil searches all.
+        let predicate = eventStore.predicateForEvents(withStart: today, end: endOfToday, calendars: calendarsToSearch)
         
         // Fetch events matching the predicate (includes all-day events for now)
         let events = eventStore.events(matching: predicate)
@@ -105,11 +106,6 @@ class CalendarManager {
                 return false
             }
             
-            // Filter out Canvas events
-            if event.calendar.title == "Canvas" {
-                return false
-            }
-            
             return true
         }
         
@@ -118,7 +114,7 @@ class CalendarManager {
     
     func getAuthStatus() -> Bool {
         let status = EKEventStore.authorizationStatus(for: .event)
-        return (status == .fullAccess)
+        return (status == .fullAccess || status == .authorized)
     }
 }
 

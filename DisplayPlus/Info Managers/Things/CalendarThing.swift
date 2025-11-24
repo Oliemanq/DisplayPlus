@@ -1,10 +1,3 @@
-//
-//  BatteryThing 2.swift
-//  DisplayPlus
-//
-//  Created by Oliver Heisel on 9/30/25.
-//
-
 import Foundation
 import UIKit
 import EventKit
@@ -12,7 +5,7 @@ import Combine
 import SwiftUI
 
 //
-//  TimeThing.swift
+//  CalendarThing.swift
 //  DisplayPlus
 //
 //  Created by Oliver Heisel on 9/30/25.
@@ -20,6 +13,26 @@ import SwiftUI
 
 class CalendarThing: Thing {
     var calendar: CalendarManager = CalendarManager()
+    
+    // Track which calendar identifiers are selected for this thing. An empty
+    // selection means "all calendars" and will be interpreted as such by
+    // CalendarManager.
+    var selectedCalendarIDs: Set<String> {
+        get {
+            guard let data = UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.data(forKey: "selectedCalendarIDs"),
+                  let decoded = try? JSONDecoder().decode(Set<String>.self, from: data) else {
+                return []
+            }
+            return decoded
+        }
+        set {
+            objectWillChange.send()
+            guard let encoded = try? JSONEncoder().encode(newValue) else { return }
+            UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")?.set(encoded, forKey: "selectedCalendarIDs")
+            // Trigger an update to reload events based on new selection
+            update()
+        }
+    }
     
     var events: [EKEvent] = []
     var eventsFormatted: [event] = []
@@ -53,7 +66,8 @@ class CalendarThing: Thing {
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "h:mm a"
         
-        calendar.fetchEventsForNextDay { result in
+        // Pass the selected IDs to the manager
+        calendar.fetchEventsForNextDay(calendarIDs: Array(selectedCalendarIDs)) { result in
             DispatchQueue.main.async { [self] in
                 self.updateAuthorizationStatus() // This updates a @Published property
                 switch result {
@@ -125,20 +139,23 @@ class CalendarThing: Thing {
     }
     
     private func updateAuthorizationStatus() {
-            let status = EKEventStore.authorizationStatus(for: .event)
-            switch status {
-            case .authorized: authorizationStatus = "Authorized"
-            case .denied: authorizationStatus = "Denied"
-            case .notDetermined: authorizationStatus = "Not Determined" // This updates a @Published property
-            case .restricted: authorizationStatus = "Restricted" // This updates a @Published property
-            case .fullAccess: authorizationStatus = "Full Access" // This updates a @Published property
-            case .writeOnly: authorizationStatus = "Write Only" // This updates a @Published property
-            @unknown default: authorizationStatus = "Unknown" // This updates a @Published property
-            }
+        let status = EKEventStore.authorizationStatus(for: .event)
+        switch status {
+        case .authorized: authorizationStatus = "Authorized"
+        case .denied: authorizationStatus = "Denied"
+        case .notDetermined: authorizationStatus = "Not Determined"
+        case .restricted: authorizationStatus = "Restricted"
+        case .fullAccess: authorizationStatus = "Full Access"
+        case .writeOnly: authorizationStatus = "Write Only"
+        @unknown default: authorizationStatus = "Unknown"
+        }
     }
     
     override func update() {
-        if getCalendarAuthStatus() {
+        let isAuthorized = getCalendarAuthStatus()
+        
+        // If we are already authorized, load events immediately.
+        if isAuthorized {
             let tempEventHolder = eventsFormatted.count
             loadEvents {
                 if tempEventHolder != self.eventsFormatted.count {
@@ -149,6 +166,7 @@ class CalendarThing: Thing {
         }
     }
     
+    // ... (toString implementation remains the same) ...
     override func toString(mirror: Bool = false) -> String {
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "h:mm a"
@@ -192,7 +210,6 @@ class CalendarThing: Thing {
         AnyView(
             NavigationStack {
                 ZStack {
-                    //backgroundGrid(themeIn: theme)
                     (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
                         .ignoresSafeArea()
                     VStack{
@@ -218,6 +235,14 @@ class CalendarThing: Thing {
     }
 }
 
+// Lightweight model for displaying calendars in the settings UI.
+struct DisplayCalendar: Identifiable, Hashable {
+    var id: String
+    var name: String
+    var source: String
+    var color: Color
+}
+
 struct calendarSettingsPage: View {
     @ObservedObject var thing: CalendarThing
     @StateObject var theme: ThemeColors
@@ -226,21 +251,37 @@ struct calendarSettingsPage: View {
     @State private var replacementTitle: String = ""
     
     @State var showOverridePopup: Bool = false
+    @State var showCalendarSelector: Bool = false
     @State var showAlert: Bool = false
+    
+    // State for calendar selection sheet
+    @State private var availableCalendars: [DisplayCalendar] = []
     
     init(thing: CalendarThing, themeIn: ThemeColors) {
         self.thing = thing
         _theme = StateObject(wrappedValue: themeIn)
     }
     
+    // Helper to fetch and map EKCalendars to DisplayCalendars
+    private func fetchCalendars() {
+        let calendars = thing.calendar.getAvailableCalendars()
+        self.availableCalendars = calendars.map { ekCal in
+            DisplayCalendar(
+                id: ekCal.calendarIdentifier,
+                name: ekCal.title,
+                source: ekCal.source.title,
+                color: Color(cgColor: ekCal.cgColor)
+            )
+        }
+    }
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack{
-                //backgroundGrid(themeIn: theme)
                 (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
                     .ignoresSafeArea()
                 ScrollView(.vertical) {
-                    //Has not been implemented
+                    
                     HStack {
                         Text("Text overrides")
                         Spacer()
@@ -252,8 +293,22 @@ struct calendarSettingsPage: View {
                         }
                     }
                     .settingsItem(themeIn: theme)
-                    
                     Text("Override event titles. Titles to be overriden must be exact matches.")
+                        .explanationText(themeIn: theme, width: geometry.size.width * 0.9)
+                    
+                    HStack{
+                        Text("Calendars")
+                        Spacer()
+                        Button {
+                            fetchCalendars()
+                            showCalendarSelector = true
+                        } label: {
+                            Image(systemName: "chevron.right.circle.fill")
+                                .settingsButton(themeIn: theme)
+                        }
+                    }
+                    .settingsItem(themeIn: theme)
+                    Text("Choose which calendars are used when fetching events. If none are selected, all calendars will be used.")
                         .explanationText(themeIn: theme, width: geometry.size.width * 0.9)
                 }
             }
@@ -263,6 +318,7 @@ struct calendarSettingsPage: View {
                         .pageHeaderText(themeIn: theme)
                 }
             }
+            // Overrides sheet
             .sheet(isPresented: $showOverridePopup) {
                 ZStack {
                     (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
@@ -341,6 +397,68 @@ struct calendarSettingsPage: View {
                     }
                 } message: {
                     Text("Enter the original event title and its replacement")
+                }
+            }
+            // Calendars selector sheet
+            .sheet(isPresented: $showCalendarSelector) {
+                ZStack {
+                    (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
+                        .ignoresSafeArea()
+                    VStack {
+                        Text("Select Calendars")
+                            .pageHeaderText(themeIn: theme)
+                            .padding(.top, 20)
+                        
+                        ScrollView {
+                            // Group by source (e.g., iCloud, Gmail)
+                            let grouped = Dictionary(grouping: availableCalendars, by: { $0.source })
+                            ForEach(grouped.keys.sorted(), id: \.self) { source in
+                                VStack(alignment: .leading) {
+                                    Text(source)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .padding(.leading, 16)
+                                        .padding(.top, 10)
+                                    
+                                    ForEach(grouped[source] ?? []) { calendar in
+                                        HStack {
+                                            Circle()
+                                                .fill(calendar.color)
+                                                .frame(width: 10, height: 10)
+                                            Text(calendar.name)
+                                                .foregroundStyle(theme.darkMode ? theme.light : theme.dark)
+                                            Spacer()
+                                            
+                                            // Toggle logic
+                                            let isSelected = thing.selectedCalendarIDs.contains(calendar.id)
+                                            Button {
+                                                if isSelected {
+                                                    thing.selectedCalendarIDs.remove(calendar.id)
+                                                } else {
+                                                    thing.selectedCalendarIDs.insert(calendar.id)
+                                                }
+                                                // Trigger setter to save
+                                                thing.selectedCalendarIDs = thing.selectedCalendarIDs
+                                            } label: {
+                                                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                                    .foregroundStyle(isSelected ? (theme.darkMode ? theme.accentLight : theme.accentDark) : .gray)
+                                                    .font(.title2)
+                                            }
+                                        }
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal, 16)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(theme.darkMode ? theme.darkSec : theme.lightSec)
+                                                .opacity(0.5)
+                                        )
+                                        .padding(.horizontal, 16)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding(.bottom, 20)
                 }
             }
         }
