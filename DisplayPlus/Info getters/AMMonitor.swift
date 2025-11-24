@@ -86,9 +86,22 @@ class AMMonitor: ObservableObject {
     }
 
     func getAuthStatus() -> Bool {
-        startMusicObservation()
+        let status = MPMediaLibrary.authorizationStatus()
+        
+        // If permission hasn't been determined yet, explicitly request it.
+        // This triggers the system prompt.
+        if status == .notDetermined {
+            MPMediaLibrary.requestAuthorization { _ in
+                // The next update cycle will pick up the new status
+            }
+        }
 
-        return MPMediaLibrary.authorizationStatus() == .authorized
+        if status == .authorized {
+            startMusicObservation()
+            return true
+        }
+        
+        return false
     }
 
     deinit {
