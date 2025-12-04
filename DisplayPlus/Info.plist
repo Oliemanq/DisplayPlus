@@ -18,6 +18,21 @@
 			<false/>
 		</dict>
 	</dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.spotify.iOS-SDK-Quick-Start</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>spotify-ios-quick-start</string>
+			</array>
+		</dict>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>spotify</string>
+	</array>
 	<key>MKDirectionsApplicationSupportedModes</key>
 	<array/>
 	<key>UIBackgroundModes</key>

@@ -2,7 +2,12 @@ import Foundation
 import SwiftUI
 
 class MusicThing: Thing {
-    var music: AMMonitor = AMMonitor()
+    let AM: AMManager = AMManager.shared
+    let Spotify: SpotifyManager = SpotifyManager.shared
+    
+    @AppStorage("musicSource", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var source: String = ""
+    var musicSource: MusicManager = MusicManager()
+    
     let rm = RenderingManager()
     
     var curSongForPreview: Song
@@ -13,6 +18,12 @@ class MusicThing: Thing {
         curSongForPreview = curSong
                 
         super.init(name: name, type: "Music", thingSize: size)
+        
+        if source == "Spotify" {
+            musicSource = Spotify
+        } else if source == "Apple Music" {
+            musicSource = AM
+        }
     }
     
     required init(from decoder: Decoder) throws {
@@ -22,16 +33,16 @@ class MusicThing: Thing {
     
     override func update() {
         if isNotPhone() {
-            music.curSong = Song(title: "Preview Song Title", artist: "Preview Artist Name", album: "Preview Album", duration: 240, currentTime: 120, isPaused: false, songChanged: true)
+            musicSource.curSong = Song(title: "Preview Song Title", artist: "Preview Artist Name", album: "Preview Album", duration: 240, currentTime: 120, isPaused: false, songChanged: true)
             updated = true
         }else {
             if getAuthStatus() {
-//                print("Updating music info...\n")
-                music.updateCurrentSong()
+//                print("Updating musicSource info...\n")
+                //musicSource.updateCurSong()
 //                print("Music info updated.")
-//                print("Title: \(music.curSong.title), Duration: \(music.curSong.duration), Current Time: \(music.curSong.currentTime), Is Paused: \(music.curSong.isPaused), Song Changed: \(music.curSong.songChanged)\n")
+//                print("Title: \(musicSource.curSong.title), Duration: \(musicSource.curSong.duration), Current Time: \(musicSource.curSong.currentTime), Is Paused: \(musicSource.curSong.isPaused), Song Changed: \(musicSource.curSong.songChanged)\n")
                 
-                if music.curSong.title != music.curSong.title || music.curSong.isPaused != music.curSong.isPaused || music.curSong.currentTime != music.curSong.currentTime {
+                if musicSource.curSong.title != musicSource.curSong.title || musicSource.curSong.isPaused != musicSource.curSong.isPaused || musicSource.curSong.currentTime != musicSource.curSong.currentTime {
                     updated = true
                 }
             }
@@ -39,24 +50,24 @@ class MusicThing: Thing {
     }
     
     func setCurSong(song: Song) {
-        music.curSong = song
+        musicSource.curSong = song
     }
     
     func getTitle() -> String {
-        return music.curSong.title
+        return musicSource.curSong.title
     }
     func getArtist() -> String {
-        return music.curSong.artist
+        return musicSource.curSong.artist
     }
     func getAlbum() -> String {
-        return music.curSong.album
+        return musicSource.curSong.album
     }
     func getCurSong() -> Song {
-        return music.curSong
+        return musicSource.curSong
     }
     
     override func getAuthStatus() -> Bool {
-        return music.getAuthStatus() // Return the music authorization status
+        return musicSource.getAuthStatus() // Return the musicSource authorization status
     }
     
     func buildArtistLine(widthIn: CGFloat = 100.0, curSongIn: Song) -> String {
@@ -125,7 +136,7 @@ class MusicThing: Thing {
             }
             artistLine = "\(title)\(artist.isEmpty ? "" : " - ")\(artist)"
             doesFitOnScreen = rm.doesFitOnScreen(text: "\(title) - \(artist)", maxWidth: widthIn)
-            music.curSong.songChanged = false // Reset change flag after rebuilding
+            musicSource.curSong.songChanged = false // Reset change flag after rebuilding
         } else {
             var titleShortened = false
             while tm.getWidth(title) > widthIn {
@@ -146,7 +157,7 @@ class MusicThing: Thing {
             if isNotPhone() {
                 return curSongForPreview
             } else {
-                return music.curSong
+                return musicSource.curSong
             }
         }()
         
@@ -209,21 +220,59 @@ class MusicThing: Thing {
     }
     
     private func settingsPage() -> some View {
-        ZStack{
-            //backgroundGrid(themeIn: theme)
+        ZStack {
             (theme.darkMode ? theme.backgroundDark : theme.backgroundLight)
                 .ignoresSafeArea()
             
             ScrollView(.vertical) {
+                // Source Selection
                 HStack {
-                    Text("No settings currently available for Music Thing, to be added in the future with more integrations")
+                    Text("Music Source")
+                    Spacer()
+                    Menu {
+                        Button("Apple Music") {
+                            print("Selected Apple Music as source")
+                            self.source = "Apple Music"
+                            self.musicSource = self.AM
+                        }
+                        Button("Spotify") {
+                            print("Selected Spotify as source")
+                            self.source = "Spotify"
+                            self.musicSource = self.Spotify
+                        }
+                    } label: {
+                        Text(source)
+                            .settingsButton(themeIn: theme)
+                    }
                 }
                 .settingsItem(themeIn: theme)
+                
+                // Spotify Specific Controls
+                if source == "Spotify" {
+                    VStack{
+                        HStack{
+                            Text("Connect to Spotify")
+                            Spacer()
+                            Button {
+                                self.Spotify.authorize()
+                            } label: {
+                                HStack {
+                                    Image(systemName: "person.crop.circle.badge.checkmark")
+                                        .settingsButton(themeIn: theme)
+                                }
+                            }
+                        }
+                        .settingsItem(themeIn: theme)
+                        
+                        Text("Note: You must have the Spotify app installed and be logged in.")
+                            .settingsButtonText(themeIn: theme)
+                    }
+                }
             }
         }
-        .toolbar{
+        .toolbar {
             ToolbarItem(placement: .title) {
-                Text("Music Thing Settings")
+                Text("Music Settings")
                     .pageHeaderText(themeIn: theme)
             }
         }

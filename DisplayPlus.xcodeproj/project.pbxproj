@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4E43801A2EC39008006D09A0 /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 4E4380192EC39008006D09A0 /* OpenMeteoSdk */; };
+		4E2F80402EE0FCDD00D579A9 /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 4E2F803F2EE0FCDD00D579A9 /* OpenMeteoSdk */; };
+		4E55FD922EE14D0C00B9F794 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 4E55FD912EE14D0C00B9F794 /* SpotifyiOS */; };
 		4E627B962E72676F00E38E36 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E627B952E72676F00E38E36 /* WidgetKit.framework */; };
 		4E627B972E72676F00E38E36 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E8DA2912E1EFDFF00934ED3 /* SwiftUI.framework */; };
 		4E627BA62E72677000E38E36 /* DisplayPlusWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4E627B942E72676F00E38E36 /* DisplayPlusWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -128,7 +129,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4E43801A2EC39008006D09A0 /* OpenMeteoSdk in Frameworks */,
+				4E2F80402EE0FCDD00D579A9 /* OpenMeteoSdk in Frameworks */,
+				4E55FD922EE14D0C00B9F794 /* SpotifyiOS in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -218,7 +220,8 @@
 			);
 			name = DisplayPlus;
 			packageProductDependencies = (
-				4E4380192EC39008006D09A0 /* OpenMeteoSdk */,
+				4E2F803F2EE0FCDD00D579A9 /* OpenMeteoSdk */,
+				4E55FD912EE14D0C00B9F794 /* SpotifyiOS */,
 			);
 			productName = DisplayPlus;
 			productReference = 4E70104E2DBD6F4800F868F4 /* DisplayPlus.app */;
@@ -279,7 +282,8 @@
 			mainGroup = 4E7010452DBD6F4700F868F4;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				4E4380182EC39008006D09A0 /* XCRemoteSwiftPackageReference "sdk" */,
+				4E2F803E2EE0FCDD00D579A9 /* XCRemoteSwiftPackageReference "sdk" */,
+				4E55FD902EE14D0C00B9F794 /* XCRemoteSwiftPackageReference "ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4E70104F2DBD6F4800F868F4 /* Products */;
@@ -577,9 +581,11 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.2;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "DisplayPlus-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -619,9 +625,11 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.2;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = Oliemanq.DisplayPlus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "DisplayPlus-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -707,21 +715,34 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		4E4380182EC39008006D09A0 /* XCRemoteSwiftPackageReference "sdk" */ = {
+		4E2F803E2EE0FCDD00D579A9 /* XCRemoteSwiftPackageReference "sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/open-meteo/sdk.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.5.0;
+				branch = main;
+				kind = branch;
+			};
+		};
+		4E55FD902EE14D0C00B9F794 /* XCRemoteSwiftPackageReference "ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/spotify/ios-sdk.git";
+			requirement = {
+				branch = master;
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		4E4380192EC39008006D09A0 /* OpenMeteoSdk */ = {
+		4E2F803F2EE0FCDD00D579A9 /* OpenMeteoSdk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4E4380182EC39008006D09A0 /* XCRemoteSwiftPackageReference "sdk" */;
+			package = 4E2F803E2EE0FCDD00D579A9 /* XCRemoteSwiftPackageReference "sdk" */;
 			productName = OpenMeteoSdk;
+		};
+		4E55FD912EE14D0C00B9F794 /* SpotifyiOS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4E55FD902EE14D0C00B9F794 /* XCRemoteSwiftPackageReference "ios-sdk" */;
+			productName = SpotifyiOS;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

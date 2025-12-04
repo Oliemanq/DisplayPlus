@@ -1,5 +1,5 @@
 import SwiftUI
-import BackgroundTasks // Import BackgroundTasks
+import BackgroundTasks
 
 @main
 struct DisplayPlusApp: App {
@@ -8,9 +8,13 @@ struct DisplayPlusApp: App {
     var body: some Scene {
         WindowGroup {
             DefaultView(themeIn: theme)
+                .onOpenURL { url in
+                    SpotifyManager.shared.handleOpenURL(url)
+                }
         }
     }
 }
+// ... (ThemeColors class remains unchanged)
 
 class ThemeColors: ObservableObject {
 //    @Published var pri: Color = Color(red: 10/255, green: 25/255, blue: 10/255)
