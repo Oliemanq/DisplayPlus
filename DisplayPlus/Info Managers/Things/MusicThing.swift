@@ -6,7 +6,8 @@ class MusicThing: Thing {
     let Spotify: SpotifyManager = SpotifyManager.shared
     
     @AppStorage("musicSource", store: UserDefaults(suiteName: "group.Oliemanq.DisplayPlus")) var source: String = ""
-    var musicSource: MusicManager = MusicManager()
+    var validMusicSources: [MusicManager] = []
+    var musicSource: MusicManager = MusicManager(iconIn: Image(systemName: "music.note"), nameIn: "None")
     
     let rm = RenderingManager()
     
@@ -18,6 +19,8 @@ class MusicThing: Thing {
         curSongForPreview = curSong
                 
         super.init(name: name, type: "Music", thingSize: size)
+        
+        validMusicSources = [Spotify, AM]
         
         if source == "Spotify" {
             musicSource = Spotify
@@ -38,7 +41,7 @@ class MusicThing: Thing {
         }else {
             if getAuthStatus() {
 //                print("Updating musicSource info...\n")
-                //musicSource.updateCurSong()
+                musicSource.updateCurSong()
 //                print("Music info updated.")
 //                print("Title: \(musicSource.curSong.title), Duration: \(musicSource.curSong.duration), Current Time: \(musicSource.curSong.currentTime), Is Paused: \(musicSource.curSong.isPaused), Song Changed: \(musicSource.curSong.songChanged)\n")
                 
@@ -229,19 +232,25 @@ class MusicThing: Thing {
                 HStack {
                     Text("Music Source")
                     Spacer()
+                    Text(source)
+                        .frame(width: CGFloat(10*source.count))
+                        .settingsButtonText(themeIn: theme)
                     Menu {
-                        Button("Apple Music") {
-                            print("Selected Apple Music as source")
-                            self.source = "Apple Music"
-                            self.musicSource = self.AM
-                        }
-                        Button("Spotify") {
-                            print("Selected Spotify as source")
-                            self.source = "Spotify"
-                            self.musicSource = self.Spotify
+                        ForEach(validMusicSources, id: \.self) { musicManager in
+                            Button(action: {
+                                print("Switching music source to \(musicManager.name)")
+                                self.source = musicManager.name
+                                self.musicSource = musicManager
+                            }) {
+                                Text(musicManager.name)
+                                musicManager.icon
+                            }
                         }
                     } label: {
-                        Text(source)
+                        musicSource.icon
+                            .resizable()
+                            .frame(width: 32, height: 32)
+                            .tint(theme.darkMode ? theme.light : theme.dark)
                             .settingsButton(themeIn: theme)
                     }
                 }

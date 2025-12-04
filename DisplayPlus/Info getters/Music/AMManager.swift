@@ -3,7 +3,7 @@ import MediaPlayer
 import SwiftUI
 
 class AMManager: MusicManager {
-    static let shared = AMManager()
+    static let shared = AMManager(iconIn: Image(systemName: "music.note"), nameIn: "Apple Music")
     
     private let player = MPMusicPlayerController.systemMusicPlayer
 

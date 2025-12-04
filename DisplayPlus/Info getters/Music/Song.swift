@@ -5,6 +5,14 @@ import SwiftUI
 class MusicManager: NSObject, ObservableObject {
     var curSong: Song = .empty
     var prevSong: Song = .empty
+    
+    var icon: Image
+    var name: String
+    
+    init(iconIn: Image, nameIn: String) {
+        icon = iconIn
+        name = nameIn
+    }
 
     func updateCurSong() {
         print("Updating curSong with no input")
@@ -36,6 +44,7 @@ struct Song {
     var duration: TimeInterval
     var currentTime: TimeInterval
     var isPaused: Bool
+    var isMixing: Bool = false
     var songChanged: Bool
 
     static let empty = Song(title: "", artist: "", album: "", duration: 0, currentTime: 0, isPaused: true, songChanged: false)

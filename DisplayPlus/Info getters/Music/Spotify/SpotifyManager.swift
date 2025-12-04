@@ -4,7 +4,7 @@ import SwiftUI
 class SpotifyManager: MusicManager, SPTAppRemoteDelegate, SPTAppRemotePlayerStateDelegate {
     
     // Singleton instance to ensure one connection manager exists
-    static let shared = SpotifyManager()
+    static let shared = SpotifyManager(iconIn: Image("SpotifyIcon"), nameIn: "Spotify")
     
     let spotifyClientID = "658f4243df2e439a86c8cf57074d853d"
     let spotifyRedirectURL = URL(string: "spotify-ios-quick-start://spotify-login-callback")!
@@ -22,10 +22,6 @@ class SpotifyManager: MusicManager, SPTAppRemoteDelegate, SPTAppRemotePlayerStat
     }()
     
     private var accessToken: String?
-    
-    override init() {
-        super.init()
-    }
     
     // MARK: - Auth & Connection
     
@@ -79,6 +75,8 @@ class SpotifyManager: MusicManager, SPTAppRemoteDelegate, SPTAppRemotePlayerStat
     func playerStateDidChange(_ playerState: SPTAppRemotePlayerState) {
         let track = playerState.track
         
+        let isMixing = playerState.playbackSpeed != 1.0
+        
         let title = track.name
         let artist = track.artist.name
         let album = track.album.name
@@ -97,7 +95,21 @@ class SpotifyManager: MusicManager, SPTAppRemoteDelegate, SPTAppRemotePlayerStat
             duration: duration,
             currentTime: currentTime,
             isPaused: isPaused,
+            isMixing: isMixing,
             songChanged: songChanged
         ))
+    }
+    
+    override func updateCurSong() {
+        appRemote.playerAPI?.getPlayerState { [weak self] (result, error) in
+            if let error = error {
+                print("Error getting player state: \(error)")
+                return
+            }
+            
+            if let playerState = result as? SPTAppRemotePlayerState {
+                self?.playerStateDidChange(playerState)
+            }
+        }
     }
 }

@@ -45,7 +45,7 @@ struct DefaultView: View {
 
         let bgInstance = BackgroundTaskManager(ble: bleInstance, pmIn: pageInstance)
         _bg = StateObject(wrappedValue: bgInstance)
-    }
+        }
     
     var body: some View {
         TabView {
@@ -284,6 +284,7 @@ struct DefaultView: View {
             ble.connectionStatus = "Disconnected"
             ble.connectionState = .disconnected
             theme.darkMode = colorScheme == .dark
+            pm.updateTheme(themeIn: theme)
                         
             ble.handlePairedDevices()
             
